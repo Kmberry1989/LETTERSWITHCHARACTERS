@@ -3,6 +3,7 @@ import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 import { cn } from '@/lib/utils';
 import { FirebaseProvider } from '@/firebase/provider';
+import { BerriesProvider } from '@/hooks/use-berries';
 
 export const metadata: Metadata = {
   title: 'Letters with Characters',
@@ -26,7 +27,9 @@ export default function RootLayout({
       </head>
       <body className={cn('font-body antialiased', 'min-h-screen bg-background font-sans')}>
         <FirebaseProvider>
-          {children}
+          <BerriesProvider>
+            {children}
+          </BerriesProvider>
         </FirebaseProvider>
         <Toaster />
       </body>

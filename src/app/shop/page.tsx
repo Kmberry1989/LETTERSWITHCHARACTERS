@@ -1,9 +1,14 @@
+'use client';
+
 import Image from 'next/image';
 import AppLayout from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Cherry } from 'lucide-react';
+import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { useBerries } from '@/hooks/use-berries';
 
 const shopItems = [
   {
@@ -36,7 +41,7 @@ const shopItems = [
   }
 ];
 
-function ShopItemCard({ item }: { item: typeof shopItems[0] }) {
+function ShopItemCard({ item, onPurchase, disabled }: { item: typeof shopItems[0], onPurchase: (price: number) => void, disabled: boolean }) {
   const image = PlaceHolderImages.find((p) => p.id === item.imageId);
   return (
     <Card className="flex flex-col">
@@ -57,7 +62,7 @@ function ShopItemCard({ item }: { item: typeof shopItems[0] }) {
         )}
       </CardContent>
       <CardFooter>
-        <Button className="w-full">
+        <Button className="w-full" onClick={() => onPurchase(item.price)} disabled={disabled}>
           <Cherry className="mr-2 h-4 w-4 text-red-400" />
           {item.price.toLocaleString()}
         </Button>
@@ -67,6 +72,27 @@ function ShopItemCard({ item }: { item: typeof shopItems[0] }) {
 }
 
 export default function ShopPage() {
+  const { berries, setBerries } = useBerries();
+  const { toast } = useToast();
+  const [purchasedItems, setPurchasedItems] = useState<string[]>([]);
+
+  const handlePurchase = (itemId: string, price: number) => {
+    if (berries >= price) {
+      setBerries(berries - price);
+      setPurchasedItems([...purchasedItems, itemId]);
+      toast({
+        title: 'Purchase Successful!',
+        description: `You bought a new item!`,
+      });
+    } else {
+      toast({
+        variant: 'destructive',
+        title: 'Not Enough Berries',
+        description: "You don't have enough berries to purchase this item.",
+      });
+    }
+  };
+
   return (
     <AppLayout>
       <div className="flex-1 space-y-4 p-4 sm:p-8">
@@ -78,7 +104,12 @@ export default function ShopPage() {
         </p>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {shopItems.map((item) => (
-            <ShopItemCard key={item.id} item={item} />
+            <ShopItemCard 
+              key={item.id} 
+              item={item} 
+              onPurchase={() => handlePurchase(item.id, item.price)}
+              disabled={purchasedItems.includes(item.id) || berries < item.price}
+            />
           ))}
         </div>
       </div>

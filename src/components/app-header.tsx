@@ -1,13 +1,18 @@
+'use client';
+
 import { UserNav } from '@/components/user-nav';
 import { SidebarTrigger } from './ui/sidebar';
 import { Button } from './ui/button';
 import { Cherry } from 'lucide-react';
+import { useBerries } from '@/hooks/use-berries';
+
 
 function BerryDisplay() {
+  const { berries } = useBerries();
   return (
     <Button variant="outline" className="flex items-center gap-2">
       <Cherry className="text-red-500" />
-      <span className="font-bold">1,250</span>
+      <span className="font-bold">{berries.toLocaleString()}</span>
       <span className="sr-only">Berries</span>
     </Button>
   );
