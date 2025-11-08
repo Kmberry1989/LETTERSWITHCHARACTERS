@@ -9,65 +9,37 @@ import { Cherry } from 'lucide-react';
 import { useState } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useBerries } from '@/hooks/use-berries';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 const shopItems = [
-  {
-    id: 'tile-wood',
-    name: 'Wooden Tile Set',
-    description: 'A classic, rustic look for your tiles.',
-    price: 500,
-    imageId: 'tile-wood'
-  },
-  {
-    id: 'tile-metallic',
-    name: 'Metallic Tile Set',
-    description: 'A sleek, modern look for your tiles.',
-    price: 750,
-    imageId: 'tile-metallic'
-  },
-  {
-    id: 'tile-marble',
-    name: 'Marble Tile Set',
-    description: 'An elegant, polished marble design.',
-    price: 1000,
-    imageId: 'tile-marble'
-  },
-  {
-    id: 'tile-cosmic',
-    name: 'Cosmic Tile Set',
-    description: 'An out-of-this-world cosmic design.',
-    price: 1500,
-    imageId: 'tile-cosmic'
-  },
-  {
-    id: 'board-wood',
-    name: 'Dark Wood Board',
-    description: 'A rich, dark wood theme for your game board.',
-    price: 1200,
-    imageId: 'board-wood'
-  },
-   {
-    id: 'board-stone',
-    name: 'Stone Board',
-    description: 'A cool, solid stone board theme.',
-    price: 1200,
-    imageId: 'board-stone'
-  },
-  {
-    id: 'board-beach',
-    name: 'Beach Board',
-    description: 'Relax with this sandy beach board theme.',
-    price: 1200,
-    imageId: 'board-beach'
-  },
-  {
-    id: 'board-space',
-    name: 'Space Board',
-    description: 'Take your game to the final frontier.',
-    price: 2000,
-    imageId: 'board-space'
-  }
+  { id: 'tile-wood', name: 'Wooden Tiles', description: 'A classic, rustic look.', price: 500, imageId: 'tile-wood' },
+  { id: 'tile-gummy', name: 'Gummy Tiles', description: 'A sweet and chewy design.', price: 750, imageId: 'tile-gummy' },
+  { id: 'tile-runes', name: 'Runic Tiles', description: 'Mystical and ancient.', price: 1000, imageId: 'tile-runes' },
+  { id: 'tile-circuit', name: 'Circuit Tiles', description: 'A high-tech look.', price: 1200, imageId: 'tile-circuit' },
+  { id: 'tile-felt', name: 'Felt Tiles', description: 'A soft, crafty feel.', price: 600, imageId: 'tile-felt' },
+  { id: 'tile-chrome', name: 'Chrome Tiles', description: 'Sleek and reflective.', price: 1500, imageId: 'tile-chrome' },
+  { id: 'tile-holographic', name: 'Holographic Tiles', description: 'Shimmering and futuristic.', price: 2000, imageId: 'tile-holographic' },
+  { id: 'tile-lava', name: 'Lava Tiles', description: 'Hot and dangerous.', price: 1750, imageId: 'tile-lava' },
+  { id: 'tile-papyrus', name: 'Papyrus Tiles', description: 'Ancient and papery.', price: 800, imageId: 'tile-papyrus' },
+  { id: 'tile-gilded', name: 'Gilded Tiles', description: 'Ornate and luxurious.', price: 2500, imageId: 'tile-gilded' },
+  { id: 'tile-jellyfish', name: 'Jellyfish Tiles', description: 'Bioluminescent and deep.', price: 1800, imageId: 'tile-jellyfish' },
+  { id: 'tile-carbon', name: 'Carbon Fiber Tiles', description: 'Strong and lightweight.', price: 2200, imageId: 'tile-carbon' },
+  { id: 'tile-minimalist', name: 'Minimalist Tiles', description: 'Clean and simple.', price: 500, imageId: 'tile-minimalist' },
+  { id: 'board-wood', name: 'Dark Wood Board', description: 'A rich, dark wood theme.', price: 1200, imageId: 'board-wood' },
+  { id: 'board-zen', name: 'Zen Garden Board', description: 'Peaceful and serene.', price: 1500, imageId: 'board-zen' },
+  { id: 'board-desk', name: 'Captain\'s Desk Board', description: 'Nautical and adventurous.', price: 1600, imageId: 'board-desk' },
+  { id: 'board-blossom', name: 'Cherry Blossom Board', description: 'Beautiful and floral.', price: 1800, imageId: 'board-blossom' },
+  { id: 'board-neon', name: 'Neon City Board', description: 'Cyberpunk and vibrant.', price: 2000, imageId: 'board-neon' },
+  { id: 'board-blueprint', name: 'Blueprint Board', description: 'Architectural and precise.', price: 1400, imageId: 'board-blueprint' },
+  { id: 'board-jungle', name: 'Jungle Board', description: 'Lush and wild.', price: 1700, imageId: 'board-jungle' },
+  { id: 'board-library', name: 'Library Board', description: 'Cozy and studious.', price: 1600, imageId: 'board-library' },
+  { id: 'board-ice', name: 'Arctic Ice Board', description: 'Cold and crystalline.', price: 1800, imageId: 'board-ice' },
+  { id: 'board-candy', name: 'Candy Land Board', description: 'Sweet and delightful.', price: 2200, imageId: 'board-candy' },
+  { id: 'board-pirate', name: 'Pirate Map Board', description: 'An adventurous journey.', price: 1900, imageId: 'board-pirate' },
+  { id: 'board-stained-glass', name: 'Stained Glass Board', description: 'Artistic and colorful.', price: 2500, imageId: 'board-stained-glass' },
+  { id: 'board-deep-space', name: 'Deep Space Board', description: 'Vast and mysterious.', price: 2800, imageId: 'board-deep-space' },
 ];
+
 
 function ShopItemCard({ item, onPurchase, disabled }: { item: typeof shopItems[0], onPurchase: (price: number) => void, disabled: boolean }) {
   const image = PlaceHolderImages.find((p) => p.id === item.imageId);
@@ -130,16 +102,18 @@ export default function ShopPage() {
         <p className="text-muted-foreground">
           Spend your hard-earned berries on new items for your avatar or custom game pieces.
         </p>
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {shopItems.map((item) => (
-            <ShopItemCard 
-              key={item.id} 
-              item={item} 
-              onPurchase={() => handlePurchase(item.id, item.price)}
-              disabled={purchasedItems.includes(item.id) || berries < item.price}
-            />
-          ))}
-        </div>
+        <ScrollArea className="h-[calc(100vh-12rem)]">
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 pr-4">
+            {shopItems.map((item) => (
+              <ShopItemCard 
+                key={item.id} 
+                item={item} 
+                onPurchase={() => handlePurchase(item.id, item.price)}
+                disabled={purchasedItems.includes(item.id) || berries < item.price}
+              />
+            ))}
+          </div>
+        </ScrollArea>
       </div>
     </AppLayout>
   );

@@ -6,21 +6,40 @@ import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
+import { ScrollArea } from '../ui/scroll-area';
 
 const tileSets = [
   { id: 'tile-plastic', name: 'Classic' },
   { id: 'tile-wood', name: 'Wooden' },
-  { id: 'tile-metallic', name: 'Metallic' },
-  { id: 'tile-marble', name: 'Marble' },
-  { id: 'tile-cosmic', name: 'Cosmic' },
+  { id: 'tile-gummy', name: 'Gummy' },
+  { id: 'tile-runes', name: 'Runes' },
+  { id: 'tile-circuit', name: 'Circuit' },
+  { id: 'tile-felt', name: 'Felt' },
+  { id: 'tile-chrome', name: 'Chrome' },
+  { id: 'tile-holographic', name: 'Holographic' },
+  { id: 'tile-lava', name: 'Lava' },
+  { id: 'tile-papyrus', name: 'Papyrus' },
+  { id: 'tile-gilded', name: 'Gilded' },
+  { id: 'tile-jellyfish', name: 'Jellyfish' },
+  { id: 'tile-carbon', name: 'Carbon Fiber' },
+  { id: 'tile-minimalist', name: 'Minimalist' },
 ];
 
 const boardThemes = [
   { id: 'board-green', name: 'Classic Green' },
   { id: 'board-wood', name: 'Dark Wood' },
-  { id: 'board-stone', name: 'Stone' },
-  { id: 'board-beach', name: 'Beach' },
-  { id: 'board-space', name: 'Space' },
+  { id: 'board-zen', name: 'Zen Garden' },
+  { id: 'board-desk', name: 'Captain\'s Desk' },
+  { id: 'board-blossom', name: 'Cherry Blossom' },
+  { id: 'board-neon', name: 'Neon City' },
+  { id: 'board-blueprint', name: 'Blueprint' },
+  { id: 'board-jungle', name: 'Jungle' },
+  { id: 'board-library', name: 'Library' },
+  { id: 'board-ice', name: 'Arctic Ice' },
+  { id: 'board-candy', name: 'Candy Land' },
+  { id: 'board-pirate', name: 'Pirate Map' },
+  { id: 'board-stained-glass', name: 'Stained Glass' },
+  { id: 'board-deep-space', name: 'Deep Space' },
 ];
 
 export default function AvatarEditor() {
@@ -71,30 +90,34 @@ export default function AvatarEditor() {
             <TabsTrigger value="boards">Board Themes</TabsTrigger>
           </TabsList>
           <TabsContent value="tiles">
-             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              {tileSets.map((item) => {
-                const image = PlaceHolderImages.find((p) => p.id === item.id);
-                return (
-                  <Button key={item.id} variant={selectedTileSet === item.id ? 'default' : 'outline'} onClick={() => setSelectedTileSet(item.id)} className="h-auto flex-col p-2 gap-2">
-                     {image && <Image src={image.imageUrl} alt={item.name} width={80} height={80} className="rounded-md object-cover aspect-square" />}
-                    {item.name}
-                  </Button>
-                );
-              })}
-            </div>
+            <ScrollArea className="h-96">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 pr-4">
+                {tileSets.map((item) => {
+                  const image = PlaceHolderImages.find((p) => p.id === item.id);
+                  return (
+                    <Button key={item.id} variant={selectedTileSet === item.id ? 'default' : 'outline'} onClick={() => setSelectedTileSet(item.id)} className="h-auto flex-col p-2 gap-2">
+                      {image && <Image src={image.imageUrl} alt={item.name} width={80} height={80} className="rounded-md object-cover aspect-square" />}
+                      {item.name}
+                    </Button>
+                  );
+                })}
+              </div>
+            </ScrollArea>
           </TabsContent>
            <TabsContent value="boards">
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              {boardThemes.map((item) => {
-                const image = PlaceHolderImages.find((p) => p.id === item.id);
-                return (
-                  <Button key={item.id} variant={selectedBoardTheme === item.id ? 'default' : 'outline'} onClick={() => setSelectedBoardTheme(item.id)} className="h-auto flex-col p-2 gap-2">
-                     {image && <Image src={image.imageUrl} alt={item.name} width={80} height={80} className="rounded-md object-cover aspect-square" />}
-                    {item.name}
-                  </Button>
-                );
-              })}
-            </div>
+             <ScrollArea className="h-96">
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 pr-4">
+                {boardThemes.map((item) => {
+                  const image = PlaceHolderImages.find((p) => p.id === item.id);
+                  return (
+                    <Button key={item.id} variant={selectedBoardTheme === item.id ? 'default' : 'outline'} onClick={() => setSelectedBoardTheme(item.id)} className="h-auto flex-col p-2 gap-2">
+                      {image && <Image src={image.imageUrl} alt={item.name} width={80} height={80} className="rounded-md object-cover aspect-square" />}
+                      {item.name}
+                    </Button>
+                  );
+                })}
+              </div>
+            </ScrollArea>
           </TabsContent>
         </Tabs>
       </div>

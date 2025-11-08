@@ -43,16 +43,160 @@
       "imageHint": "wood texture"
     },
     {
-      "id": "tile-metallic",
-      "description": "Metallic game tile design",
-      "imageUrl": "https://images.unsplash.com/photo-1614535683569-129faaa108f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxtZXRhbCUyMHRleHR1cmV8ZW58MHx8fHwxNzYyNjMyODE1fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "metal texture"
-    },
-    {
       "id": "tile-plastic",
       "description": "Classic plastic game tile design",
       "imageUrl": "https://images.unsplash.com/photo-1601339832262-1d5a278d65a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwbGFzdGljJTIwdGV4dHVyZXxlbnwwfHx8fDE3NjM0MTE4MzV8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "plastic texture"
+    },
+    {
+      "id": "tile-gummy",
+      "description": "Gummy candy tile set",
+      "imageUrl": "https://images.unsplash.com/photo-1600350702253-8e7b3b70747a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxndW1teSUyMGNhbmR5fGVufDB8fHx8MTc2NDEzNTA5OXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "gummy candy"
+    },
+    {
+      "id": "tile-runes",
+      "description": "Ancient runes tile set",
+      "imageUrl": "https://images.unsplash.com/photo-1598714863882-6288c3435b6b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzdG9uZSUyMHJ1bmVzfGVufDB8fHx8MTc2NDEzNTEyMnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "stone runes"
+    },
+    {
+      "id": "tile-circuit",
+      "description": "Circuit board tile set",
+      "imageUrl": "https://images.unsplash.com/photo-1550751827-4138d0a31b6e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjaXJjdWl0JTIwYm9hcmR8ZW58MHx8fHwxNzY0MTM1MTQxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "circuit board"
+    },
+    {
+      "id": "tile-felt",
+      "description": "Stitched felt tile set",
+      "imageUrl": "https://images.unsplash.com/photo-1627916943807-6819688fd36f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzdGl0Y2hlZCUyMGZlbHR8ZW58MHx8fHwxNzY0MTM1MTYwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "stitched felt"
+    },
+    {
+      "id": "tile-chrome",
+      "description": "Polished chrome tile set",
+      "imageUrl": "https://images.unsplash.com/photo-1519717834568-d2a450b73161?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjaHJvbWUlMjB0ZXh0dXJlfGVufDB8fHx8MTc2NDEzNTE4MHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "chrome texture"
+    },
+    {
+      "id": "tile-holographic",
+      "description": "Holographic tile set",
+      "imageUrl": "https://images.unsplash.com/photo-1579546929518-9e396f3cc809?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxob2xvZ3JhcGhpYyUyMHRleHR1cmV8ZW58MHx8fHwxNzY0MTM1MTk4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "holographic texture"
+    },
+    {
+      "id": "tile-lava",
+      "description": "Cracked lava tile set",
+      "imageUrl": "https://images.unsplash.com/photo-1549488344-cbb6c34cf08b?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsYXZhJTIwdGV4dHVyZXxlbnwwfHx8fDE3NjQxMzUyMjR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "lava texture"
+    },
+    {
+      "id": "tile-papyrus",
+      "description": "Aged papyrus tile set",
+      "imageUrl": "https://images.unsplash.com/photo-1594800361549-3636f861214e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwYXB5cnVzJTIwdGV4dHVyZXxlbnwwfHx8fDE3NjQxMzUyNDR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "papyrus texture"
+    },
+    {
+      "id": "tile-gilded",
+      "description": "Gilded age tile set",
+      "imageUrl": "https://images.unsplash.com/photo-1579547844356-a9596c567845?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxibGFjayUyMGFuZCUyMGdvbGR8ZW58MHx8fHwxNzY0MTM1MjYxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "black gold"
+    },
+    {
+      "id": "tile-jellyfish",
+      "description": "Jellyfish tile set",
+      "imageUrl": "https://images.unsplash.com/photo-1535905557558-afc4877a26fc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxqZWxseWZpc2h8ZW58MHx8fHwxNzY0MTM1MjgzfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "jellyfish bioluminescent"
+    },
+    {
+      "id": "tile-carbon",
+      "description": "Carbon fiber tile set",
+      "imageUrl": "https://images.unsplash.com/photo-1605809985396-dd7d9b9c918a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjYXJib24lMjBmaWJlcnxlbnwwfHx8fDE3NjQxMzUzMDV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "carbon fiber"
+    },
+    {
+      "id": "tile-minimalist",
+      "description": "Minimalist tile set",
+      "imageUrl": "https://images.unsplash.com/photo-1512999336997-c19b0f4448f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxncmF5JTIwYmFja2dyb3VuZHxlbnwwfHx8fDE3NjQxMzUzMjR8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "gray background"
+    },
+    {
+      "id": "board-zen",
+      "description": "Zen garden board theme",
+      "imageUrl": "https://images.unsplash.com/photo-1542152865-8fb933741643?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx6ZW4lMjBnYXJkZW58ZW58MHx8fHwxNzY0MTM1MzQ1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "zen garden"
+    },
+    {
+      "id": "board-desk",
+      "description": "Captain's desk board theme",
+      "imageUrl": "https://images.unsplash.com/photo-1612178923055-3b15644855d4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx2aW50YWdlJTIwbWFwfGVufDB8fHx8MTc2NDEzNTM3NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "vintage map"
+    },
+    {
+      "id": "board-blossom",
+      "description": "Cherry blossom board theme",
+      "imageUrl": "https://images.unsplash.com/photo-1559637713-d7348902c384?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjaGVycnklMjBibG9zc29tfGVufDB8fHx8MTc2NDEzNTM5NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cherry blossom"
+    },
+    {
+      "id": "board-neon",
+      "description": "Neon cityscape board theme",
+      "imageUrl": "https://images.unsplash.com/photo-1570824104453-5092693e5a57?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxuZW9uJTIwY2l0eXxlbnwwfHx8fDE3NjQxMzU0MTJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "neon city"
+    },
+    {
+      "id": "board-blueprint",
+      "description": "Blueprint grid board theme",
+      "imageUrl": "https://images.unsplash.com/photo-1581092163981-9f973926ec37?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxibHVlcHJpbnR8ZW58MHx8fHwxNzY0MTM1NDMwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "blueprint"
+    },
+    {
+      "id": "board-jungle",
+      "description": "Lush jungle board theme",
+      "imageUrl": "https://images.unsplash.com/photo-1543397233-1573062333c4?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxqdW5nbGUlMjBsZWF2ZXN8ZW58MHx8fHwxNzY0MTM1NDUwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "jungle leaves"
+    },
+    {
+      "id": "board-library",
+      "description": "Cozy library board theme",
+      "imageUrl": "https://images.unsplash.com/photo-1521587760476-6c12a4b040da?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxsaWJyYXJ5fGVufDB8fHx8MTc2NDEzNTQ3Mnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "library"
+    },
+    {
+      "id": "board-ice",
+      "description": "Arctic ice board theme",
+      "imageUrl": "https://images.unsplash.com/photo-1563504113977-76703c233189?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjcmFja2VkJTIwaWNlfGVufDB8fHx8MTc2NDEzNTQ5M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cracked ice"
+    },
+    {
+      "id": "board-candy",
+      "description": "Candy land board theme",
+      "imageUrl": "https://images.unsplash.com/photo-1572277028825-7b5a5b5a03e6?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxjYW5keSUyMGxhbmR8ZW58MHx8fHwxNzY0MTM1NTEwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "candy land"
+    },
+    {
+      "id": "board-pirate",
+      "description": "Pirate's treasure map board theme",
+      "imageUrl": "https://images.unsplash.com/photo-1565123419815-5509a201f9f2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxwaXJhdGUlMjBtYXB8ZW58MHx8fHwxNzY0MTM1NTMwfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "pirate map"
+    },
+    {
+      "id": "board-stained-glass",
+      "description": "Stained glass board theme",
+      "imageUrl": "https://images.unsplash.com/photo-1575252309700-3575ae7b851f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxzdGFpbmVkJTIwZ2xhc3N8ZW58MHx8fHwxNzY0MTM1NTQ3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "stained glass"
+    },
+    {
+      "id": "board-deep-space",
+      "description": "Deep space board theme",
+      "imageUrl": "https://images.unsplash.com/photo-1451187580459-43490279c0fa?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkZWVwJTIwc3BhY2V8ZW58MHx8fHwxNzY0MTM1NTY4fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "deep space"
+    },
+    {
+      "id": "tile-metallic",
+      "description": "Metallic game tile design",
+      "imageUrl": "https://images.unsplash.com/photo-1614535683569-129faaa108f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxtZXRhbCUyMHRleHR1cmV8ZW58MHx8fHwxNzYyNjMyODE1fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "metal texture"
     },
     {
       "id": "tile-marble",
