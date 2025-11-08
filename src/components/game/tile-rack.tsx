@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Tile as TileType } from './game-board';
-import { RotateCcw } from 'lucide-react';
+import { RotateCcw, Shuffle } from 'lucide-react';
 
 function Tile({ 
   tile, 
@@ -68,7 +68,10 @@ export default function TileRack({ tiles, selectedTileIndex, onTileSelect, onRec
               ))}
             </div>
             <div className="flex gap-2">
-                <Button variant="secondary" size="sm" onClick={onShuffle}>Shuffle</Button>
+                <Button variant="secondary" size="sm" onClick={onShuffle}>
+                  <Shuffle className="mr-1 h-4 w-4" />
+                  Shuffle
+                </Button>
                 <Button variant="secondary" size="sm" onClick={onRecall}>
                   <RotateCcw className="mr-1 h-4 w-4" />
                   Recall

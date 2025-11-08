@@ -63,13 +63,20 @@ export default function GamePage() {
   };
 
   const handleShuffle = () => {
-    const shuffledTiles = [...playerTiles];
+    const shuffledTiles = [...playerTiles].filter(t => t !== null) as Tile[];
     // Fisher-Yates shuffle algorithm
     for (let i = shuffledTiles.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffledTiles[i], shuffledTiles[j]] = [shuffledTiles[j], shuffledTiles[i]];
     }
-    setPlayerTiles(shuffledTiles);
+    const newPlayerTiles = [...playerTiles];
+    let tileIndex = 0;
+    for(let i=0; i < newPlayerTiles.length; i++){
+      if(newPlayerTiles[i] !== null){
+        newPlayerTiles[i] = shuffledTiles[tileIndex++];
+      }
+    }
+    setPlayerTiles(newPlayerTiles);
   };
 
   return (
