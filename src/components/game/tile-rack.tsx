@@ -51,6 +51,7 @@ type TileRackProps = {
   isPlayerTurn: boolean;
   isSubmitting: boolean;
   isGettingHint: boolean;
+  hintUsed: boolean;
   onTileSelect: (index: number) => void;
   onRecall: () => void;
   onShuffle: () => void;
@@ -61,7 +62,7 @@ type TileRackProps = {
   onHint: () => void;
 };
 
-export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSubmitting, isGettingHint, onTileSelect, onRecall, onShuffle, onDragStart, onDrop, onChatClick, onPlay, onHint }: TileRackProps) {
+export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSubmitting, isGettingHint, hintUsed, onTileSelect, onRecall, onShuffle, onDragStart, onDrop, onChatClick, onPlay, onHint }: TileRackProps) {
   
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -100,7 +101,7 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
                   <RotateCcw className="mr-1 h-4 w-4" />
                   Recall
                 </Button>
-                <Button variant="secondary" size="sm" onClick={onHint} disabled={!isPlayerTurn || isGettingHint} className="shadow-sm">
+                <Button variant="secondary" size="sm" onClick={onHint} disabled={!isPlayerTurn || isGettingHint || hintUsed} className="shadow-sm">
                   {isGettingHint ? <Loader className="animate-spin mr-1 h-4 w-4" /> : <Sparkles className="mr-1 h-4 w-4" />}
                   Hint
                 </Button>

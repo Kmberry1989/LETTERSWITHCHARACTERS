@@ -32,6 +32,7 @@ interface PlayerData {
   score: number;
   avatarId: string;
   tiles: (Tile | null)[];
+  hintUsed: boolean;
 }
 
 interface Game {
@@ -75,7 +76,8 @@ function GameInstance({ game }: { game: Game }) {
 
   const isPlayerTurn = game.currentTurn === user.uid;
   const opponentUid = game.players.find(p => p !== user.uid) || '';
-  const players = [game.playerData[user.uid], game.playerData[opponentUid]];
+  const currentPlayer = game.playerData[user.uid];
+  const players = [currentPlayer, game.playerData[opponentUid]];
 
 
   const handleTileSelect = (index: number) => {
@@ -262,7 +264,6 @@ function GameInstance({ game }: { game: Game }) {
       const remainingPlayerTiles = playerTiles.filter(t => t !== null) as Tile[];
       const [newTiles, updatedTileBag] = drawTiles(game.tileBag, tilesToDraw);
       const updatedPlayerTiles = [...remainingPlayerTiles, ...newTiles];
-      const currentPlayer = game.playerData[user.uid];
       const newScore = (currentPlayer.score || 0) + score;
   
       const gameDocRef = doc(firestore, 'games', game.id);
@@ -288,7 +289,15 @@ function GameInstance({ game }: { game: Game }) {
   };
 
   const handleGetHint = async () => {
-    if (!isPlayerTurn || isGettingHint) return;
+    if (!isPlayerTurn || isGettingHint || !firestore) return;
+    if (currentPlayer.hintUsed) {
+        toast({
+            variant: "destructive",
+            title: "Hint Already Used",
+            description: "You can only use one hint per game.",
+        });
+        return;
+    }
 
     setIsGettingHint(true);
     try {
@@ -305,6 +314,12 @@ function GameInstance({ game }: { game: Game }) {
           title: 'AI Word Suggestions',
           description: `How about: ${result.suggestions.slice(0, 3).join(', ')}?`,
         });
+        // Mark hint as used
+        const gameDocRef = doc(firestore, 'games', game.id);
+        await updateDoc(gameDocRef, {
+            [`playerData.${user.uid}.hintUsed`]: true,
+        });
+
       } else {
         toast({
           title: 'No suggestions found',
@@ -358,6 +373,7 @@ function GameInstance({ game }: { game: Game }) {
           isPlayerTurn={isPlayerTurn}
           isSubmitting={isSubmitting}
           isGettingHint={isGettingHint}
+          hintUsed={currentPlayer?.hintUsed || false}
         />
         <ChatWindow
             isOpen={isChatOpen}

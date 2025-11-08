@@ -18,7 +18,8 @@ interface PlayerData {
   displayName: string;
   score: number;
   avatarId: string;
-  tiles: (Tile | null)[]
+  tiles: (Tile | null)[];
+  hintUsed: boolean;
 }
 
 interface Game {
@@ -138,12 +139,14 @@ export default function DashboardPage() {
                 score: 0,
                 avatarId: 'user-1', // Placeholder avatar
                 tiles: player1Tiles,
+                hintUsed: false,
             },
             [opponent.uid]: {
                 displayName: opponent.displayName || 'Opponent',
                 score: 0,
                 avatarId: 'user-2', // Placeholder avatar
                 tiles: player2Tiles,
+                hintUsed: false,
             }
         },
         board: {},

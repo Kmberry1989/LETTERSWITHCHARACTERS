@@ -52,7 +52,8 @@
               "tiles": {
                 "type": "array",
                 "items": { "$ref": "#/entities/Tile" }
-              }
+              },
+              "hintUsed": { "type": "boolean" }
             }
           }
         },
