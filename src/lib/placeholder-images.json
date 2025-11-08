@@ -37,34 +37,64 @@
       "imageHint": "puzzle letters"
     },
     {
-      "id": "shop-item-tile-1",
+      "id": "tile-wood",
       "description": "Wooden game tile design",
       "imageUrl": "https://images.unsplash.com/photo-1621295693450-080546d2ec8e?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx3b29kJTIwdGV4dHVyZXxlbnwwfHx8fDE3NjI2MTk4NDB8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "wood texture"
     },
     {
-      "id": "shop-item-tile-2",
+      "id": "tile-metallic",
       "description": "Metallic game tile design",
       "imageUrl": "https://images.unsplash.com/photo-1614535683569-129faaa108f7?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxtZXRhbCUyMHRleHR1cmV8ZW58MHx8fHwxNzYyNjMyODE1fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "metal texture"
     },
     {
-      "id": "tile-set-plastic",
+      "id": "tile-plastic",
       "description": "Classic plastic game tile design",
       "imageUrl": "https://images.unsplash.com/photo-1601339832262-1d5a278d65a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwbGFzdGljJTIwdGV4dHVyZXxlbnwwfHx8fDE3NjM0MTE4MzV8MA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "plastic texture"
     },
     {
-      "id": "board-theme-green",
+      "id": "tile-marble",
+      "description": "White marble tile design",
+      "imageUrl": "https://images.unsplash.com/photo-1600195078229-a1d20bba5294?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3aGl0ZSUyMG1hcmJsZSUyMHRleHR1cmV8ZW58MHx8fHwxNzYzNTg1MTg3fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "white marble"
+    },
+    {
+      "id": "tile-cosmic",
+      "description": "Cosmic galaxy tile design",
+      "imageUrl": "https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxnYWxheHklMjB0ZXh0dXJlfGVufDB8fHx8MTc2MzU4NTIyN3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "galaxy texture"
+    },
+    {
+      "id": "board-green",
       "description": "Classic green felt board theme",
       "imageUrl": "https://images.unsplash.com/photo-1594228963453-ca2b41e8e89c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxncmVlbiUyMGZlbHQlMjB0ZXh0dXJlfGVufDB8fHx8MTc2MzQxMTg3MXww&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "green felt"
     },
     {
-      "id": "board-theme-wood",
+      "id": "board-wood",
       "description": "Dark wood board theme",
       "imageUrl": "https://images.unsplash.com/photo-1604328469438-51f697525ade?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkYXJrJTIwd29vZCUyMHRleHR1cmV8ZW58MHx8fHwxNzYzNDExODcxfDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "dark wood"
+    },
+    {
+      "id": "board-stone",
+      "description": "Gray stone board theme",
+      "imageUrl": "https://images.unsplash.com/photo-1581888879543-23d2b241355c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxncmF5JTIwc3RvbmUlMjB0ZXh0dXJlfGVufDB8fHx8MTc2MzU4NTMwNHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "stone texture"
+    },
+    {
+      "id": "board-space",
+      "description": "Outer space board theme",
+      "imageUrl": "https://images.unsplash.com/photo-1454789548928-9efd52dc4031?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzcGFjZSUyMHRleHR1cmV8ZW58MHx8fHwxNzYzNTg1MzM0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "space texture"
+    },
+    {
+      "id": "board-beach",
+      "description": "Sandy beach board theme",
+      "imageUrl": "https://images.unsplash.com/photo-1516733227422-9934c8945952?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxzYW5kJTIwdGV4dHVyZXxlbnwwfHx8fDE3NjM1ODUzNjB8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "sand texture"
     }
   ]
 }

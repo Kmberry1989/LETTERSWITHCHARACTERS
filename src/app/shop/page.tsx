@@ -12,32 +12,60 @@ import { useBerries } from '@/hooks/use-berries';
 
 const shopItems = [
   {
-    id: 'shop-item-tile-1',
+    id: 'tile-wood',
     name: 'Wooden Tile Set',
     description: 'A classic, rustic look for your tiles.',
     price: 500,
-    imageId: 'shop-item-tile-1'
+    imageId: 'tile-wood'
   },
   {
-    id: 'shop-item-tile-2',
+    id: 'tile-metallic',
     name: 'Metallic Tile Set',
     description: 'A sleek, modern look for your tiles.',
     price: 750,
-    imageId: 'shop-item-tile-2'
+    imageId: 'tile-metallic'
   },
   {
-    id: 'board-theme-wood',
+    id: 'tile-marble',
+    name: 'Marble Tile Set',
+    description: 'An elegant, polished marble design.',
+    price: 1000,
+    imageId: 'tile-marble'
+  },
+  {
+    id: 'tile-cosmic',
+    name: 'Cosmic Tile Set',
+    description: 'An out-of-this-world cosmic design.',
+    price: 1500,
+    imageId: 'tile-cosmic'
+  },
+  {
+    id: 'board-wood',
     name: 'Dark Wood Board',
     description: 'A rich, dark wood theme for your game board.',
     price: 1200,
-    imageId: 'board-theme-wood'
+    imageId: 'board-wood'
   },
    {
-    id: 'tile-set-plastic',
-    name: 'Plastic Tile Set',
-    description: 'A vibrant and durable plastic tile design.',
-    price: 800,
-    imageId: 'tile-set-plastic'
+    id: 'board-stone',
+    name: 'Stone Board',
+    description: 'A cool, solid stone board theme.',
+    price: 1200,
+    imageId: 'board-stone'
+  },
+  {
+    id: 'board-beach',
+    name: 'Beach Board',
+    description: 'Relax with this sandy beach board theme.',
+    price: 1200,
+    imageId: 'board-beach'
+  },
+  {
+    id: 'board-space',
+    name: 'Space Board',
+    description: 'Take your game to the final frontier.',
+    price: 2000,
+    imageId: 'board-space'
   }
 ];
 

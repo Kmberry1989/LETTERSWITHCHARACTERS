@@ -8,19 +8,24 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
 const tileSets = [
-  { id: 'shop-item-tile-1', name: 'Wooden' },
-  { id: 'shop-item-tile-2', name: 'Metallic' },
-  { id: 'tile-set-plastic', name: 'Classic Plastic' },
+  { id: 'tile-plastic', name: 'Classic' },
+  { id: 'tile-wood', name: 'Wooden' },
+  { id: 'tile-metallic', name: 'Metallic' },
+  { id: 'tile-marble', name: 'Marble' },
+  { id: 'tile-cosmic', name: 'Cosmic' },
 ];
 
 const boardThemes = [
-  { id: 'board-theme-green', name: 'Classic Green' },
-  { id: 'board-theme-wood', name: 'Dark Wood' },
+  { id: 'board-green', name: 'Classic Green' },
+  { id: 'board-wood', name: 'Dark Wood' },
+  { id: 'board-stone', name: 'Stone' },
+  { id: 'board-beach', name: 'Beach' },
+  { id: 'board-space', name: 'Space' },
 ];
 
 export default function AvatarEditor() {
-  const [selectedTileSet, setSelectedTileSet] = useState<string>('shop-item-tile-1');
-  const [selectedBoardTheme, setSelectedBoardTheme] = useState<string>('board-theme-green');
+  const [selectedTileSet, setSelectedTileSet] = useState<string>('tile-plastic');
+  const [selectedBoardTheme, setSelectedBoardTheme] = useState<string>('board-green');
 
   const tileImage = PlaceHolderImages.find((p) => p.id === selectedTileSet);
   const boardImage = PlaceHolderImages.find((p) => p.id === selectedBoardTheme);
@@ -71,7 +76,7 @@ export default function AvatarEditor() {
                 const image = PlaceHolderImages.find((p) => p.id === item.id);
                 return (
                   <Button key={item.id} variant={selectedTileSet === item.id ? 'default' : 'outline'} onClick={() => setSelectedTileSet(item.id)} className="h-auto flex-col p-2 gap-2">
-                     {image && <Image src={image.imageUrl} alt={item.name} width={80} height={80} className="rounded-md" />}
+                     {image && <Image src={image.imageUrl} alt={item.name} width={80} height={80} className="rounded-md object-cover aspect-square" />}
                     {item.name}
                   </Button>
                 );
@@ -84,7 +89,7 @@ export default function AvatarEditor() {
                 const image = PlaceHolderImages.find((p) => p.id === item.id);
                 return (
                   <Button key={item.id} variant={selectedBoardTheme === item.id ? 'default' : 'outline'} onClick={() => setSelectedBoardTheme(item.id)} className="h-auto flex-col p-2 gap-2">
-                     {image && <Image src={image.imageUrl} alt={item.name} width={80} height={80} className="rounded-md" />}
+                     {image && <Image src={image.imageUrl} alt={item.name} width={80} height={80} className="rounded-md object-cover aspect-square" />}
                     {item.name}
                   </Button>
                 );
