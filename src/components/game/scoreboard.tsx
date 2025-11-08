@@ -42,15 +42,15 @@ export default function Scoreboard({ players = defaultPlayers }: ScoreboardProps
           
           <div className="font-bold text-2xl text-muted-foreground">VS</div>
 
-          <div className="flex items-center gap-3 flex-row-reverse sm:flex-row">
-            <Avatar>
-              {player2Avatar && <AvatarImage src={player2Avatar.imageUrl} alt={player2.name} data-ai-hint={player2Avatar.imageHint} />}
-              <AvatarFallback>{player2.name.charAt(0)}</AvatarFallback>
-            </Avatar>
+          <div className="flex items-center gap-3">
             <div className="text-center sm:text-right">
               <div className="font-medium">{player2.name}</div>
               <div className="font-bold text-lg text-primary">{player2.score}</div>
             </div>
+            <Avatar>
+              {player2Avatar && <AvatarImage src={player2Avatar.imageUrl} alt={player2.name} data-ai-hint={player2Avatar.imageHint} />}
+              <AvatarFallback>{player2.name.charAt(0)}</AvatarFallback>
+            </Avatar>
           </div>
         </div>
       </CardContent>
