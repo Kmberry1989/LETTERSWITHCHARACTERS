@@ -45,6 +45,7 @@ type GameBoardProps = {
   pendingTiles?: PlacedTile[];
   onCellClick?: (row: number, col: number) => void;
   onDrop?: (row: number, col: number) => void;
+  onRecallTile?: (tile: PlacedTile) => void;
 };
 
 function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; children?: React.ReactNode; onClick?: () => void, onDrop?: (e: React.DragEvent) => void, onDragOver?: (e: React.DragEvent) => void }) {
@@ -82,11 +83,17 @@ function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; c
   );
 }
 
-function PlacedTile({ letter, score }: { letter: string; score: number | string }) {
+function PlacedTileComponent({ tile, isPending, onClick }: { tile: Tile, isPending: boolean, onClick?: () => void }) {
   return (
-    <div className="relative flex h-full w-full items-center justify-center rounded-sm border-b-2 border-black/20 bg-[#f8e8c7] shadow-sm">
-      <span className="text-lg sm:text-2xl font-bold text-gray-800">{letter}</span>
-      <span className="absolute bottom-0 right-0.5 text-[0.5rem] sm:text-xs font-semibold text-gray-800">{score}</span>
+    <div 
+      className={cn(
+        "relative flex h-full w-full items-center justify-center rounded-sm border-b-2 border-black/20 bg-[#f8e8c7] shadow-sm",
+        isPending && "cursor-pointer ring-2 ring-yellow-400 ring-offset-1"
+      )}
+      onClick={onClick}
+    >
+      <span className="text-lg sm:text-2xl font-bold text-gray-800">{tile.letter}</span>
+      <span className="absolute bottom-0 right-0.5 text-[0.5rem] sm:text-xs font-semibold text-gray-800">{tile.score}</span>
     </div>
   );
 }
@@ -95,12 +102,15 @@ const GameBoard = ({
   placedTiles = initialPlacedTiles, 
   pendingTiles = [],
   onCellClick,
-  onDrop
+  onDrop,
+  onRecallTile
 }: GameBoardProps) => {
   const allTiles = { ...placedTiles };
+  const pendingKeys = new Set();
   pendingTiles.forEach(tile => {
     const key = `${tile.row}-${tile.col}`;
     allTiles[key] = tile;
+    pendingKeys.add(key);
   });
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -120,7 +130,9 @@ const GameBoard = ({
           row.map((cellType, colIndex) => {
             const tileKey = `${rowIndex}-${colIndex}`;
             const tile = allTiles[tileKey];
+            const isPending = pendingKeys.has(tileKey);
             const canPlace = (onCellClick || onDrop) && !tile;
+            
             return (
               <Cell 
                 key={`${rowIndex}-${colIndex}`} 
@@ -129,7 +141,13 @@ const GameBoard = ({
                 onDrop={canPlace && onDrop ? (e) => handleDrop(e, rowIndex, colIndex) : undefined}
                 onDragOver={canPlace && onDrop ? handleDragOver : undefined}
               >
-                {tile && <PlacedTile letter={tile.letter} score={Number(tile.score)} />}
+                {tile && (
+                  <PlacedTileComponent 
+                    tile={tile} 
+                    isPending={isPending}
+                    onClick={isPending && onRecallTile ? () => onRecallTile({ ...tile, row: rowIndex, col: colIndex }) : undefined}
+                  />
+                )}
               </Cell>
             );
           })

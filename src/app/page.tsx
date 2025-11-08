@@ -86,7 +86,6 @@ function GameInstance({ game }: { game: typeof games[0] }) {
 
   const handleDragStart = (tile: Tile, index: number) => {
     setDraggedTile({ tile, index });
-    // If a tile is selected for click-placement, unselect it when dragging starts
     if (selectedTileIndex !== null) {
       setSelectedTileIndex(null);
     }
@@ -94,7 +93,6 @@ function GameInstance({ game }: { game: typeof games[0] }) {
 
   const handleDropOnBoard = (row: number, col: number) => {
     if (draggedTile) {
-      // Prevent dropping on an already occupied cell (initial, pending)
       const isOccupied =
         pendingTiles.some((t) => t.row === row && t.col === col) ||
         Object.keys(GameBoard.defaultProps.placedTiles).includes(`${row}-${col}`);
@@ -113,12 +111,10 @@ function GameInstance({ game }: { game: typeof games[0] }) {
     if (draggedTile === null) return;
   
     const newPlayerTiles = [...playerTiles];
-    // If dropped on an empty slot, just move it
     if (newPlayerTiles[dropIndex] === null) {
       newPlayerTiles[dropIndex] = draggedTile.tile;
       newPlayerTiles[draggedTile.index] = null;
     } else {
-      // If dropped on an existing tile, swap them
       const tileAtDropIndex = newPlayerTiles[dropIndex];
       newPlayerTiles[dropIndex] = draggedTile.tile;
       newPlayerTiles[draggedTile.index] = tileAtDropIndex;
@@ -128,8 +124,7 @@ function GameInstance({ game }: { game: typeof games[0] }) {
     setDraggedTile(null);
   };
 
-
-  const handleRecall = () => {
+  const handleRecallAll = () => {
     if (pendingTiles.length === 0) return;
     const newPlayerTiles = [...playerTiles];
     pendingTiles.forEach((pendingTile) => {
@@ -141,6 +136,20 @@ function GameInstance({ game }: { game: typeof games[0] }) {
     setPlayerTiles(newPlayerTiles);
     setPendingTiles([]);
   };
+  
+  const handleRecallTile = (tileToRecall: PlacedTile) => {
+    const newPlayerTiles = [...playerTiles];
+    const emptyIndex = newPlayerTiles.findIndex((t) => t === null);
+    if (emptyIndex !== -1) {
+      newPlayerTiles[emptyIndex] = { letter: tileToRecall.letter, score: tileToRecall.score };
+    }
+    const newPendingTiles = pendingTiles.filter(
+      (pt) => !(pt.row === tileToRecall.row && pt.col === tileToRecall.col)
+    );
+    setPlayerTiles(newPlayerTiles);
+    setPendingTiles(newPendingTiles);
+  };
+
 
   const handleShuffle = () => {
     const shuffledTiles = [...playerTiles].filter((t) => t !== null) as Tile[];
@@ -181,6 +190,7 @@ function GameInstance({ game }: { game: typeof games[0] }) {
                 pendingTiles={pendingTiles}
                 onCellClick={handleCellClick}
                 onDrop={handleDropOnBoard}
+                onRecallTile={handleRecallTile}
               />
             </CardContent>
           </Card>
@@ -194,7 +204,7 @@ function GameInstance({ game }: { game: typeof games[0] }) {
         tiles={playerTiles}
         selectedTileIndex={selectedTileIndex}
         onTileSelect={handleTileSelect}
-        onRecall={handleRecall}
+        onRecall={handleRecallAll}
         onShuffle={handleShuffle}
         onDragStart={handleDragStart}
         onDrop={handleDropOnRack}
@@ -215,8 +225,8 @@ export default function GamePage() {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious />
-          <CarouselNext />
+          <CarouselPrevious className="visible" />
+          <CarouselNext className="visible" />
         </Carousel>
       </div>
     </AppLayout>
