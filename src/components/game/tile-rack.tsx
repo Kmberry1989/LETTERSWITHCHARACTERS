@@ -67,7 +67,7 @@ export default function TileRack({ tiles, selectedTileIndex, onTileSelect, onRec
                   <RotateCcw className="mr-1 h-4 w-4" />
                   Recall
                 </Button>
-                <Button size="sm">Play Word</Button>
+                <Button size="sm">PLAY</Button>
             </div>
         </div>
       </CardContent>
