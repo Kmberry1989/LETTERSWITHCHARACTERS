@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 import { cn } from '@/lib/utils';
-import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { FirebaseProvider } from '@/firebase/provider';
 
 export const metadata: Metadata = {
   title: 'Letters with Characters',
@@ -25,9 +25,9 @@ export default function RootLayout({
         />
       </head>
       <body className={cn('font-body antialiased', 'min-h-screen bg-background font-sans')}>
-        <FirebaseClientProvider>
+        <FirebaseProvider>
           {children}
-        </FirebaseClientProvider>
+        </FirebaseProvider>
         <Toaster />
       </body>
     </html>

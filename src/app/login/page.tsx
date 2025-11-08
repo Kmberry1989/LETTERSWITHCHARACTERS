@@ -2,30 +2,15 @@
 
 import { Cat, Chrome } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
-import { useAuth } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useUser } from '@/firebase/auth/use-user';
 
 export default function LoginPage() {
-  const auth = useAuth();
   const router = useRouter();
-  const { user } = useUser();
-
-  if (user) {
-    router.push('/');
-    return null;
-  }
 
   const handleSignIn = async () => {
-    const provider = new GoogleAuthProvider();
-    try {
-      await signInWithPopup(auth, provider);
-      router.push('/');
-    } catch (error) {
-      console.error('Error signing in with Google', error);
-    }
+    // Mock sign-in, just redirect
+    router.push('/');
   };
 
   return (
