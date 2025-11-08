@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Tile as TileType } from './game-board';
-import { MessageCircle, RotateCcw, Shuffle } from 'lucide-react';
+import { Loader, MessageCircle, RotateCcw, Shuffle } from 'lucide-react';
 
 function Tile({ 
   tile, 
@@ -48,6 +48,7 @@ type TileRackProps = {
   tiles: (TileType | null)[];
   selectedTileIndex: number | null;
   isPlayerTurn: boolean;
+  isSubmitting: boolean;
   onTileSelect: (index: number) => void;
   onRecall: () => void;
   onShuffle: () => void;
@@ -57,7 +58,7 @@ type TileRackProps = {
   onPlay: () => void;
 };
 
-export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, onTileSelect, onRecall, onShuffle, onDragStart, onDrop, onChatClick, onPlay }: TileRackProps) {
+export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSubmitting, onTileSelect, onRecall, onShuffle, onDragStart, onDrop, onChatClick, onPlay }: TileRackProps) {
   
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -100,7 +101,9 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, onTil
                   <MessageCircle className="mr-1 h-4 w-4" />
                   Chat
                 </Button>
-                <Button size="sm" onClick={onPlay} disabled={!isPlayerTurn} className="shadow-sm">PLAY</Button>
+                <Button size="sm" onClick={onPlay} disabled={!isPlayerTurn || isSubmitting} className="shadow-sm w-24">
+                  {isSubmitting ? <Loader className="animate-spin" /> : 'PLAY'}
+                </Button>
             </div>
         </div>
       </CardContent>

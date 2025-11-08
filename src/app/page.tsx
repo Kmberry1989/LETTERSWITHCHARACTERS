@@ -15,6 +15,9 @@ import { useDoc, useUser, useFirestore } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { doc, updateDoc } from 'firebase/firestore';
 import { drawTiles } from '@/lib/game-logic';
+import { calculateScore, getWordsFromPlacedTiles } from '@/lib/scoring';
+import { validateWord } from '@/ai/validate-word';
+import { useToast } from '@/hooks/use-toast';
 
 const initialMessages: Message[] = [
     { sender: 'Alex', text: 'Hey, good luck!' },
@@ -43,6 +46,7 @@ interface Game {
 function GameInstance({ game }: { game: Game }) {
   const { user } = useUser();
   const firestore = useFirestore();
+  const { toast } = useToast();
   const [playerTiles, setPlayerTiles] = useState<(Tile | null)[]>([]);
   const [selectedTileIndex, setSelectedTileIndex] = useState<number | null>(null);
   const [pendingTiles, setPendingTiles] = useState<PlacedTile[]>([]);
@@ -50,6 +54,8 @@ function GameInstance({ game }: { game: Game }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const { playSfx } = useAudio();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   useEffect(() => {
     if (user && game) {
@@ -185,46 +191,73 @@ function GameInstance({ game }: { game: Game }) {
   };
   
   const handlePlayWord = async () => {
-    if (pendingTiles.length === 0 || !isPlayerTurn || !firestore) return;
-  
-    // 1. Prepare updates
-    const newBoard = { ...game.board };
-    pendingTiles.forEach(tile => {
-      newBoard[`${tile.row}-${tile.col}`] = { letter: tile.letter, score: tile.score };
-    });
-  
-    const tilesToDraw = pendingTiles.length;
-    const remainingPlayerTiles = playerTiles.filter(t => t !== null) as Tile[];
-  
-    const [newTiles, updatedTileBag] = drawTiles(game.tileBag, tilesToDraw);
-  
-    const updatedPlayerTiles = [...remainingPlayerTiles, ...newTiles];
-  
-    // 2. Construct the update payload
-    const gameDocRef = doc(firestore, 'games', game.id);
-    const updatePayload = {
-      board: newBoard,
-      tileBag: updatedTileBag,
-      [`playerData.${user.uid}.tiles`]: updatedPlayerTiles,
-      // TODO: Add score calculation
-      currentTurn: opponentUid, // Switch turn
-    };
-  
-    // 3. Update Firestore
+    if (pendingTiles.length === 0 || !isPlayerTurn || !firestore || isSubmitting) return;
+
+    setIsSubmitting(true);
+
+    const words = getWordsFromPlacedTiles(pendingTiles, game.board);
+    if (words.length === 0) {
+      toast({ variant: 'destructive', title: 'Invalid placement', description: 'Tiles must form a word.' });
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
+      // Validate all words found
+      for (const word of words) {
+        const validation = await validateWord({ word: word.word });
+        if (!validation.isValid) {
+          toast({
+            variant: 'destructive',
+            title: 'Invalid Word',
+            description: `"${word.word.toUpperCase()}" is not a valid word. ${validation.reason}`,
+          });
+          setIsSubmitting(false);
+          return;
+        }
+      }
+
+      // Calculate score
+      const score = calculateScore(pendingTiles, game.board);
+      
+      const newBoard = { ...game.board };
+      pendingTiles.forEach(tile => {
+        newBoard[`${tile.row}-${tile.col}`] = { letter: tile.letter, score: tile.score };
+      });
+  
+      const tilesToDraw = pendingTiles.length;
+      const remainingPlayerTiles = playerTiles.filter(t => t !== null) as Tile[];
+      const [newTiles, updatedTileBag] = drawTiles(game.tileBag, tilesToDraw);
+      const updatedPlayerTiles = [...remainingPlayerTiles, ...newTiles];
+      const currentPlayer = game.playerData[user.uid];
+      const newScore = (currentPlayer.score || 0) + score;
+  
+      const gameDocRef = doc(firestore, 'games', game.id);
+      const updatePayload = {
+        board: newBoard,
+        tileBag: updatedTileBag,
+        [`playerData.${user.uid}.tiles`]: updatedPlayerTiles,
+        [`playerData.${user.uid}.score`]: newScore,
+        currentTurn: opponentUid,
+      };
+  
       await updateDoc(gameDocRef, updatePayload);
-      setPendingTiles([]); // Clear pending tiles on successful play
+      setPendingTiles([]);
       playSfx('place');
+      toast({ title: 'Word Played!', description: `You scored ${score} points!` });
+
     } catch (error) {
       console.error("Error playing word:", error);
-      // Optional: show an error toast to the user
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not play word.' });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   return (
     <div className="flex flex-col gap-4 h-full p-4 sm:p-8 pt-24 sm:pt-24">
        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-full max-w-md sm:max-w-lg px-4">
-        <Scoreboard players={players} isPlayerTurn={isPlayerTurn} currentPlayerName={user.displayName || 'Player'} />
+        <Scoreboard players={players} isPlayerTurn={isPlayerTurn} currentPlayerName={game.playerData[user.uid].displayName} />
       </div>
 
       <div className="flex-grow">
@@ -252,6 +285,7 @@ function GameInstance({ game }: { game: Game }) {
           onChatClick={() => setIsChatOpen(true)}
           onPlay={handlePlayWord}
           isPlayerTurn={isPlayerTurn}
+          isSubmitting={isSubmitting}
         />
         <ChatWindow
             isOpen={isChatOpen}
@@ -325,7 +359,7 @@ export default function GamePage() {
   return (
     <main className="min-h-screen bg-background relative">
        <div className="absolute top-4 left-4 z-20">
-          <Button asChild variant="outline" className="shadow-sm">
+          <Button asChild variant="outline" className="shadow-sm bg-white">
             <Link href="/dashboard">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Dashboard
