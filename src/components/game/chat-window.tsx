@@ -49,8 +49,8 @@ export default function ChatWindow({ isOpen, onClose, messages, onSendMessage }:
             className="absolute bottom-0 left-0 right-0"
             onClick={(e) => e.stopPropagation()}
           >
-            <Card className="bg-[#c4a27a] border-2 border-[#a07e56] rounded-b-none">
-              <CardHeader className="flex flex-row items-center justify-between p-4">
+            <Card className="bg-[#e0d6c4] border-2 border-[#a07e56] rounded-b-none">
+              <CardHeader className="flex flex-row items-center justify-between p-4 bg-[#c4a27a] border-b-2 border-[#a07e56]">
                 <CardTitle className="text-lg">Chat</CardTitle>
                 <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6">
                   <X />
@@ -58,7 +58,7 @@ export default function ChatWindow({ isOpen, onClose, messages, onSendMessage }:
               </CardHeader>
               <CardContent className="p-4 pt-0">
                 <ScrollArea className="h-48 w-full pr-4">
-                  <div className="space-y-4">
+                  <div className="space-y-4 py-4">
                     {messages.map((msg, index) => (
                       <div
                         key={index}
@@ -82,7 +82,7 @@ export default function ChatWindow({ isOpen, onClose, messages, onSendMessage }:
                     ))}
                   </div>
                 </ScrollArea>
-                <div className="mt-4 flex gap-2">
+                <div className="mt-4 flex gap-2 p-4 -mx-4 -mb-4 bg-[#c4a27a] border-t-2 border-[#a07e56]">
                   <Input
                     placeholder="Type a message..."
                     value={newMessage}
