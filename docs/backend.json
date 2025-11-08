@@ -1,0 +1,76 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Represents a user's public profile information.",
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "type": "string",
+          "description": "The user's display name."
+        },
+        "photoURL": {
+          "type": "string",
+          "description": "The URL of the user's profile picture."
+        },
+        "email": {
+          "type": "string",
+          "description": "The user's email address."
+        }
+      },
+      "required": ["displayName", "email"]
+    },
+    "Game": {
+      "title": "Game",
+      "description": "Represents a single game session.",
+      "type": "object",
+      "properties": {
+        "players": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "An array of user UIDs participating in the game."
+        },
+        "playerData": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "displayName": { "type": "string" },
+              "score": { "type": "number" },
+              "avatarId": { "type": "string" }
+            }
+          }
+        },
+        "currentTurn": {
+          "type": "string",
+          "description": "The UID of the player whose turn it is."
+        },
+        "status": {
+          "type": "string",
+          "enum": ["active", "pending", "finished"],
+          "description": "The current status of the game."
+        }
+      },
+      "required": ["players", "playerData", "currentTurn", "status"]
+    }
+  },
+  "auth": {
+    "providers": ["google.com"]
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
+      },
+      "description": "Stores public profile information for each user."
+    },
+    "/games/{gameId}": {
+      "schema": {
+        "$ref": "#/entities/Game"
+      },
+      "description": "Stores all the data for a single game session."
+    }
+  }
+}
