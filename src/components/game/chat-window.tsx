@@ -71,7 +71,7 @@ export default function ChatWindow({ isOpen, onClose, messages, onSendMessage }:
                           className={cn(
                             'max-w-xs rounded-lg p-3 text-sm',
                             msg.sender === 'You'
-                              ? 'bg-primary text-primary-foreground'
+                              ? 'bg-muted text-muted-foreground'
                               : 'bg-secondary text-secondary-foreground'
                           )}
                         >
