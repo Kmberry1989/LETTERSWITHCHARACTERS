@@ -1,5 +1,5 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 type Player = {
@@ -19,29 +19,40 @@ const defaultPlayers: Player[] = [
 ];
 
 export default function Scoreboard({ players = defaultPlayers }: ScoreboardProps) {
+  const player1 = players.find(p => p.name === 'You') || players[0];
+  const player2 = players.find(p => p.name !== 'You') || players[1];
+
+  const player1Avatar = PlaceHolderImages.find(p => p.id === player1.avatarId);
+  const player2Avatar = PlaceHolderImages.find(p => p.id === player2.avatarId);
+
   return (
     <Card>
-      <CardHeader>
-        <CardTitle>Scoreboard</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ul className="space-y-4">
-          {players.map((player) => {
-            const avatarImage = PlaceHolderImages.find(p => p.id === player.avatarId);
-            return (
-              <li key={player.name} className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Avatar>
-                    {avatarImage && <AvatarImage src={avatarImage.imageUrl} alt={player.name} data-ai-hint={avatarImage.imageHint} />}
-                    <AvatarFallback>{player.name.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <span className="font-medium">{player.name}</span>
-                </div>
-                <span className="font-bold text-lg text-primary">{player.score}</span>
-              </li>
-            );
-          })}
-        </ul>
+      <CardContent className="p-2 sm:p-4">
+        <div className="flex items-center justify-around">
+          <div className="flex items-center gap-3">
+            <Avatar>
+              {player1Avatar && <AvatarImage src={player1Avatar.imageUrl} alt={player1.name} data-ai-hint={player1Avatar.imageHint} />}
+              <AvatarFallback>{player1.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="text-center sm:text-left">
+              <div className="font-medium">{player1.name}</div>
+              <div className="font-bold text-lg text-primary">{player1.score}</div>
+            </div>
+          </div>
+          
+          <div className="font-bold text-2xl text-muted-foreground">VS</div>
+
+          <div className="flex items-center gap-3 flex-row-reverse sm:flex-row">
+            <Avatar>
+              {player2Avatar && <AvatarImage src={player2Avatar.imageUrl} alt={player2.name} data-ai-hint={player2Avatar.imageHint} />}
+              <AvatarFallback>{player2.name.charAt(0)}</AvatarFallback>
+            </Avatar>
+            <div className="text-center sm:text-right">
+              <div className="font-medium">{player2.name}</div>
+              <div className="font-bold text-lg text-primary">{player2.score}</div>
+            </div>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );

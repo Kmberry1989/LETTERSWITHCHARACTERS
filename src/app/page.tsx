@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import AppLayout from '@/components/app-layout';
-import GameActions from '@/components/game/game-actions';
 import GameBoard, { PlacedTile, Tile } from '@/components/game/game-board';
 import Scoreboard from '@/components/game/scoreboard';
 import TileRack from '@/components/game/tile-rack';
@@ -17,6 +16,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useAudio } from '@/hooks/use-audio';
+import { Badge } from '@/components/ui/badge';
 
 const initialPlayerTiles: (Tile | null)[] = [
   { letter: 'A', score: 1 },
@@ -36,6 +36,7 @@ const games = [
       { name: 'You', score: 125, avatarId: 'user-1' },
       { name: 'Alex', score: 98, avatarId: 'user-2' },
     ],
+    isPlayerTurn: true,
   },
   {
     id: 2,
@@ -44,6 +45,7 @@ const games = [
       { name: 'You', score: 88, avatarId: 'user-1' },
       { name: 'Foxy', score: 112, avatarId: 'avatar-base' },
     ],
+    isPlayerTurn: false,
   },
   {
     id: 3,
@@ -52,10 +54,11 @@ const games = [
       { name: 'You', score: 150, avatarId: 'user-1' },
       { name: 'PixelProwler', score: 149, avatarId: 'user-3' },
     ],
+    isPlayerTurn: true,
   },
 ];
 
-function GameInstance({ game }: { game: typeof games[0] }) {
+function GameInstance({ game }: { game: (typeof games)[0] }) {
   const [playerTiles, setPlayerTiles] = useState<(Tile | null)[]>(initialPlayerTiles);
   const [selectedTileIndex, setSelectedTileIndex] = useState<number | null>(null);
   const [pendingTiles, setPendingTiles] = useState<PlacedTile[]>([]);
@@ -100,7 +103,7 @@ function GameInstance({ game }: { game: typeof games[0] }) {
       const isOccupied =
         pendingTiles.some((t) => t.row === row && t.col === col) ||
         Object.keys(GameBoard.defaultProps.placedTiles).includes(`${row}-${col}`);
-      
+
       if (!isOccupied) {
         setPendingTiles([...pendingTiles, { ...draggedTile.tile, row, col }]);
         const newPlayerTiles = [...playerTiles];
@@ -111,10 +114,10 @@ function GameInstance({ game }: { game: typeof games[0] }) {
     }
     setDraggedTile(null);
   };
-  
+
   const handleDropOnRack = (dropIndex: number) => {
     if (draggedTile === null) return;
-  
+
     const newPlayerTiles = [...playerTiles];
     if (newPlayerTiles[dropIndex] === null) {
       newPlayerTiles[dropIndex] = draggedTile.tile;
@@ -124,7 +127,7 @@ function GameInstance({ game }: { game: typeof games[0] }) {
       newPlayerTiles[dropIndex] = draggedTile.tile;
       newPlayerTiles[draggedTile.index] = tileAtDropIndex;
     }
-    
+
     setPlayerTiles(newPlayerTiles);
     setDraggedTile(null);
     playSfx('click');
@@ -143,7 +146,7 @@ function GameInstance({ game }: { game: typeof games[0] }) {
     setPendingTiles([]);
     playSfx('swoosh');
   };
-  
+
   const handleRecallTile = (tileToRecall: PlacedTile) => {
     const newPlayerTiles = [...playerTiles];
     const emptyIndex = newPlayerTiles.findIndex((t) => t === null);
@@ -157,7 +160,6 @@ function GameInstance({ game }: { game: typeof games[0] }) {
     setPendingTiles(newPendingTiles);
     playSfx('swoosh');
   };
-
 
   const handleShuffle = () => {
     const shuffledTiles = [...playerTiles].filter((t) => t !== null) as Tile[];
@@ -178,37 +180,40 @@ function GameInstance({ game }: { game: typeof games[0] }) {
 
   return (
     <div className="flex flex-col gap-4 h-full">
-      <div className="flex items-center justify-center gap-2 text-lg font-semibold">
-        <Avatar className="h-8 w-8">
-          {opponentAvatar && (
-            <AvatarImage
-              src={opponentAvatar.imageUrl}
-              alt={game.opponent.name}
-              data-ai-hint={opponentAvatar.imageHint}
-            />
-          )}
-          <AvatarFallback>{game.opponent.name.charAt(0)}</AvatarFallback>
-        </Avatar>
-        Your game with {game.opponent.name}
-      </div>
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-8 flex-grow">
-        <div className="lg:col-span-2">
-          <Card className="h-full">
-            <CardContent className="p-2 sm:p-4">
-              <GameBoard
-                pendingTiles={pendingTiles}
-                onCellClick={handleCellClick}
-                onDrop={handleDropOnBoard}
-                onRecallTile={handleRecallTile}
+      <div className="flex items-center justify-between gap-2 text-lg font-semibold">
+        <div className="flex items-center gap-2">
+          <Avatar className="h-8 w-8">
+            {opponentAvatar && (
+              <AvatarImage
+                src={opponentAvatar.imageUrl}
+                alt={game.opponent.name}
+                data-ai-hint={opponentAvatar.imageHint}
               />
-            </CardContent>
-          </Card>
+            )}
+            <AvatarFallback>{game.opponent.name.charAt(0)}</AvatarFallback>
+          </Avatar>
+          Your game with {game.opponent.name}
         </div>
-        <div className="space-y-4">
-          <Scoreboard players={game.players} />
-          <GameActions />
-        </div>
+        <Badge variant={game.isPlayerTurn ? 'default' : 'secondary'}>
+          {game.isPlayerTurn ? "Your Turn" : "Opponent's Turn"}
+        </Badge>
       </div>
+
+      <Scoreboard players={game.players} />
+
+      <div className="flex-grow">
+        <Card className="h-full">
+          <CardContent className="p-2 sm:p-4 h-full flex items-center justify-center">
+            <GameBoard
+              pendingTiles={pendingTiles}
+              onCellClick={handleCellClick}
+              onDrop={handleDropOnBoard}
+              onRecallTile={handleRecallTile}
+            />
+          </CardContent>
+        </Card>
+      </div>
+
       <TileRack
         tiles={playerTiles}
         selectedTileIndex={selectedTileIndex}
@@ -234,8 +239,8 @@ export default function GamePage() {
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious className="visible" />
-          <CarouselNext className="visible" />
+          <CarouselPrevious />
+          <CarouselNext />
         </Carousel>
       </div>
     </AppLayout>
