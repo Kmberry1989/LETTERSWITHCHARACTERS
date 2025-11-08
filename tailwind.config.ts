@@ -14,6 +14,9 @@ export default {
         headline: ["'PT Sans'", 'sans-serif'],
         code: ['monospace'],
       },
+      gridTemplateColumns: {
+        '15': 'repeat(15, minmax(0, 1fr))',
+      },
       colors: {
         background: 'hsl(var(--background))',
         foreground: 'hsl(var(--foreground))',

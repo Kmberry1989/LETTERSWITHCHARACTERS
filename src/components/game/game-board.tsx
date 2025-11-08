@@ -67,12 +67,13 @@ function Cell({ type, children, onClick }: { type: string; children?: React.Reac
         'flex aspect-square select-none items-center justify-center rounded-sm text-xs font-semibold uppercase tracking-tighter text-center leading-none',
         'bg-[#e0d6c4] border border-[#d1c6b4]',
         'transition-colors duration-150',
+        'text-[8px] sm:text-xs',
         classMap[type],
         onClick && !children && 'hover:bg-yellow-300/50 cursor-pointer'
       )}
       onClick={onClick}
     >
-      {children || (type === '★' ? <Star className="h-4 w-4" /> : textMap[type])}
+      {children || (type === '★' ? <Star className="h-3 w-3 sm:h-4 sm:w-4" /> : <span className="hidden sm:inline">{textMap[type]}</span>)}
     </div>
   );
 }
@@ -80,8 +81,8 @@ function Cell({ type, children, onClick }: { type: string; children?: React.Reac
 function PlacedTile({ letter, score }: { letter: string; score: number | string }) {
   return (
     <div className="relative flex h-full w-full items-center justify-center rounded-sm border-b-2 border-black/20 bg-[#f8e8c7] shadow-sm">
-      <span className="text-lg font-bold text-gray-800">{letter}</span>
-      <span className="absolute bottom-0 right-0.5 text-[0.5rem] font-semibold text-gray-800">{score}</span>
+      <span className="text-lg sm:text-2xl font-bold text-gray-800">{letter}</span>
+      <span className="absolute bottom-0 right-0.5 text-[0.5rem] sm:text-xs font-semibold text-gray-800">{score}</span>
     </div>
   );
 }

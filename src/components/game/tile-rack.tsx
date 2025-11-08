@@ -19,19 +19,19 @@ function Tile({
     <div 
       onClick={onClick}
       className={cn(
-        "relative flex h-12 w-12 cursor-pointer select-none items-center justify-center rounded-md border-b-4 border-black/20 bg-[#f8e8c7] shadow-md transition-transform duration-150 ease-in-out hover:scale-105 sm:h-16 sm:w-16",
+        "relative flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 cursor-pointer select-none items-center justify-center rounded-md border-b-4 border-black/20 bg-[#f8e8c7] shadow-md transition-transform duration-150 ease-in-out hover:scale-105",
         isSelected && "ring-2 ring-primary ring-offset-2 scale-105 shadow-lg",
         "active:scale-95"
       )}
     >
-      <span className="text-3xl font-bold text-gray-800">{tile.letter}</span>
-      <span className="absolute bottom-1 right-1.5 text-xs font-semibold text-gray-800">{tile.score}</span>
+      <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">{tile.letter}</span>
+      <span className="absolute bottom-0.5 right-1 text-[0.6rem] sm:text-xs font-semibold text-gray-800">{tile.score}</span>
     </div>
   );
 }
 
 function EmptySlot() {
-  return <div className="h-12 w-12 sm:h-16 sm:w-16 rounded-md bg-black/10" />;
+  return <div className="h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 rounded-md bg-black/10" />;
 }
 
 type TileRackProps = {
@@ -51,9 +51,9 @@ export default function TileRack({ tiles, selectedTileIndex, onTileSelect, onRec
 
   return (
     <Card className="bg-[#c4a27a] border-2 border-[#a07e56]">
-      <CardContent className="p-4">
-        <div className="flex flex-col items-center gap-4">
-            <div className="flex items-center justify-center gap-2 sm:gap-4">
+      <CardContent className="p-2 sm:p-4">
+        <div className="flex flex-col items-center gap-2 sm:gap-4">
+            <div className="flex items-center justify-center gap-1 sm:gap-2">
               {tiles.map((tile, i) => (
                 tile ? (
                   <Tile 
