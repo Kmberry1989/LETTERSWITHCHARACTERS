@@ -1,7 +1,7 @@
 'use client';
 import { FirebaseApp, getApp, getApps, initializeApp } from 'firebase/app';
-import { Auth, getAuth, connectAuthEmulator } from 'firebase/auth';
-import { Firestore, getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { Auth, getAuth } from 'firebase/auth';
+import { Firestore, getFirestore } from 'firebase/firestore';
 import { firebaseConfig } from './config';
 
 // The singleton instances for the app.
@@ -31,24 +31,14 @@ export function initializeFirebase(): {
     return { app, auth, firestore };
   }
 
-  if (app) {
-    return { app, auth, firestore };
-  } 
-  
-  app = initializeApp(firebaseConfig);
-  auth = getAuth(app);
-  firestore = getFirestore(app);
-
-  if (process.env.NODE_ENV === 'development') {
-    // Point to the emulators running on localhost.
-    try {
-      connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
-      connectFirestoreEmulator(firestore, '127.0.0.1', 8080);
-    } catch (e) {
-        // This can happen if you refresh the page and the emulators are already connected.
-        // It's safe to ignore this error.
-        console.warn('Firebase emulators already connected or connection failed.', e);
-    }
+  if (getApps().length === 0) {
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    firestore = getFirestore(app);
+  } else {
+    app = getApp();
+    auth = getAuth(app);
+    firestore = getFirestore(app);
   }
 
   return { app, auth, firestore };
