@@ -14,6 +14,7 @@ type ScoreboardProps = {
   players: Player[];
   isPlayerTurn: boolean;
   currentPlayerName: string;
+  gameStatus: 'active' | 'pending' | 'finished';
 };
 
 const defaultPlayers: Player[] = [
@@ -21,12 +22,21 @@ const defaultPlayers: Player[] = [
   { displayName: 'Alex', score: 98, avatarId: 'user-2' },
 ];
 
-export default function Scoreboard({ players = defaultPlayers, isPlayerTurn, currentPlayerName }: ScoreboardProps) {
+export default function Scoreboard({ players = defaultPlayers, isPlayerTurn, currentPlayerName, gameStatus }: ScoreboardProps) {
   const player1 = players.find(p => p.displayName === currentPlayerName) || players[0];
   const player2 = players.find(p => p.displayName !== currentPlayerName) || players[1];
 
   const player1Avatar = PlaceHolderImages.find(p => p.id === player1.avatarId);
   const player2Avatar = PlaceHolderImages.find(p => p.id === player2.avatarId);
+
+  let statusText, statusVariant;
+  if (gameStatus === 'finished') {
+    statusText = 'Game Over';
+    statusVariant = 'destructive' as const;
+  } else {
+    statusText = isPlayerTurn ? 'Your Turn' : "Opponent's Turn";
+    statusVariant = isPlayerTurn ? 'default' : 'secondary';
+  }
 
   return (
     <Card className="shadow-sm">
@@ -44,8 +54,8 @@ export default function Scoreboard({ players = defaultPlayers, isPlayerTurn, cur
           
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1">
             <div className="font-bold text-2xl text-muted-foreground">VS</div>
-            <Badge variant={isPlayerTurn ? 'default' : 'secondary'}>
-                {isPlayerTurn ? 'Your Turn' : "Opponent's Turn"}
+            <Badge variant={statusVariant}>
+                {statusText}
             </Badge>
           </div>
 

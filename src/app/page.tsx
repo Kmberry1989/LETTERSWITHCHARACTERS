@@ -10,7 +10,7 @@ import BlankTileDialog from '@/components/game/blank-tile-dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAudio } from '@/hooks/use-audio';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Cat } from 'lucide-react';
+import { ArrowLeft, Cat, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { useDoc, useUser, useFirestore } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -56,6 +56,8 @@ interface Game {
   tileBag: Tile[];
   currentTurn: string;
   status: 'active' | 'pending' | 'finished';
+  consecutivePasses?: number;
+  winner?: string;
 }
 
 
@@ -89,13 +91,17 @@ function GameInstance({ game }: { game: Game }) {
 
   if (!user) return <GameLoadingSkeleton />;
 
-  const isPlayerTurn = game.currentTurn === user.uid;
+  const isPlayerTurn = game.currentTurn === user.uid && game.status === 'active';
   const opponentUid = game.players.find(p => p !== user.uid) || '';
   const currentPlayer = game.playerData[user.uid];
-  const players = [currentPlayer, game.playerData[opponentUid]];
+  const opponentPlayer = game.playerData[opponentUid];
+  const players = [currentPlayer, opponentPlayer];
+  const isGameOver = game.status === 'finished';
+  const winner = isGameOver && game.winner ? game.playerData[game.winner] : null;
 
 
   const handleTileSelect = (index: number) => {
+    if (isGameOver) return;
     if (isExchanging) {
       setExchangeSelection(prev => 
         prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
@@ -115,6 +121,7 @@ function GameInstance({ game }: { game: Game }) {
   };
 
   const handleCellClick = (row: number, col: number) => {
+    if (isGameOver) return;
     if (selectedTileIndex !== null) {
       const tileToPlace = playerTiles[selectedTileIndex];
       if (tileToPlace) {
@@ -133,7 +140,7 @@ function GameInstance({ game }: { game: Game }) {
   };
 
   const handleDragStart = (tile: Tile, index: number) => {
-    if (isExchanging) return;
+    if (isGameOver || isExchanging) return;
     setDraggedTile({ tile, index });
     if (selectedTileIndex !== null) {
       setSelectedTileIndex(null);
@@ -141,7 +148,7 @@ function GameInstance({ game }: { game: Game }) {
   };
 
   const handleDropOnBoard = (row: number, col: number) => {
-    if (isExchanging) return;
+    if (isGameOver || isExchanging) return;
     if (draggedTile) {
       const isOccupied =
         pendingTiles.some((t) => t.row === row && t.col === col) ||
@@ -181,7 +188,7 @@ function GameInstance({ game }: { game: Game }) {
   };
 
   const handleDropOnRack = (dropIndex: number) => {
-    if (isExchanging || draggedTile === null) return;
+    if (isGameOver || isExchanging || draggedTile === null) return;
 
     const newPlayerTiles = [...playerTiles];
     if (newPlayerTiles[dropIndex] === null) {
@@ -250,6 +257,54 @@ function GameInstance({ game }: { game: Game }) {
     setMessages([...messages, { sender: 'You', text }]);
   };
   
+  const endGame = async (finishingPlayerId: string | null) => {
+    if (!firestore) return;
+
+    let finalPlayer1Score = currentPlayer.score;
+    let finalPlayer2Score = opponentPlayer.score;
+    let winnerId = '';
+    
+    // Calculate final score adjustments based on remaining tiles
+    if (finishingPlayerId) {
+      const p1Tiles = playerTiles.filter(t => t !== null) as Tile[];
+      const p2Tiles = opponentPlayer.tiles.filter(t => t !== null) as Tile[];
+      
+      const p1RemainingValue = p1Tiles.reduce((sum, tile) => sum + tile.score, 0);
+      const p2RemainingValue = p2Tiles.reduce((sum, tile) => sum + tile.score, 0);
+
+      if (user.uid === finishingPlayerId) { // Player 1 finished
+        finalPlayer1Score += p2RemainingValue;
+        finalPlayer2Score -= p2RemainingValue;
+      } else { // Player 2 finished
+        finalPlayer2Score += p1RemainingValue;
+        finalPlayer1Score -= p1RemainingValue;
+      }
+    }
+
+    if (finalPlayer1Score > finalPlayer2Score) {
+        winnerId = user.uid;
+    } else if (finalPlayer2Score > finalPlayer1Score) {
+        winnerId = opponentUid;
+    } // If scores are equal, it's a draw, winnerId remains empty
+
+    const gameDocRef = doc(firestore, 'games', game.id);
+    const updatePayload = {
+      status: 'finished' as const,
+      [`playerData.${user.uid}.score`]: finalPlayer1Score,
+      [`playerData.${opponentUid}.score`]: finalPlayer2Score,
+      winner: winnerId,
+    };
+    await updateDoc(gameDocRef, updatePayload).catch(async (serverError) => {
+      const permissionError = new FirestorePermissionError({
+          path: gameDocRef.path,
+          operation: 'update',
+          requestResourceData: updatePayload,
+        } satisfies SecurityRuleContext);
+      errorEmitter.emit('permission-error', permissionError);
+    });
+  };
+
+
   const handlePlayWord = async () => {
     if (pendingTiles.length === 0 || !isPlayerTurn || !firestore || isSubmitting) return;
 
@@ -291,6 +346,13 @@ function GameInstance({ game }: { game: Game }) {
       const updatedPlayerTiles = [...remainingPlayerTiles, ...newTiles];
       const newScore = (currentPlayer.score || 0) + score;
   
+      // Check for game end condition (player uses last tile and bag is empty)
+      if (updatedPlayerTiles.length === 0 && updatedTileBag.length === 0) {
+        await endGame(user.uid);
+        setIsSubmitting(false);
+        return; // End the function here
+      }
+
       const gameDocRef = doc(firestore, 'games', game.id);
       const updatePayload = {
         board: newBoard,
@@ -298,6 +360,7 @@ function GameInstance({ game }: { game: Game }) {
         [`playerData.${user.uid}.tiles`]: updatedPlayerTiles,
         [`playerData.${user.uid}.score`]: newScore,
         currentTurn: opponentUid,
+        consecutivePasses: 0,
       };
   
       updateDoc(gameDocRef, updatePayload)
@@ -385,11 +448,21 @@ function GameInstance({ game }: { game: Game }) {
 
   const handlePassTurn = async () => {
     if (!isPlayerTurn || !firestore || isSubmitting) return;
+    
+    // Game end condition: 2 consecutive passes
+    if ((game.consecutivePasses || 0) + 1 >= 2) {
+      await endGame(null);
+      return;
+    }
 
     setIsSubmitting(true);
     try {
       const gameDocRef = doc(firestore, 'games', game.id);
-      await updateDoc(gameDocRef, { currentTurn: opponentUid });
+      const updatePayload = {
+        currentTurn: opponentUid,
+        consecutivePasses: (game.consecutivePasses || 0) + 1,
+      };
+      await updateDoc(gameDocRef, updatePayload);
       toast({ title: 'Turn Passed', description: "It's now your opponent's turn." });
     } catch (error) {
       const permissionError = new FirestorePermissionError({
@@ -441,6 +514,7 @@ function GameInstance({ game }: { game: Game }) {
         tileBag: newBag,
         [`playerData.${user.uid}.tiles`]: updatedPlayerTiles,
         currentTurn: opponentUid,
+        consecutivePasses: 0, // Reset passes on exchange
       };
 
       await updateDoc(gameDocRef, updatePayload);
@@ -469,6 +543,35 @@ function GameInstance({ game }: { game: Game }) {
         onClose={() => setBlankTileData(null)}
         onSelect={handleBlankTileSelect}
       />
+      <AlertDialog open={isGameOver}>
+        <AlertDialogContent>
+          <AlertDialogHeader className="items-center">
+            <Trophy className="w-16 h-16 text-yellow-500" />
+            <AlertDialogTitle className="text-3xl font-bold">
+              {winner ? `${winner.displayName} Wins!` : "It's a Draw!"}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              The game has ended. Here are the final scores.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <div className="flex justify-around items-center py-4">
+             <div className="text-center">
+                <p className="font-bold text-lg">{currentPlayer.displayName}</p>
+                <p className="text-2xl font-bold text-primary">{currentPlayer.score}</p>
+             </div>
+             <div className="text-2xl font-bold text-muted-foreground">VS</div>
+              <div className="text-center">
+                <p className="font-bold text-lg">{opponentPlayer.displayName}</p>
+                <p className="text-2xl font-bold text-primary">{opponentPlayer.score}</p>
+             </div>
+          </div>
+          <AlertDialogFooter>
+            <Button asChild className="w-full">
+                <Link href="/dashboard">Back to Dashboard</Link>
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       <AlertDialog>
         <AlertDialogTrigger asChild>
             <div id="pass-turn-trigger" className="hidden"></div>
@@ -477,7 +580,7 @@ function GameInstance({ game }: { game: Game }) {
             <AlertDialogHeader>
             <AlertDialogTitle>Pass Turn?</AlertDialogTitle>
             <AlertDialogDescription>
-                Are you sure you want to pass your turn? You will not score any points.
+                Are you sure you want to pass your turn? If both players pass, the game will end.
             </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -505,7 +608,7 @@ function GameInstance({ game }: { game: Game }) {
        </AlertDialog>
 
        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-full max-w-md sm:max-w-lg px-4">
-        <Scoreboard players={players} isPlayerTurn={isPlayerTurn} currentPlayerName={game.playerData[user.uid].displayName} />
+        <Scoreboard players={players} isPlayerTurn={isPlayerTurn} currentPlayerName={game.playerData[user.uid].displayName} gameStatus={game.status} />
       </div>
 
       <div className="flex-grow">
@@ -514,9 +617,9 @@ function GameInstance({ game }: { game: Game }) {
             <GameBoard
               placedTiles={game.board}
               pendingTiles={pendingTiles}
-              onCellClick={handleCellClick}
-              onDrop={handleDropOnBoard}
-              onRecallTile={handleRecallTile}
+              onCellClick={isPlayerTurn ? handleCellClick : undefined}
+              onDrop={isPlayerTurn ? handleDropOnBoard : undefined}
+              onRecallTile={isPlayerTurn ? handleRecallTile : undefined}
             />
           </CardContent>
         </Card>

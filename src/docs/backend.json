@@ -77,6 +77,14 @@
           "type": "string",
           "enum": ["active", "pending", "finished"],
           "description": "The current status of the game."
+        },
+        "consecutivePasses": {
+          "type": "number",
+          "description": "The number of consecutive passes made by players."
+        },
+        "winner": {
+            "type": "string",
+            "description": "The UID of the winning player."
         }
       },
       "required": ["players", "playerData", "board", "tileBag", "currentTurn", "status"]

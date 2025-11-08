@@ -32,6 +32,8 @@ interface Game {
   tileBag: Tile[];
   currentTurn: string;
   status: 'active' | 'pending' | 'finished';
+  consecutivePasses?: number;
+  winner?: string;
 }
 
 
@@ -44,8 +46,13 @@ function GameCard({ game }: { game: Game }) {
     return null; // Or a loading/error state
   }
 
-  const isPlayerTurn = game.currentTurn === user.uid;
-  const status = game.status === 'finished' ? 'Game Over' : isPlayerTurn ? 'Your Turn' : "Opponent's Turn";
+  let statusText = '';
+  if (game.status === 'finished') {
+    statusText = game.winner === user.uid ? 'You Won!' : game.winner ? 'You Lost' : 'Game Over';
+  } else {
+    statusText = game.currentTurn === user.uid ? 'Your Turn' : "Opponent's Turn";
+  }
+
   const opponentAvatar = PlaceHolderImages.find((p) => p.id === opponent.avatarId);
 
   return (
@@ -64,15 +71,15 @@ function GameCard({ game }: { game: Game }) {
         <div>
           <CardTitle>vs. {opponent.displayName}</CardTitle>
           <CardDescription>
-             <Badge variant={isPlayerTurn ? 'default' : 'secondary'} className="mt-1">
-                {status}
+             <Badge variant={game.status === 'finished' ? 'destructive' : (game.currentTurn === user.uid ? 'default' : 'secondary')} className="mt-1">
+                {statusText}
             </Badge>
           </CardDescription>
         </div>
       </CardHeader>
       <CardFooter className="mt-auto">
         <Button asChild className="w-full">
-          <Link href={`/?game=${game.id}`}>Open Game</Link>
+          <Link href={`/?game=${game.id}`}>{game.status === 'finished' ? 'View Results' : 'Open Game'}</Link>
         </Button>
       </CardFooter>
     </Card>
@@ -154,7 +161,8 @@ export default function DashboardPage() {
         board: {},
         tileBag: tileBag,
         currentTurn: user.uid,
-        status: 'active'
+        status: 'active',
+        consecutivePasses: 0,
     };
 
     const gamesCollection = collection(firestore, 'games');

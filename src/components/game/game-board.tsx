@@ -50,6 +50,8 @@ function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; c
     'TW': 'Triple Word',
   };
   
+  const canInteract = !!(onClick || onDrop);
+
   return (
     <div
       className={cn(
@@ -58,11 +60,12 @@ function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; c
         'transition-colors duration-150',
         'text-white/30',
         classMap[type],
-        (onClick || onDrop) && !children && 'hover:bg-yellow-300/50 cursor-pointer'
+        canInteract && !children && 'hover:bg-yellow-300/50 cursor-pointer',
+        !canInteract && 'cursor-not-allowed',
       )}
-      onClick={onClick}
-      onDrop={onDrop}
-      onDragOver={onDragOver}
+      onClick={canInteract ? onClick : undefined}
+      onDrop={canInteract ? onDrop : undefined}
+      onDragOver={canInteract ? onDragOver : undefined}
     >
       {children || (type === '★' ? <Star className="h-3 w-3 sm:h-4 sm:w-4" /> : <span className="hidden sm:inline">{textMap[type]}</span>)}
     </div>
@@ -70,11 +73,13 @@ function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; c
 }
 
 function PlacedTileComponent({ tile, isPending, onClick }: { tile: Tile, isPending: boolean, onClick?: () => void }) {
+  const canRecall = !!onClick;
   return (
     <div 
       className={cn(
         "relative flex h-full w-full items-center justify-center rounded-sm border-b-2 border-black/20 bg-[#f8e8c7] shadow-sm",
-        isPending && "cursor-pointer ring-2 ring-yellow-400 ring-offset-1"
+        isPending && canRecall && "cursor-pointer ring-2 ring-yellow-400 ring-offset-1",
+        isPending && !canRecall && "ring-2 ring-yellow-400/50 ring-offset-1"
       )}
       onClick={onClick}
     >
