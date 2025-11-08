@@ -90,7 +90,7 @@ export default function TileRack({ tiles, selectedTileIndex, onTileSelect, onRec
                 </div>
               ))}
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-4">
                 <Button variant="secondary" size="sm" onClick={onShuffle}>
                   <Shuffle className="mr-1 h-4 w-4" />
                   Shuffle
