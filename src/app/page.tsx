@@ -19,7 +19,7 @@ const initialPlayerTiles: (Tile | null)[] = [
 ];
 
 export default function GamePage() {
-  const [playerTiles, setPlayerTiles] = useState(initialPlayerTiles);
+  const [playerTiles, setPlayerTiles] = useState<(Tile | null)[]>(initialPlayerTiles);
   const [selectedTileIndex, setSelectedTileIndex] = useState<number | null>(null);
   const [pendingTiles, setPendingTiles] = useState<PlacedTile[]>([]);
 
@@ -62,6 +62,16 @@ export default function GamePage() {
     setPendingTiles([]);
   };
 
+  const handleShuffle = () => {
+    const shuffledTiles = [...playerTiles];
+    // Fisher-Yates shuffle algorithm
+    for (let i = shuffledTiles.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffledTiles[i], shuffledTiles[j]] = [shuffledTiles[j], shuffledTiles[i]];
+    }
+    setPlayerTiles(shuffledTiles);
+  };
+
   return (
     <AppLayout>
       <div className="flex-1 space-y-4 p-4 sm:p-8">
@@ -83,6 +93,7 @@ export default function GamePage() {
           selectedTileIndex={selectedTileIndex}
           onTileSelect={handleTileSelect}
           onRecall={handleRecall}
+          onShuffle={handleShuffle}
         />
       </div>
     </AppLayout>

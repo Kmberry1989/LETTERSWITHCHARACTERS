@@ -39,9 +39,10 @@ type TileRackProps = {
   selectedTileIndex: number | null;
   onTileSelect: (index: number) => void;
   onRecall: () => void;
+  onShuffle: () => void;
 };
 
-export default function TileRack({ tiles, selectedTileIndex, onTileSelect, onRecall }: TileRackProps) {
+export default function TileRack({ tiles, selectedTileIndex, onTileSelect, onRecall, onShuffle }: TileRackProps) {
   return (
     <Card className="bg-[#c4a27a] border-2 border-[#a07e56]">
       <CardContent className="p-4">
@@ -61,7 +62,7 @@ export default function TileRack({ tiles, selectedTileIndex, onTileSelect, onRec
               ))}
             </div>
             <div className="flex gap-2">
-                <Button variant="secondary" size="sm">Shuffle</Button>
+                <Button variant="secondary" size="sm" onClick={onShuffle}>Shuffle</Button>
                 <Button variant="secondary" size="sm" onClick={onRecall}>
                   <RotateCcw className="mr-1 h-4 w-4" />
                   Recall
