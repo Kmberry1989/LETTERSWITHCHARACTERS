@@ -1,23 +1,18 @@
 'use client';
 
-import { useState } from 'react';
+import { Suspense, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import GameBoard, { PlacedTile, Tile } from '@/components/game/game-board';
 import Scoreboard from '@/components/game/scoreboard';
 import TileRack from '@/components/game/tile-rack';
 import ChatWindow, { Message } from '@/components/game/chat-window';
 import { Card, CardContent } from '@/components/ui/card';
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from '@/components/ui/carousel';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useAudio } from '@/hooks/use-audio';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Cat } from 'lucide-react';
 import Link from 'next/link';
+import { useDoc, useUser } from '@/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const initialPlayerTiles: (Tile | null)[] = [
   { letter: 'A', score: 1 },
@@ -35,37 +30,23 @@ const initialMessages: Message[] = [
     { sender: 'Alex', text: 'Nice first move.' },
 ];
 
-const games = [
-  {
-    id: 1,
-    opponent: { name: 'Alex', avatarId: 'user-2' },
-    players: [
-      { name: 'WordWizard', score: 125, avatarId: 'user-1' },
-      { name: 'Alex', score: 98, avatarId: 'user-2' },
-    ],
-    isPlayerTurn: true,
-  },
-  {
-    id: 2,
-    opponent: { name: 'Foxy', avatarId: 'avatar-base' },
-    players: [
-      { name: 'WordWizard', score: 88, avatarId: 'user-1' },
-      { name: 'Foxy', score: 112, avatarId: 'avatar-base' },
-    ],
-    isPlayerTurn: false,
-  },
-  {
-    id: 3,
-    opponent: { name: 'PixelProwler', avatarId: 'user-3' },
-    players: [
-      { name: 'WordWizard', score: 150, avatarId: 'user-1' },
-      { name: 'PixelProwler', score: 149, avatarId: 'user-3' },
-    ],
-    isPlayerTurn: true,
-  },
-];
+interface PlayerData {
+  displayName: string;
+  score: number;
+  avatarId: string;
+}
 
-function GameInstance({ game }: { game: (typeof games)[0] }) {
+interface Game {
+  id: string;
+  players: string[];
+  playerData: { [uid: string]: PlayerData };
+  currentTurn: string;
+  status: 'active' | 'pending' | 'finished';
+}
+
+
+function GameInstance({ game }: { game: Game }) {
+  const { user } = useUser();
   const [playerTiles, setPlayerTiles] = useState<(Tile | null)[]>(initialPlayerTiles);
   const [selectedTileIndex, setSelectedTileIndex] = useState<number | null>(null);
   const [pendingTiles, setPendingTiles] = useState<PlacedTile[]>([]);
@@ -73,6 +54,13 @@ function GameInstance({ game }: { game: (typeof games)[0] }) {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const { playSfx } = useAudio();
+
+  if (!user) return <GameLoadingSkeleton />;
+
+  const isPlayerTurn = game.currentTurn === user.uid;
+  const opponentUid = game.players.find(p => p !== user.uid) || '';
+  const players = [game.playerData[user.uid], game.playerData[opponentUid]];
+
 
   const handleTileSelect = (index: number) => {
     if (playerTiles[index]) {
@@ -192,12 +180,12 @@ function GameInstance({ game }: { game: (typeof games)[0] }) {
 
   return (
     <div className="flex flex-col gap-4 h-full p-4 sm:p-8 pt-24 sm:pt-24">
-      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-md sm:max-w-lg px-4">
-        <Scoreboard players={game.players} isPlayerTurn={game.isPlayerTurn} currentPlayerName="WordWizard" />
+       <div className="absolute top-4 left-1/2 -translate-x-1/2 w-full max-w-md sm:max-w-lg px-4">
+        <Scoreboard players={players} isPlayerTurn={isPlayerTurn} currentPlayerName={user.displayName || 'Player'} />
       </div>
 
       <div className="flex-grow">
-        <Card className="h-full">
+        <Card className="h-full shadow-sm">
           <CardContent className="p-2 sm:p-4 h-full flex items-center justify-center">
             <GameBoard
               pendingTiles={pendingTiles}
@@ -230,30 +218,79 @@ function GameInstance({ game }: { game: (typeof games)[0] }) {
   );
 }
 
+function GameLoadingSkeleton() {
+    return (
+        <div className="flex flex-col gap-4 h-full p-4 sm:p-8 pt-24 sm:pt-24 animate-pulse">
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 w-full max-w-md sm:max-w-lg px-4">
+                <Card><CardContent className="p-4"><Skeleton className="h-16" /></CardContent></Card>
+            </div>
+            <div className="flex-grow">
+                <Card className="h-full shadow-sm">
+                <CardContent className="p-2 sm:p-4 h-full flex items-center justify-center">
+                   <Skeleton className="w-full aspect-square max-w-full" />
+                </CardContent>
+                </Card>
+            </div>
+             <div className="relative">
+                 <Card><CardContent className="p-4"><Skeleton className="h-28" /></CardContent></Card>
+            </div>
+        </div>
+    )
+}
+
+function NoGameSelected() {
+    return (
+        <div className="flex flex-col items-center justify-center h-screen text-center">
+            <Cat className="w-24 h-24 text-muted-foreground" />
+            <h2 className="mt-6 text-2xl font-semibold">No Game Selected</h2>
+            <p className="mt-2 text-muted-foreground">Please select a game from your dashboard to begin.</p>
+            <Button asChild className="mt-6">
+                <Link href="/dashboard">
+                    Go to Dashboard
+                </Link>
+            </Button>
+        </div>
+    );
+}
+
+function GamePageContent() {
+  const searchParams = useSearchParams();
+  const gameId = searchParams.get('game');
+
+  if (!gameId) {
+    return <NoGameSelected />;
+  }
+
+  const { data: game, loading, error } = useDoc<Game>(`games/${gameId}`);
+
+  if (loading) {
+    return <GameLoadingSkeleton />;
+  }
+
+  if (error || !game) {
+    return <div>Error loading game or game not found.</div>;
+  }
+  
+  return <GameInstance game={game} />;
+}
+
+
 export default function GamePage() {
   return (
     <main className="min-h-screen bg-background relative">
        <div className="absolute top-4 left-4 z-20">
-          <Button asChild variant="outline">
+          <Button asChild variant="outline" className="bg-white shadow-sm">
             <Link href="/dashboard">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Dashboard
             </Link>
           </Button>
         </div>
-      <div className="w-full h-screen">
-        <Carousel className="w-full h-full" opts={{ loop: true }}>
-          <CarouselContent className="-ml-0 h-full">
-            {games.map((game) => (
-              <CarouselItem key={game.id} className="pl-0">
-                <GameInstance game={game} />
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          <CarouselPrevious className="left-2" />
-          <CarouselNext className="right-2" />
-        </Carousel>
-      </div>
+        <div className="w-full h-screen">
+            <Suspense fallback={<GameLoadingSkeleton />}>
+                <GamePageContent />
+            </Suspense>
+        </div>
     </main>
   );
 }
