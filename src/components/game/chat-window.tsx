@@ -52,7 +52,7 @@ export default function ChatWindow({ isOpen, onClose, messages, onSendMessage }:
             <Card className="bg-[#e0d6c4] border-2 border-[#a07e56] rounded-b-none">
               <CardHeader className="flex flex-row items-center justify-between p-4 bg-[#c4a27a] border-b-2 border-[#a07e56]">
                 <CardTitle className="text-lg">Chat</CardTitle>
-                <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6">
+                <Button variant="ghost" size="icon" onClick={onClose}>
                   <X />
                 </Button>
               </CardHeader>
