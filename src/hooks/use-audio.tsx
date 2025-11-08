@@ -7,6 +7,8 @@ type SfxType = 'click' | 'place' | 'swoosh';
 type AudioContextType = {
   masterVolume: number;
   setMasterVolume: (volume: number) => void;
+  musicVolume: number;
+  setMusicVolume: (volume: number) => void;
   sfxVolume: number;
   setSfxVolume: (volume: number) => void;
   isMuted: boolean;
@@ -24,6 +26,7 @@ const AudioContext = createContext<AudioContextType | undefined>(undefined);
 
 export function AudioProvider({ children }: { children: ReactNode }) {
   const [masterVolume, setMasterVolume] = useState(50);
+  const [musicVolume, setMusicVolume] = useState(30);
   const [sfxVolume, setSfxVolume] = useState(80);
   const [isMuted, setIsMuted] = useState(false);
 
@@ -37,6 +40,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
   const value = {
     masterVolume,
     setMasterVolume,
+    musicVolume,
+    setMusicVolume,
     sfxVolume,
     setSfxVolume,
     isMuted,

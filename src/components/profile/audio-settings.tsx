@@ -4,12 +4,14 @@ import { useAudio } from '@/hooks/use-audio';
 import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
-import { Volume2, VolumeX } from 'lucide-react';
+import { Music, Volume2, VolumeX } from 'lucide-react';
 
 export default function AudioSettings() {
   const {
     masterVolume,
     setMasterVolume,
+    musicVolume,
+    setMusicVolume,
     sfxVolume,
     setSfxVolume,
     isMuted,
@@ -34,6 +36,18 @@ export default function AudioSettings() {
             id="master-volume"
             value={[masterVolume]}
             onValueChange={(value) => setMasterVolume(value[0])}
+            max={100}
+            step={1}
+            disabled={isMuted}
+          />
+        </div>
+
+        <div className="space-y-2">
+          <Label htmlFor="music-volume" className='flex items-center gap-2'><Music size={16} />Music Volume ({musicVolume})</Label>
+          <Slider
+            id="music-volume"
+            value={[musicVolume]}
+            onValueChange={(value) => setMusicVolume(value[0])}
             max={100}
             step={1}
             disabled={isMuted}
