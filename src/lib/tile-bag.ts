@@ -25,5 +25,5 @@ export const TILE_BAG_CONFIG = {
     'X': { score: 8, count: 1 },
     'Y': { score: 4, count: 2 },
     'Z': { score: 10, count: 1 },
-    'BLANK': { score: 0, count: 2 },
+    ' ': { score: 0, count: 2 },
 };

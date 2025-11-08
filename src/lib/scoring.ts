@@ -24,10 +24,10 @@ export function calculateScore(placedTiles: PlacedTile[], board: Record<string, 
     let wordMultiplier = 1;
 
     wordInfo.tiles.forEach(tile => {
-      const { row, col, score } = tile;
+      const { row, col, score, isBlank } = tile;
       const bonus = boardLayout[row][col];
       const isNewTile = placedTiles.some(pt => pt.row === row && pt.col === col);
-      let letterScore = score;
+      let letterScore = isBlank ? 0 : score;
       
       if (isNewTile) {
         switch (bonus) {
@@ -150,7 +150,6 @@ function findWordForTile(
 
   let wordTiles: PlacedTile[] = [tile];
   let currentPos: number;
-  let increment: number;
 
   // Search backward
   currentPos = direction === 'horizontal' ? tile.col - 1 : tile.row - 1;

@@ -5,7 +5,7 @@ import { Star } from 'lucide-react';
 import React from 'react';
 
 // Simplified types for now
-export type Tile = { letter: string; score: number };
+export type Tile = { letter: string; score: number; isBlank?: boolean };
 export type PlacedTile = Tile & { row: number; col: number };
 
 export const boardLayout = [
@@ -78,7 +78,10 @@ function PlacedTileComponent({ tile, isPending, onClick }: { tile: Tile, isPendi
       )}
       onClick={onClick}
     >
-      <span className="text-lg sm:text-2xl font-bold text-gray-800">{tile.letter}</span>
+      <span className={cn(
+          "text-lg sm:text-2xl font-bold text-gray-800",
+          tile.isBlank && "text-red-600"
+      )}>{tile.letter}</span>
       <span className="absolute bottom-0 right-0.5 text-[0.5rem] sm:text-xs font-semibold text-gray-800">{tile.score}</span>
     </div>
   );

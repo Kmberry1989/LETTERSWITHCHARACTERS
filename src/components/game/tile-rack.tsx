@@ -18,6 +18,7 @@ function Tile({
   onClick: () => void;
   onDragStart: (e: React.DragEvent) => void;
 }) {
+  const isBlank = tile.letter === ' ';
   return (
     <div 
       draggable
@@ -29,7 +30,7 @@ function Tile({
         "active:scale-95"
       )}
     >
-      <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">{tile.letter}</span>
+      <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">{isBlank ? '' : tile.letter}</span>
       <span className="absolute bottom-0.5 right-1 text-[0.6rem] sm:text-xs font-semibold text-gray-800">{tile.score}</span>
     </div>
   );

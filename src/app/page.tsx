@@ -6,6 +6,7 @@ import GameBoard, { PlacedTile, Tile } from '@/components/game/game-board';
 import Scoreboard from '@/components/game/scoreboard';
 import TileRack from '@/components/game/tile-rack';
 import ChatWindow, { Message } from '@/components/game/chat-window';
+import BlankTileDialog from '@/components/game/blank-tile-dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAudio } from '@/hooks/use-audio';
 import { Button } from '@/components/ui/button';
@@ -55,6 +56,7 @@ function GameInstance({ game }: { game: Game }) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const { playSfx } = useAudio();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [blankTileData, setBlankTileData] = useState<{ row: number; col: number; index: number | null } | null>(null);
 
 
   useEffect(() => {
@@ -89,6 +91,10 @@ function GameInstance({ game }: { game: Game }) {
     if (selectedTileIndex !== null) {
       const tileToPlace = playerTiles[selectedTileIndex];
       if (tileToPlace) {
+        if (tileToPlace.letter === ' ') {
+          setBlankTileData({ row, col, index: selectedTileIndex });
+          return;
+        }
         setPendingTiles([...pendingTiles, { ...tileToPlace, row, col }]);
         const newPlayerTiles = [...playerTiles];
         newPlayerTiles[selectedTileIndex] = null;
@@ -113,6 +119,11 @@ function GameInstance({ game }: { game: Game }) {
         game.board[`${row}-${col}`];
 
       if (!isOccupied) {
+        if (draggedTile.tile.letter === ' ') {
+          setBlankTileData({ row, col, index: draggedTile.index });
+          setDraggedTile(null);
+          return;
+        }
         setPendingTiles([...pendingTiles, { ...draggedTile.tile, row, col }]);
         const newPlayerTiles = [...playerTiles];
         newPlayerTiles[draggedTile.index] = null;
@@ -121,6 +132,23 @@ function GameInstance({ game }: { game: Game }) {
       }
     }
     setDraggedTile(null);
+  };
+
+  const handleBlankTileSelect = (letter: string) => {
+    if (blankTileData) {
+      const { row, col, index } = blankTileData;
+      const blankTile: PlacedTile = { letter, score: 0, isBlank: true, row, col };
+      setPendingTiles([...pendingTiles, blankTile]);
+
+      if (index !== null) {
+        const newPlayerTiles = [...playerTiles];
+        newPlayerTiles[index] = null;
+        setPlayerTiles(newPlayerTiles);
+      }
+      setBlankTileData(null);
+      setSelectedTileIndex(null);
+      playSfx('place');
+    }
   };
 
   const handleDropOnRack = (dropIndex: number) => {
@@ -147,7 +175,9 @@ function GameInstance({ game }: { game: Game }) {
     pendingTiles.forEach((pendingTile) => {
       const emptyIndex = newPlayerTiles.findIndex((t) => t === null);
       if (emptyIndex !== -1) {
-        newPlayerTiles[emptyIndex] = { letter: pendingTile.letter, score: pendingTile.score };
+        // When recalling a blank, it becomes a blank again
+        const originalTile = pendingTile.isBlank ? { letter: ' ', score: 0 } : { letter: pendingTile.letter, score: pendingTile.score };
+        newPlayerTiles[emptyIndex] = originalTile;
       }
     });
     setPlayerTiles(newPlayerTiles);
@@ -159,7 +189,8 @@ function GameInstance({ game }: { game: Game }) {
     const newPlayerTiles = [...playerTiles];
     const emptyIndex = newPlayerTiles.findIndex((t) => t === null);
     if (emptyIndex !== -1) {
-      newPlayerTiles[emptyIndex] = { letter: tileToRecall.letter, score: tileToRecall.score };
+      const originalTile = tileToRecall.isBlank ? { letter: ' ', score: 0 } : { letter: tileToRecall.letter, score: tileToRecall.score };
+      newPlayerTiles[emptyIndex] = originalTile;
     }
     const newPendingTiles = pendingTiles.filter(
       (pt) => !(pt.row === tileToRecall.row && pt.col === tileToRecall.col)
@@ -222,7 +253,7 @@ function GameInstance({ game }: { game: Game }) {
       
       const newBoard = { ...game.board };
       pendingTiles.forEach(tile => {
-        newBoard[`${tile.row}-${tile.col}`] = { letter: tile.letter, score: tile.score };
+        newBoard[`${tile.row}-${tile.col}`] = { letter: tile.letter, score: tile.score, isBlank: tile.isBlank };
       });
   
       const tilesToDraw = pendingTiles.length;
@@ -256,6 +287,11 @@ function GameInstance({ game }: { game: Game }) {
 
   return (
     <div className="flex flex-col gap-4 h-full p-4 sm:p-8 pt-24 sm:pt-24">
+       <BlankTileDialog
+        isOpen={!!blankTileData}
+        onClose={() => setBlankTileData(null)}
+        onSelect={handleBlankTileSelect}
+      />
        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-full max-w-md sm:max-w-lg px-4">
         <Scoreboard players={players} isPlayerTurn={isPlayerTurn} currentPlayerName={game.playerData[user.uid].displayName} />
       </div>
