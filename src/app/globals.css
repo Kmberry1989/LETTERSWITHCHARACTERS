@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -89,9 +90,9 @@ body {
 }
 
 @layer components {
-  .board-cell-dl { @apply bg-[#a3d4e6] text-transparent hover:text-[#2c5a71]/50; }
-  .board-cell-tl { @apply bg-[#4b9cc1] text-transparent hover:text-white/50; }
-  .board-cell-dw { @apply bg-[#f4b6c3] text-transparent hover:text-[#7d3a4b]/50; }
-  .board-cell-tw { @apply bg-[#e67c73] text-transparent hover:text-white/50; }
+  .board-cell-dl { @apply bg-[#a3d4e6] text-[#2c5a71]/30 hover:text-[#2c5a71]/50; }
+  .board-cell-tl { @apply bg-[#4b9cc1] text-white/30 hover:text-white/50; }
+  .board-cell-dw { @apply bg-[#f4b6c3] text-[#7d3a4b]/30 hover:text-[#7d3a4b]/50; }
+  .board-cell-tw { @apply bg-[#e67c73] text-white/30 hover:text-white/50; }
   .board-cell-start { @apply bg-primary/70 text-primary-foreground/80; }
 }
