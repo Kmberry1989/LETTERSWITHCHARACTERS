@@ -294,7 +294,7 @@ function GameInstance({ game }: { game: Game }) {
       [`playerData.${opponentUid}.score`]: finalPlayer2Score,
       winner: winnerId,
     };
-    await updateDoc(gameDocRef, updatePayload).catch(async (serverError) => {
+    updateDoc(gameDocRef, updatePayload).catch(async (serverError) => {
       const permissionError = new FirestorePermissionError({
           path: gameDocRef.path,
           operation: 'update',
@@ -450,7 +450,8 @@ function GameInstance({ game }: { game: Game }) {
     if (!isPlayerTurn || !firestore || isSubmitting) return;
     
     // Game end condition: 2 consecutive passes
-    if ((game.consecutivePasses || 0) + 1 >= 2) {
+    const newConsecutivePasses = (game.consecutivePasses || 0) + 1;
+    if (newConsecutivePasses >= 2) {
       await endGame(null);
       return;
     }
@@ -460,7 +461,7 @@ function GameInstance({ game }: { game: Game }) {
       const gameDocRef = doc(firestore, 'games', game.id);
       const updatePayload = {
         currentTurn: opponentUid,
-        consecutivePasses: (game.consecutivePasses || 0) + 1,
+        consecutivePasses: newConsecutivePasses,
       };
       await updateDoc(gameDocRef, updatePayload);
       toast({ title: 'Turn Passed', description: "It's now your opponent's turn." });
@@ -580,7 +581,7 @@ function GameInstance({ game }: { game: Game }) {
             <AlertDialogHeader>
             <AlertDialogTitle>Pass Turn?</AlertDialogTitle>
             <AlertDialogDescription>
-                Are you sure you want to pass your turn? If both players pass, the game will end.
+                Are you sure you want to pass your turn? If both players pass consecutively, the game will end.
             </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>

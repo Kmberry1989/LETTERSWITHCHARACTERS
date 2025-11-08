@@ -145,10 +145,10 @@ function findWordForTile(
   board: Record<string, Tile>,
   placedTiles: PlacedTile[]
 ): FoundWord | null {
-  const allTilesOnBoard = { ...board };
+  const allTilesOnBoard: Record<string, Tile> = { ...board };
   placedTiles.forEach(t => { allTilesOnBoard[`${t.row}-${t.col}`] = t; });
 
-  let wordTiles: PlacedTile[] = [tile];
+  let wordTiles: PlacedTile[] = [{...tile, ...allTilesOnBoard[`${tile.row}-${tile.col}`]}];
   let currentPos: number;
 
   // Search backward
