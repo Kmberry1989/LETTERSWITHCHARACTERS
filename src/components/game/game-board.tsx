@@ -68,7 +68,7 @@ function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; c
     <div
       className={cn(
         'flex aspect-square select-none items-center justify-center rounded-sm text-xs font-semibold uppercase tracking-tighter text-center leading-none',
-        'bg-[#e0d6c4] border border-[#d1c6b4]',
+        'bg-[#d8cebc] border border-[#d1c6b4]',
         'transition-colors duration-150',
         'text-white/30',
         classMap[type],
