@@ -1,5 +1,11 @@
+'use client';
+
 import { cn } from '@/lib/utils';
 import { Star } from 'lucide-react';
+
+// Simplified types for now
+export type Tile = { letter: string; score: number };
+export type PlacedTile = Tile & { row: number; col: number };
 
 const boardLayout = [
   ['TW', '', '', 'DL', '', '', '', 'TW', '', '', '', 'DL', '', '', 'TW'],
@@ -8,7 +14,7 @@ const boardLayout = [
   ['DL', '', '', 'DW', '', '', '', 'DL', '', '', '', 'DW', '','', 'DL'],
   ['', '', '', '', 'DW', '', '', '', '', '', 'DW', '', '', '', ''],
   ['', 'TL', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'TL', ''],
-  ['', '', 'DL', '', '', '', 'DL', '', 'DL', '', '', '', 'DL', '', ''],
+  ['', 'DL', '', '', '', 'DL', '', 'DL', '', '', '', 'DL', '', ''],
   ['TW', '', '', 'DL', '', '', '', '★', '', '', '', 'DL', '', '', 'TW'],
   ['', '', 'DL', '', '', '', 'DL', '', 'DL', '', '', '', 'DL', '', ''],
   ['', 'TL', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'TL', ''],
@@ -19,7 +25,7 @@ const boardLayout = [
   ['TW', '', '', 'DL', '', '', '', 'TW', '', '', '', 'DL', '', '', 'TW'],
 ];
 
-const placedTiles = {
+const initialPlacedTiles: Record<string, Tile> = {
   '7-4': { letter: 'L', score: 1 },
   '7-5': { letter: 'E', score: 1 },
   '7-6': { letter: 'T', score: 1 },
@@ -33,8 +39,13 @@ const placedTiles = {
   '11-7': { letter: 'E', score: 1 },
 };
 
+type GameBoardProps = {
+  placedTiles?: Record<string, Tile>;
+  pendingTiles?: PlacedTile[];
+  onCellClick?: (row: number, col: number) => void;
+};
 
-function Cell({ type, children }: { type: string; children?: React.ReactNode }) {
+function Cell({ type, children, onClick }: { type: string; children?: React.ReactNode; onClick?: () => void }) {
   const classMap: { [key: string]: string } = {
     'DL': 'board-cell-dl',
     'TL': 'board-cell-tl',
@@ -55,15 +66,18 @@ function Cell({ type, children }: { type: string; children?: React.ReactNode }) 
       className={cn(
         'flex aspect-square select-none items-center justify-center rounded-sm text-xs font-semibold uppercase tracking-tighter text-center leading-none',
         'bg-[#e0d6c4] border border-[#d1c6b4]',
-        classMap[type]
+        'transition-colors duration-150',
+        classMap[type],
+        onClick && !children && 'hover:bg-yellow-300/50 cursor-pointer'
       )}
+      onClick={onClick}
     >
       {children || (type === '★' ? <Star className="h-4 w-4" /> : textMap[type])}
     </div>
   );
 }
 
-function Tile({ letter, score }: { letter: string; score: number }) {
+function PlacedTile({ letter, score }: { letter: string; score: number | string }) {
   return (
     <div className="relative flex h-full w-full items-center justify-center rounded-sm border-b-2 border-black/20 bg-[#f8e8c7] shadow-sm">
       <span className="text-lg font-bold text-gray-800">{letter}</span>
@@ -72,18 +86,32 @@ function Tile({ letter, score }: { letter: string; score: number }) {
   );
 }
 
-export default function GameBoard() {
+export default function GameBoard({ 
+  placedTiles = initialPlacedTiles, 
+  pendingTiles = [],
+  onCellClick 
+}: GameBoardProps) {
+  const allTiles = { ...placedTiles };
+  pendingTiles.forEach(tile => {
+    const key = `${tile.row}-${tile.col}`;
+    allTiles[key] = tile;
+  });
+
   return (
     <div className="w-full aspect-square max-w-full">
-      <div className="grid grid-cols-15 gap-0.5 sm:gap-1 p-1 sm:p-2 bg-[#d1c6b4] rounded-md">
+      <div className="grid grid-cols-15 gap-0.5 sm:gap-1 p-1 sm:p-2 bg-[#b8a68b] rounded-md shadow-inner">
         {boardLayout.map((row, rowIndex) =>
           row.map((cellType, colIndex) => {
             const tileKey = `${rowIndex}-${colIndex}`;
-            // @ts-ignore
-            const tile = placedTiles[tileKey];
+            const tile = allTiles[tileKey];
+            const canPlace = onCellClick && !tile;
             return (
-              <Cell key={`${rowIndex}-${colIndex}`} type={cellType}>
-                {tile && <Tile letter={tile.letter} score={tile.score} />}
+              <Cell 
+                key={`${rowIndex}-${colIndex}`} 
+                type={cellType}
+                onClick={canPlace ? () => onCellClick(rowIndex, colIndex) : undefined}
+              >
+                {tile && <PlacedTile letter={tile.letter} score={Number(tile.score)} />}
               </Cell>
             );
           })
