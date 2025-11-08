@@ -20,6 +20,8 @@ import { calculateScore, getWordsFromPlacedTiles } from '@/lib/scoring';
 import { validateWord } from '@/ai/validate-word';
 import { suggestWord } from '@/ai/ai-suggest-word';
 import { useToast } from '@/hooks/use-toast';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 const initialMessages: Message[] = [
     { sender: 'Alex', text: 'Hey, good luck!' },
@@ -275,13 +277,23 @@ function GameInstance({ game }: { game: Game }) {
         currentTurn: opponentUid,
       };
   
-      await updateDoc(gameDocRef, updatePayload);
-      setPendingTiles([]);
-      playSfx('place');
-      toast({ title: 'Word Played!', description: `You scored ${score} points!` });
+      updateDoc(gameDocRef, updatePayload)
+        .then(() => {
+            setPendingTiles([]);
+            playSfx('place');
+            toast({ title: 'Word Played!', description: `You scored ${score} points!` });
+        })
+        .catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: gameDocRef.path,
+                operation: 'update',
+                requestResourceData: updatePayload,
+              } satisfies SecurityRuleContext);
+    
+            errorEmitter.emit('permission-error', permissionError);
+        });
 
     } catch (error) {
-      console.error("Error playing word:", error);
       toast({ variant: 'destructive', title: 'Error', description: 'Could not play word.' });
     } finally {
       setIsSubmitting(false);
@@ -316,8 +328,15 @@ function GameInstance({ game }: { game: Game }) {
         });
         // Mark hint as used
         const gameDocRef = doc(firestore, 'games', game.id);
-        await updateDoc(gameDocRef, {
-            [`playerData.${user.uid}.hintUsed`]: true,
+        const updatePayload = { [`playerData.${user.uid}.hintUsed`]: true };
+        updateDoc(gameDocRef, updatePayload).catch(async (serverError) => {
+            const permissionError = new FirestorePermissionError({
+                path: gameDocRef.path,
+                operation: 'update',
+                requestResourceData: updatePayload,
+              } satisfies SecurityRuleContext);
+    
+            errorEmitter.emit('permission-error', permissionError);
         });
 
       } else {
@@ -327,7 +346,6 @@ function GameInstance({ game }: { game: Game }) {
         });
       }
     } catch (error) {
-      console.error('Error getting hint:', error);
       toast({ variant: 'destructive', title: 'Error', description: 'Could not get a hint.' });
     } finally {
       setIsGettingHint(false);

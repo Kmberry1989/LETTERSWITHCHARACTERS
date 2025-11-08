@@ -13,6 +13,8 @@ import { addDoc, collection } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { createTileBag, drawTiles } from '@/lib/game-logic';
 import type { Tile } from '@/components/game/game-board';
+import { errorEmitter } from '@/firebase/error-emitter';
+import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 
 interface PlayerData {
   displayName: string;
@@ -155,21 +157,22 @@ export default function DashboardPage() {
         status: 'active'
     };
 
-    try {
-        const gamesCollection = collection(firestore, 'games');
-        await addDoc(gamesCollection, newGame);
+    const gamesCollection = collection(firestore, 'games');
+    
+    addDoc(gamesCollection, newGame).then(() => {
         toast({
             title: "Game created!",
             description: `You've started a new game against ${opponent.displayName}.`,
         });
-    } catch(error) {
-        console.error("Error creating new game:", error);
-        toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Could not create new game.",
-        });
-    }
+    }).catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: gamesCollection.path,
+            operation: 'create',
+            requestResourceData: newGame,
+          } satisfies SecurityRuleContext);
+
+        errorEmitter.emit('permission-error', permissionError);
+    });
   };
 
 
