@@ -18,6 +18,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { drawTiles } from '@/lib/game-logic';
 import { calculateScore, getWordsFromPlacedTiles } from '@/lib/scoring';
 import { validateWord } from '@/ai/validate-word';
+import { suggestWord } from '@/ai/ai-suggest-word';
 import { useToast } from '@/hooks/use-toast';
 
 const initialMessages: Message[] = [
@@ -56,6 +57,7 @@ function GameInstance({ game }: { game: Game }) {
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const { playSfx } = useAudio();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGettingHint, setIsGettingHint] = useState(false);
   const [blankTileData, setBlankTileData] = useState<{ row: number; col: number; index: number | null } | null>(null);
 
 
@@ -285,6 +287,38 @@ function GameInstance({ game }: { game: Game }) {
     }
   };
 
+  const handleGetHint = async () => {
+    if (!isPlayerTurn || isGettingHint) return;
+
+    setIsGettingHint(true);
+    try {
+      const currentTiles = playerTiles.map(t => t?.letter || '').join('');
+      // This is a simplified representation. A more complex one could include positions.
+      const boardState = Object.keys(game.board).length > 0
+        ? `Board has tiles: ${Object.values(game.board).map(t => t.letter).join(', ')}`
+        : "The board is empty.";
+
+      const result = await suggestWord({ tiles: currentTiles, boardState });
+      
+      if (result.suggestions && result.suggestions.length > 0) {
+        toast({
+          title: 'AI Word Suggestions',
+          description: `How about: ${result.suggestions.slice(0, 3).join(', ')}?`,
+        });
+      } else {
+        toast({
+          title: 'No suggestions found',
+          description: 'The AI could not find any words with your current tiles.',
+        });
+      }
+    } catch (error) {
+      console.error('Error getting hint:', error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not get a hint.' });
+    } finally {
+      setIsGettingHint(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4 h-full p-4 sm:p-8 pt-24 sm:pt-24">
        <BlankTileDialog
@@ -320,8 +354,10 @@ function GameInstance({ game }: { game: Game }) {
           onDrop={handleDropOnRack}
           onChatClick={() => setIsChatOpen(true)}
           onPlay={handlePlayWord}
+          onHint={handleGetHint}
           isPlayerTurn={isPlayerTurn}
           isSubmitting={isSubmitting}
+          isGettingHint={isGettingHint}
         />
         <ChatWindow
             isOpen={isChatOpen}

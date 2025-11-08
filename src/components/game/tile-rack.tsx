@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Tile as TileType } from './game-board';
-import { Loader, MessageCircle, RotateCcw, Shuffle } from 'lucide-react';
+import { Loader, MessageCircle, RotateCcw, Shuffle, Sparkles } from 'lucide-react';
 
 function Tile({ 
   tile, 
@@ -50,6 +50,7 @@ type TileRackProps = {
   selectedTileIndex: number | null;
   isPlayerTurn: boolean;
   isSubmitting: boolean;
+  isGettingHint: boolean;
   onTileSelect: (index: number) => void;
   onRecall: () => void;
   onShuffle: () => void;
@@ -57,9 +58,10 @@ type TileRackProps = {
   onDrop: (index: number) => void;
   onChatClick: () => void;
   onPlay: () => void;
+  onHint: () => void;
 };
 
-export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSubmitting, onTileSelect, onRecall, onShuffle, onDragStart, onDrop, onChatClick, onPlay }: TileRackProps) {
+export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSubmitting, isGettingHint, onTileSelect, onRecall, onShuffle, onDragStart, onDrop, onChatClick, onPlay, onHint }: TileRackProps) {
   
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -97,6 +99,10 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
                 <Button variant="secondary" size="sm" onClick={onRecall} className="shadow-sm">
                   <RotateCcw className="mr-1 h-4 w-4" />
                   Recall
+                </Button>
+                <Button variant="secondary" size="sm" onClick={onHint} disabled={!isPlayerTurn || isGettingHint} className="shadow-sm">
+                  {isGettingHint ? <Loader className="animate-spin mr-1 h-4 w-4" /> : <Sparkles className="mr-1 h-4 w-4" />}
+                  Hint
                 </Button>
                  <Button variant="secondary" size="sm" onClick={onChatClick} className="shadow-sm">
                   <MessageCircle className="mr-1 h-4 w-4" />
