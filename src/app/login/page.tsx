@@ -10,7 +10,7 @@ export default function LoginPage() {
 
   const handleSignIn = async () => {
     // Mock sign-in, just redirect
-    router.push('/');
+    router.push('/dashboard');
   };
 
   return (

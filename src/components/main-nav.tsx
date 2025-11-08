@@ -9,7 +9,7 @@ export function MainNav() {
   const pathname = usePathname();
 
   const menuItems = [
-    { href: '/', label: 'Game', icon: LayoutGrid },
+    { href: '/dashboard', label: 'Games', icon: LayoutGrid },
     { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
     { href: '/shop', label: 'Shop', icon: Store },
     { href: '/profile', label: 'Profile', icon: UserCircle },
@@ -22,7 +22,7 @@ export function MainNav() {
         <SidebarMenuItem key={item.href}>
           <SidebarMenuButton
             asChild
-            isActive={pathname === item.href}
+            isActive={pathname.startsWith(item.href) && (item.href !== '/' || pathname === '/')}
             tooltip={item.label}
           >
             <Link href={item.href}>

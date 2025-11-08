@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from 'react';
-import AppLayout from '@/components/app-layout';
 import GameBoard, { PlacedTile, Tile } from '@/components/game/game-board';
 import Scoreboard from '@/components/game/scoreboard';
 import TileRack from '@/components/game/tile-rack';
@@ -17,6 +16,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useAudio } from '@/hooks/use-audio';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
+import Link from 'next/link';
 
 const initialPlayerTiles: (Tile | null)[] = [
   { letter: 'A', score: 1 },
@@ -179,7 +181,7 @@ function GameInstance({ game }: { game: (typeof games)[0] }) {
   };
 
   return (
-    <div className="flex flex-col gap-4 h-full">
+    <div className="flex flex-col gap-4 h-full p-4 sm:p-8">
       <div className="flex items-center justify-between gap-2 text-lg font-semibold">
         <div className="flex items-center gap-2">
           <Avatar className="h-8 w-8">
@@ -229,20 +231,28 @@ function GameInstance({ game }: { game: (typeof games)[0] }) {
 
 export default function GamePage() {
   return (
-    <AppLayout>
-      <div className="flex-1 p-4 sm:p-8 h-[calc(100vh-4rem)]">
+    <main className="min-h-screen bg-background">
+       <div className="absolute top-4 left-4 z-20">
+          <Button asChild variant="outline">
+            <Link href="/dashboard">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Dashboard
+            </Link>
+          </Button>
+        </div>
+      <div className="w-full h-screen">
         <Carousel className="w-full h-full" opts={{ loop: true }}>
-          <CarouselContent className="-ml-4 h-full">
+          <CarouselContent className="-ml-0 h-full">
             {games.map((game) => (
-              <CarouselItem key={game.id} className="pl-4">
+              <CarouselItem key={game.id} className="pl-0">
                 <GameInstance game={game} />
               </CarouselItem>
             ))}
           </CarouselContent>
-          <CarouselPrevious />
-          <CarouselNext />
+          <CarouselPrevious className="left-2" />
+          <CarouselNext className="right-2" />
         </Carousel>
       </div>
-    </AppLayout>
+    </main>
   );
 }
