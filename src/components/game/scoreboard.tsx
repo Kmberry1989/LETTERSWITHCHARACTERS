@@ -12,16 +12,17 @@ type Player = {
 type ScoreboardProps = {
   players: Player[];
   isPlayerTurn: boolean;
+  currentPlayerName: string;
 };
 
 const defaultPlayers: Player[] = [
-  { name: 'You', score: 125, avatarId: 'user-1' },
+  { name: 'WordWizard', score: 125, avatarId: 'user-1' },
   { name: 'Alex', score: 98, avatarId: 'user-2' },
 ];
 
-export default function Scoreboard({ players = defaultPlayers, isPlayerTurn }: ScoreboardProps) {
-  const player1 = players.find(p => p.name === 'You') || players[0];
-  const player2 = players.find(p => p.name !== 'You') || players[1];
+export default function Scoreboard({ players = defaultPlayers, isPlayerTurn, currentPlayerName }: ScoreboardProps) {
+  const player1 = players.find(p => p.name === currentPlayerName) || players[0];
+  const player2 = players.find(p => p.name !== currentPlayerName) || players[1];
 
   const player1Avatar = PlaceHolderImages.find(p => p.id === player1.avatarId);
   const player2Avatar = PlaceHolderImages.find(p => p.id === player2.avatarId);
@@ -41,7 +42,7 @@ export default function Scoreboard({ players = defaultPlayers, isPlayerTurn }: S
             </div>
           </div>
           
-          <div className="relative font-bold text-2xl text-muted-foreground bottom-4">VS</div>
+          <div className="relative font-bold text-2xl text-muted-foreground bottom-5">VS</div>
 
           <div className="flex flex-1 items-center gap-3 justify-end">
             <div className="text-right">
@@ -54,7 +55,7 @@ export default function Scoreboard({ players = defaultPlayers, isPlayerTurn }: S
             </Avatar>
           </div>
         </div>
-         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pt-6">
+         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[calc(50%+15px)]">
             <Badge variant={isPlayerTurn ? 'default' : 'secondary'}>
                 {isPlayerTurn ? 'Your Turn' : "Opponent's Turn"}
             </Badge>

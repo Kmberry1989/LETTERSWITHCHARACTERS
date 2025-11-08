@@ -40,7 +40,7 @@ const games = [
     id: 1,
     opponent: { name: 'Alex', avatarId: 'user-2' },
     players: [
-      { name: 'You', score: 125, avatarId: 'user-1' },
+      { name: 'WordWizard', score: 125, avatarId: 'user-1' },
       { name: 'Alex', score: 98, avatarId: 'user-2' },
     ],
     isPlayerTurn: true,
@@ -49,7 +49,7 @@ const games = [
     id: 2,
     opponent: { name: 'Foxy', avatarId: 'avatar-base' },
     players: [
-      { name: 'You', score: 88, avatarId: 'user-1' },
+      { name: 'WordWizard', score: 88, avatarId: 'user-1' },
       { name: 'Foxy', score: 112, avatarId: 'avatar-base' },
     ],
     isPlayerTurn: false,
@@ -58,7 +58,7 @@ const games = [
     id: 3,
     opponent: { name: 'PixelProwler', avatarId: 'user-3' },
     players: [
-      { name: 'You', score: 150, avatarId: 'user-1' },
+      { name: 'WordWizard', score: 150, avatarId: 'user-1' },
       { name: 'PixelProwler', score: 149, avatarId: 'user-3' },
     ],
     isPlayerTurn: true,
@@ -193,7 +193,7 @@ function GameInstance({ game }: { game: (typeof games)[0] }) {
   return (
     <div className="flex flex-col gap-4 h-full p-4 sm:p-8 pt-24 sm:pt-24">
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-md sm:max-w-lg px-4">
-        <Scoreboard players={game.players} isPlayerTurn={game.isPlayerTurn} />
+        <Scoreboard players={game.players} isPlayerTurn={game.isPlayerTurn} currentPlayerName="WordWizard" />
       </div>
 
       <div className="flex-grow">
