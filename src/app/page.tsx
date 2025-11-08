@@ -7,6 +7,15 @@ import GameBoard, { PlacedTile, Tile } from '@/components/game/game-board';
 import Scoreboard from '@/components/game/scoreboard';
 import TileRack from '@/components/game/tile-rack';
 import { Card, CardContent } from '@/components/ui/card';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from '@/components/ui/carousel';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const initialPlayerTiles: (Tile | null)[] = [
   { letter: 'A', score: 1 },
@@ -18,10 +27,38 @@ const initialPlayerTiles: (Tile | null)[] = [
   { letter: 'S', score: 1 },
 ];
 
-export default function GamePage() {
+const games = [
+  {
+    id: 1,
+    opponent: { name: 'Alex', avatarId: 'user-2' },
+    players: [
+      { name: 'You', score: 125, avatarId: 'user-1' },
+      { name: 'Alex', score: 98, avatarId: 'user-2' },
+    ],
+  },
+  {
+    id: 2,
+    opponent: { name: 'Foxy', avatarId: 'avatar-base' },
+    players: [
+      { name: 'You', score: 88, avatarId: 'user-1' },
+      { name: 'Foxy', score: 112, avatarId: 'avatar-base' },
+    ],
+  },
+  {
+    id: 3,
+    opponent: { name: 'PixelProwler', avatarId: 'user-3' },
+    players: [
+      { name: 'You', score: 150, avatarId: 'user-1' },
+      { name: 'PixelProwler', score: 149, avatarId: 'user-3' },
+    ],
+  },
+];
+
+function GameInstance({ game }: { game: typeof games[0] }) {
   const [playerTiles, setPlayerTiles] = useState<(Tile | null)[]>(initialPlayerTiles);
   const [selectedTileIndex, setSelectedTileIndex] = useState<number | null>(null);
   const [pendingTiles, setPendingTiles] = useState<PlacedTile[]>([]);
+  const opponentAvatar = PlaceHolderImages.find((p) => p.id === game.opponent.avatarId);
 
   const handleTileSelect = (index: number) => {
     if (playerTiles[index]) {
@@ -33,15 +70,10 @@ export default function GamePage() {
     if (selectedTileIndex !== null) {
       const tileToPlace = playerTiles[selectedTileIndex];
       if (tileToPlace) {
-        // Place tile on board
         setPendingTiles([...pendingTiles, { ...tileToPlace, row, col }]);
-        
-        // Remove tile from rack
         const newPlayerTiles = [...playerTiles];
         newPlayerTiles[selectedTileIndex] = null;
         setPlayerTiles(newPlayerTiles);
-        
-        // Deselect
         setSelectedTileIndex(null);
       }
     }
@@ -49,30 +81,27 @@ export default function GamePage() {
 
   const handleRecall = () => {
     if (pendingTiles.length === 0) return;
-    
     const newPlayerTiles = [...playerTiles];
-    pendingTiles.forEach(pendingTile => {
-      const emptyIndex = newPlayerTiles.findIndex(t => t === null);
+    pendingTiles.forEach((pendingTile) => {
+      const emptyIndex = newPlayerTiles.findIndex((t) => t === null);
       if (emptyIndex !== -1) {
         newPlayerTiles[emptyIndex] = { letter: pendingTile.letter, score: pendingTile.score };
       }
     });
-
     setPlayerTiles(newPlayerTiles);
     setPendingTiles([]);
   };
 
   const handleShuffle = () => {
-    const shuffledTiles = [...playerTiles].filter(t => t !== null) as Tile[];
-    // Fisher-Yates shuffle algorithm
+    const shuffledTiles = [...playerTiles].filter((t) => t !== null) as Tile[];
     for (let i = shuffledTiles.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1));
       [shuffledTiles[i], shuffledTiles[j]] = [shuffledTiles[j], shuffledTiles[i]];
     }
     const newPlayerTiles = [...playerTiles];
     let tileIndex = 0;
-    for(let i=0; i < newPlayerTiles.length; i++){
-      if(newPlayerTiles[i] !== null){
+    for (let i = 0; i < newPlayerTiles.length; i++) {
+      if (newPlayerTiles[i] !== null) {
         newPlayerTiles[i] = shuffledTiles[tileIndex++];
       }
     }
@@ -80,28 +109,59 @@ export default function GamePage() {
   };
 
   return (
-    <AppLayout>
-      <div className="flex-1 space-y-4 p-4 sm:p-8">
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-8">
-          <div className="lg:col-span-2">
-            <Card className="h-full">
-              <CardContent className="p-2 sm:p-4">
-                <GameBoard pendingTiles={pendingTiles} onCellClick={handleCellClick} />
-              </CardContent>
-            </Card>
-          </div>
-          <div className="space-y-4">
-            <Scoreboard />
-            <GameActions />
-          </div>
+    <div className="flex flex-col gap-4 h-full">
+      <div className="flex items-center justify-center gap-2 text-lg font-semibold">
+        <Avatar className="h-8 w-8">
+          {opponentAvatar && (
+            <AvatarImage
+              src={opponentAvatar.imageUrl}
+              alt={game.opponent.name}
+              data-ai-hint={opponentAvatar.imageHint}
+            />
+          )}
+          <AvatarFallback>{game.opponent.name.charAt(0)}</AvatarFallback>
+        </Avatar>
+        Your game with {game.opponent.name}
+      </div>
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-8 flex-grow">
+        <div className="lg:col-span-2">
+          <Card className="h-full">
+            <CardContent className="p-2 sm:p-4">
+              <GameBoard pendingTiles={pendingTiles} onCellClick={handleCellClick} />
+            </CardContent>
+          </Card>
         </div>
-        <TileRack 
-          tiles={playerTiles}
-          selectedTileIndex={selectedTileIndex}
-          onTileSelect={handleTileSelect}
-          onRecall={handleRecall}
-          onShuffle={handleShuffle}
-        />
+        <div className="space-y-4">
+          <Scoreboard players={game.players} />
+          <GameActions />
+        </div>
+      </div>
+      <TileRack
+        tiles={playerTiles}
+        selectedTileIndex={selectedTileIndex}
+        onTileSelect={handleTileSelect}
+        onRecall={handleRecall}
+        onShuffle={handleShuffle}
+      />
+    </div>
+  );
+}
+
+export default function GamePage() {
+  return (
+    <AppLayout>
+      <div className="flex-1 p-4 sm:p-8">
+        <Carousel className="w-full h-full" opts={{ loop: true }}>
+          <CarouselContent className="-ml-4 h-full">
+            {games.map((game) => (
+              <CarouselItem key={game.id} className="pl-4">
+                <GameInstance game={game} />
+              </CarouselItem>
+            ))}
+          </CarouselContent>
+          <CarouselPrevious className="hidden md:flex" />
+          <CarouselNext className="hidden md:flex" />
+        </Carousel>
       </div>
     </AppLayout>
   );

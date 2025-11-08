@@ -2,13 +2,23 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 
-const players = [
+type Player = {
+  name: string;
+  score: number;
+  avatarId: string;
+};
+
+type ScoreboardProps = {
+  players: Player[];
+};
+
+const defaultPlayers: Player[] = [
   { name: 'You', score: 125, avatarId: 'user-1' },
   { name: 'Alex', score: 98, avatarId: 'user-2' },
   { name: 'Foxy', score: 153, avatarId: 'avatar-base' },
 ];
 
-export default function Scoreboard() {
+export default function Scoreboard({ players = defaultPlayers }: ScoreboardProps) {
   return (
     <Card>
       <CardHeader>
