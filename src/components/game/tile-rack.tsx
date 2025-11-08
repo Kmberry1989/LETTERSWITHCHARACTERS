@@ -43,6 +43,12 @@ type TileRackProps = {
 };
 
 export default function TileRack({ tiles, selectedTileIndex, onTileSelect, onRecall, onShuffle }: TileRackProps) {
+
+  const handlePlay = () => {
+    alert('Word Played!');
+    // We'll add the real logic here later
+  };
+
   return (
     <Card className="bg-[#c4a27a] border-2 border-[#a07e56]">
       <CardContent className="p-4">
@@ -67,7 +73,7 @@ export default function TileRack({ tiles, selectedTileIndex, onTileSelect, onRec
                   <RotateCcw className="mr-1 h-4 w-4" />
                   Recall
                 </Button>
-                <Button size="sm">PLAY</Button>
+                <Button size="sm" onClick={handlePlay}>PLAY</Button>
             </div>
         </div>
       </CardContent>
