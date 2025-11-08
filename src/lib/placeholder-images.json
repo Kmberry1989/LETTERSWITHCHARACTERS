@@ -1,3 +1,70 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "avatar-base",
+      "description": "Base fox avatar",
+      "imageUrl": "https://images.unsplash.com/photo-1535062311770-93adb0401917?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxMHx8Zm94JTIwY2hhcmFjdGVyfGVufDB8fHx8MTc2MjYwOTk0Nnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "fox character"
+    },
+    {
+      "id": "swag-hat-1",
+      "description": "A top hat",
+      "imageUrl": "https://images.unsplash.com/photo-1678705385245-ee7b75e35c80?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx0b3AlMjBoYXR8ZW58MHx8fHwxNzYyNjA5ODI0fDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "top hat"
+    },
+    {
+      "id": "swag-hat-2",
+      "description": "A baseball cap",
+      "imageUrl": "https://images.unsplash.com/photo-1539572511325-71494a030b12?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxiYXNlYmFsbCUyMGNhcHxlbnwwfHx8fDE3NjI2MDczMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "baseball cap"
+    },
+    {
+      "id": "swag-glasses-1",
+      "description": "Sunglasses",
+      "imageUrl": "https://images.unsplash.com/photo-1610136649349-0f646f318053?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzdW5nbGFzc2VzfGVufDB8fHx8MTc2MjYyMDE5NHww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "sunglasses"
+    },
+    {
+      "id": "swag-glasses-2",
+      "description": "Round spectacles",
+      "imageUrl": "https://images.unsplash.com/photo-1577400983943-874919eca6ce?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyb3VuZCUyMGdsYXNzZXN8ZW58MHx8fHwxNzYyNjMwNjgyfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "round glasses"
+    },
+    {
+      "id": "swag-prop-1",
+      "description": "A sword",
+      "imageUrl": "https://images.unsplash.com/photo-1596301193617-fac8f9152904?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxzd29yZHxlbnwwfHx8fDE3NjI2MzA2ODJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "sword"
+    },
+    {
+      "id": "user-1",
+      "description": "User profile picture 1",
+      "imageUrl": "https://images.unsplash.com/photo-1521119989659-a83eee488004?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjI1OTQ3NDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person portrait"
+    },
+    {
+      "id": "user-2",
+      "description": "User profile picture 2",
+      "imageUrl": "https://images.unsplash.com/photo-1557053910-d9eadeed1c58?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHx3b21hbiUyMHBvcnRyYWl0fGVufDB8fHx8MTc2MjU3MzY3N3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "woman portrait"
+    },
+    {
+      "id": "user-3",
+      "description": "User profile picture 3",
+      "imageUrl": "https://images.unsplash.com/photo-1607031542107-f6f46b5d54e9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxtYW4lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjI1MzE0Njd8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "man portrait"
+    },
+    {
+      "id": "user-4",
+      "description": "User profile picture 4",
+      "imageUrl": "https://images.unsplash.com/photo-1542596768-5d1d21f1cf98?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxwZXJzb24lMjBzbWlsaW5nfGVufDB8fHx8MTc2MjUzMzQ0M3ww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "person smiling"
+    },
+    {
+      "id": "minigame-word-search",
+      "description": "Thumbnail for word search minigame",
+      "imageUrl": "https://images.unsplash.com/photo-1759678444821-565ff103465c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxwdXp6bGUlMjBsZXR0ZXJzfGVufDB8fHx8MTc2MjYzMDY4Mnww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "puzzle letters"
+    }
+  ]
 }
