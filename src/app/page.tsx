@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
 import GameBoard, { PlacedTile, Tile } from '@/components/game/game-board';
 import Scoreboard from '@/components/game/scoreboard';
@@ -11,18 +11,10 @@ import { useAudio } from '@/hooks/use-audio';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Cat } from 'lucide-react';
 import Link from 'next/link';
-import { useDoc, useUser } from '@/firebase';
+import { useDoc, useUser, useFirestore } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
-
-const initialPlayerTiles: (Tile | null)[] = [
-  { letter: 'A', score: 1 },
-  { letter: 'C', score: 3 },
-  { letter: 'T', score: 1 },
-  { letter: 'I', score: 1 },
-  { letter: 'V', score: 4 },
-  { letter: 'E', score: 1 },
-  { letter: 'S', score: 1 },
-];
+import { doc, updateDoc } from 'firebase/firestore';
+import { drawTiles } from '@/lib/game-logic';
 
 const initialMessages: Message[] = [
     { sender: 'Alex', text: 'Hey, good luck!' },
@@ -34,12 +26,15 @@ interface PlayerData {
   displayName: string;
   score: number;
   avatarId: string;
+  tiles: (Tile | null)[];
 }
 
 interface Game {
   id: string;
   players: string[];
   playerData: { [uid: string]: PlayerData };
+  board: { [key: string]: Tile };
+  tileBag: Tile[];
   currentTurn: string;
   status: 'active' | 'pending' | 'finished';
 }
@@ -47,13 +42,24 @@ interface Game {
 
 function GameInstance({ game }: { game: Game }) {
   const { user } = useUser();
-  const [playerTiles, setPlayerTiles] = useState<(Tile | null)[]>(initialPlayerTiles);
+  const firestore = useFirestore();
+  const [playerTiles, setPlayerTiles] = useState<(Tile | null)[]>([]);
   const [selectedTileIndex, setSelectedTileIndex] = useState<number | null>(null);
   const [pendingTiles, setPendingTiles] = useState<PlacedTile[]>([]);
   const [draggedTile, setDraggedTile] = useState<{ tile: Tile; index: number } | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const { playSfx } = useAudio();
+
+  useEffect(() => {
+    if (user && game) {
+      const userTiles = game.playerData[user.uid]?.tiles || [];
+       // Ensure the rack has 7 slots, filling empty ones with null
+      const rackTiles = Array(7).fill(null).map((_, i) => userTiles[i] || null);
+      setPlayerTiles(rackTiles);
+    }
+  }, [game, user]);
+
 
   if (!user) return <GameLoadingSkeleton />;
 
@@ -98,7 +104,7 @@ function GameInstance({ game }: { game: Game }) {
     if (draggedTile) {
       const isOccupied =
         pendingTiles.some((t) => t.row === row && t.col === col) ||
-        Object.keys(GameBoard.defaultProps.placedTiles).includes(`${row}-${col}`);
+        game.board[`${row}-${col}`];
 
       if (!isOccupied) {
         setPendingTiles([...pendingTiles, { ...draggedTile.tile, row, col }]);
@@ -177,6 +183,43 @@ function GameInstance({ game }: { game: Game }) {
   const handleSendMessage = (text: string) => {
     setMessages([...messages, { sender: 'You', text }]);
   };
+  
+  const handlePlayWord = async () => {
+    if (pendingTiles.length === 0 || !isPlayerTurn || !firestore) return;
+  
+    // 1. Prepare updates
+    const newBoard = { ...game.board };
+    pendingTiles.forEach(tile => {
+      newBoard[`${tile.row}-${tile.col}`] = { letter: tile.letter, score: tile.score };
+    });
+  
+    const tilesToDraw = pendingTiles.length;
+    const remainingPlayerTiles = playerTiles.filter(t => t !== null) as Tile[];
+  
+    const [newTiles, updatedTileBag] = drawTiles(game.tileBag, tilesToDraw);
+  
+    const updatedPlayerTiles = [...remainingPlayerTiles, ...newTiles];
+  
+    // 2. Construct the update payload
+    const gameDocRef = doc(firestore, 'games', game.id);
+    const updatePayload = {
+      board: newBoard,
+      tileBag: updatedTileBag,
+      [`playerData.${user.uid}.tiles`]: updatedPlayerTiles,
+      // TODO: Add score calculation
+      currentTurn: opponentUid, // Switch turn
+    };
+  
+    // 3. Update Firestore
+    try {
+      await updateDoc(gameDocRef, updatePayload);
+      setPendingTiles([]); // Clear pending tiles on successful play
+      playSfx('place');
+    } catch (error) {
+      console.error("Error playing word:", error);
+      // Optional: show an error toast to the user
+    }
+  };
 
   return (
     <div className="flex flex-col gap-4 h-full p-4 sm:p-8 pt-24 sm:pt-24">
@@ -188,6 +231,7 @@ function GameInstance({ game }: { game: Game }) {
         <Card className="h-full shadow-sm">
           <CardContent className="p-2 sm:p-4 h-full flex items-center justify-center">
             <GameBoard
+              placedTiles={game.board}
               pendingTiles={pendingTiles}
               onCellClick={handleCellClick}
               onDrop={handleDropOnBoard}
@@ -206,6 +250,8 @@ function GameInstance({ game }: { game: Game }) {
           onDragStart={handleDragStart}
           onDrop={handleDropOnRack}
           onChatClick={() => setIsChatOpen(true)}
+          onPlay={handlePlayWord}
+          isPlayerTurn={isPlayerTurn}
         />
         <ChatWindow
             isOpen={isChatOpen}
@@ -279,7 +325,7 @@ export default function GamePage() {
   return (
     <main className="min-h-screen bg-background relative">
        <div className="absolute top-4 left-4 z-20">
-          <Button asChild variant="outline" className="bg-white shadow-sm">
+          <Button asChild variant="outline" className="shadow-sm">
             <Link href="/dashboard">
               <ArrowLeft className="mr-2 h-4 w-4" />
               Back to Dashboard

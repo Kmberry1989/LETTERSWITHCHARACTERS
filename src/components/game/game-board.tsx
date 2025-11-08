@@ -8,7 +8,7 @@ import React from 'react';
 export type Tile = { letter: string; score: number };
 export type PlacedTile = Tile & { row: number; col: number };
 
-const boardLayout = [
+export const boardLayout = [
   ['TW', '', '', 'DL', '', '', '', 'TW', '', '', '', 'DL', '', '', 'TW'],
   ['', 'DW', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'DW', ''],
   ['', '', 'DW', '', '', '', 'DL', '', 'DL', '', '', '', 'DW', '', ''],
@@ -25,20 +25,6 @@ const boardLayout = [
   ['', 'DW', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'DW', ''],
   ['TW', '', '', 'DL', '', '', '', 'TW', '', '', '', 'DL', '', '', 'TW'],
 ];
-
-const initialPlacedTiles: Record<string, Tile> = {
-  '7-4': { letter: 'L', score: 1 },
-  '7-5': { letter: 'E', score: 1 },
-  '7-6': { letter: 'T', score: 1 },
-  '7-7': { letter: 'T', score: 1 },
-  '7-8': { letter: 'E', score: 1 },
-  '7-9': { letter: 'R', score: 1 },
-  '7-10': { letter: 'S', score: 1 },
-  '8-7': { letter: 'H', score: 4 },
-  '9-7': { letter: 'E', score: 1 },
-  '10-7': { letter: 'M', score: 3 },
-  '11-7': { letter: 'E', score: 1 },
-};
 
 type GameBoardProps = {
   placedTiles?: Record<string, Tile>;
@@ -99,7 +85,7 @@ function PlacedTileComponent({ tile, isPending, onClick }: { tile: Tile, isPendi
 }
 
 const GameBoard = ({ 
-  placedTiles = initialPlacedTiles, 
+  placedTiles = {}, 
   pendingTiles = [],
   onCellClick,
   onDrop,
@@ -158,7 +144,7 @@ const GameBoard = ({
 }
 
 GameBoard.defaultProps = {
-  placedTiles: initialPlacedTiles,
+  placedTiles: {},
   pendingTiles: [],
 };
 

@@ -47,27 +47,24 @@ function EmptySlot({ onDrop, onDragOver }: { onDrop: (e: React.DragEvent) => voi
 type TileRackProps = {
   tiles: (TileType | null)[];
   selectedTileIndex: number | null;
+  isPlayerTurn: boolean;
   onTileSelect: (index: number) => void;
   onRecall: () => void;
   onShuffle: () => void;
   onDragStart: (tile: TileType, index: number) => void;
   onDrop: (index: number) => void;
   onChatClick: () => void;
+  onPlay: () => void;
 };
 
-export default function TileRack({ tiles, selectedTileIndex, onTileSelect, onRecall, onShuffle, onDragStart, onDrop, onChatClick }: TileRackProps) {
-
-  const handlePlay = () => {
-    alert('Word Played!');
-    // We'll add the real logic here later
-  };
+export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, onTileSelect, onRecall, onShuffle, onDragStart, onDrop, onChatClick, onPlay }: TileRackProps) {
   
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
   };
 
   return (
-    <Card className="bg-[#c4a27a] border-2 border-[#a07e56]">
+    <Card className="bg-[#c4a27a] border-2 border-[#a07e56] shadow-sm">
       <CardContent className="p-2 sm:p-4">
         <div className="flex flex-col items-center gap-2 sm:gap-4">
             <div className="flex items-center justify-center gap-1 sm:gap-2">
@@ -91,19 +88,19 @@ export default function TileRack({ tiles, selectedTileIndex, onTileSelect, onRec
               ))}
             </div>
             <div className="flex gap-4">
-                <Button variant="secondary" size="sm" onClick={onShuffle}>
+                <Button variant="secondary" size="sm" onClick={onShuffle} className="shadow-sm">
                   <Shuffle className="mr-1 h-4 w-4" />
                   Shuffle
                 </Button>
-                <Button variant="secondary" size="sm" onClick={onRecall}>
+                <Button variant="secondary" size="sm" onClick={onRecall} className="shadow-sm">
                   <RotateCcw className="mr-1 h-4 w-4" />
                   Recall
                 </Button>
-                 <Button variant="secondary" size="sm" onClick={onChatClick}>
+                 <Button variant="secondary" size="sm" onClick={onChatClick} className="shadow-sm">
                   <MessageCircle className="mr-1 h-4 w-4" />
                   Chat
                 </Button>
-                <Button size="sm" onClick={handlePlay}>PLAY</Button>
+                <Button size="sm" onClick={onPlay} disabled={!isPlayerTurn} className="shadow-sm">PLAY</Button>
             </div>
         </div>
       </CardContent>

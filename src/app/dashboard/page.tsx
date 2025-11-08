@@ -11,17 +11,22 @@ import { useCollection, useUser, useUsers, useFirestore } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { addDoc, collection } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
+import { createTileBag, drawTiles } from '@/lib/game-logic';
+import type { Tile } from '@/components/game/game-board';
 
 interface PlayerData {
   displayName: string;
   score: number;
   avatarId: string;
+  tiles: (Tile | null)[]
 }
 
 interface Game {
   id: string;
   players: string[];
   playerData: { [uid: string]: PlayerData };
+  board: { [key: string]: Tile };
+  tileBag: Tile[];
   currentTurn: string;
   status: 'active' | 'pending' | 'finished';
 }
@@ -119,27 +124,37 @@ export default function DashboardPage() {
     }
     const opponent = otherPlayers[Math.floor(Math.random() * otherPlayers.length)];
 
+    let tileBag = createTileBag();
+    const [player1Tiles, tileBagAfterP1] = drawTiles(tileBag, 7);
+    const [player2Tiles, finalTileBag] = drawTiles(tileBagAfterP1, 7);
+    tileBag = finalTileBag;
+
+
     const newGame: Omit<Game, 'id'> = {
         players: [user.uid, opponent.uid],
         playerData: {
             [user.uid]: {
                 displayName: user.displayName || 'You',
                 score: 0,
-                avatarId: 'user-1' // Placeholder avatar
+                avatarId: 'user-1', // Placeholder avatar
+                tiles: player1Tiles,
             },
             [opponent.uid]: {
                 displayName: opponent.displayName || 'Opponent',
                 score: 0,
-                avatarId: 'user-2' // Placeholder avatar
+                avatarId: 'user-2', // Placeholder avatar
+                tiles: player2Tiles,
             }
         },
+        board: {},
+        tileBag: tileBag,
         currentTurn: user.uid,
         status: 'active'
     };
 
     try {
         const gamesCollection = collection(firestore, 'games');
-        const docRef = await addDoc(gamesCollection, newGame);
+        await addDoc(gamesCollection, newGame);
         toast({
             title: "Game created!",
             description: `You've started a new game against ${opponent.displayName}.`,
