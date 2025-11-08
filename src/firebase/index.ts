@@ -19,15 +19,39 @@ export function initializeFirebase(): {
   auth: Auth;
   firestore: Firestore;
 } {
-  if (app) {
-    return { app, auth, firestore };
-  } else {
-    // If no Firebase app has been initialized, create one.
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    firestore = getFirestore(app);
+  if (typeof window === 'undefined') {
+    // During server-side rendering, return uninitialized instances or mocks.
+    // This is a simplified approach. A more robust solution might involve
+    // a separate server-side initialization.
+    if (!app) {
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        firestore = getFirestore(app);
+    }
     return { app, auth, firestore };
   }
+
+  if (app) {
+    return { app, auth, firestore };
+  } 
+  
+  app = initializeApp(firebaseConfig);
+  auth = getAuth(app);
+  firestore = getFirestore(app);
+
+  if (process.env.NODE_ENV === 'development') {
+    // Point to the emulators running on localhost.
+    try {
+      connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+      connectFirestoreEmulator(firestore, '127.0.0.1', 8080);
+    } catch (e) {
+        // This can happen if you refresh the page and the emulators are already connected.
+        // It's safe to ignore this error.
+        console.warn('Firebase emulators already connected or connection failed.', e);
+    }
+  }
+
+  return { app, auth, firestore };
 }
 
 export * from './provider';
