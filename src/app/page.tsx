@@ -22,6 +22,17 @@ import { suggestWord } from '@/ai/ai-suggest-word';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 const initialMessages: Message[] = [
     { sender: 'Alex', text: 'Hey, good luck!' },
@@ -62,6 +73,8 @@ function GameInstance({ game }: { game: Game }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGettingHint, setIsGettingHint] = useState(false);
   const [blankTileData, setBlankTileData] = useState<{ row: number; col: number; index: number | null } | null>(null);
+  const [isExchanging, setIsExchanging] = useState(false);
+  const [exchangeSelection, setExchangeSelection] = useState<number[]>([]);
 
 
   useEffect(() => {
@@ -83,6 +96,14 @@ function GameInstance({ game }: { game: Game }) {
 
 
   const handleTileSelect = (index: number) => {
+    if (isExchanging) {
+      setExchangeSelection(prev => 
+        prev.includes(index) ? prev.filter(i => i !== index) : [...prev, index]
+      );
+      playSfx('click');
+      return;
+    }
+
     if (playerTiles[index]) {
       if (selectedTileIndex === index) {
         setSelectedTileIndex(null);
@@ -112,6 +133,7 @@ function GameInstance({ game }: { game: Game }) {
   };
 
   const handleDragStart = (tile: Tile, index: number) => {
+    if (isExchanging) return;
     setDraggedTile({ tile, index });
     if (selectedTileIndex !== null) {
       setSelectedTileIndex(null);
@@ -119,6 +141,7 @@ function GameInstance({ game }: { game: Game }) {
   };
 
   const handleDropOnBoard = (row: number, col: number) => {
+    if (isExchanging) return;
     if (draggedTile) {
       const isOccupied =
         pendingTiles.some((t) => t.row === row && t.col === col) ||
@@ -158,7 +181,7 @@ function GameInstance({ game }: { game: Game }) {
   };
 
   const handleDropOnRack = (dropIndex: number) => {
-    if (draggedTile === null) return;
+    if (isExchanging || draggedTile === null) return;
 
     const newPlayerTiles = [...playerTiles];
     if (newPlayerTiles[dropIndex] === null) {
@@ -352,6 +375,93 @@ function GameInstance({ game }: { game: Game }) {
     }
   };
 
+  const handleToggleExchange = () => {
+    if (!isPlayerTurn) return;
+    handleRecallAll(); // Recall any pending tiles
+    setIsExchanging(!isExchanging);
+    setExchangeSelection([]); // Clear selection on toggle
+    setSelectedTileIndex(null); // Deselect any tile
+  };
+
+  const handlePassTurn = async () => {
+    if (!isPlayerTurn || !firestore || isSubmitting) return;
+
+    setIsSubmitting(true);
+    try {
+      const gameDocRef = doc(firestore, 'games', game.id);
+      await updateDoc(gameDocRef, { currentTurn: opponentUid });
+      toast({ title: 'Turn Passed', description: "It's now your opponent's turn." });
+    } catch (error) {
+      const permissionError = new FirestorePermissionError({
+        path: doc(firestore, 'games', game.id).path,
+        operation: 'update',
+        requestResourceData: { currentTurn: opponentUid },
+      } satisfies SecurityRuleContext);
+      errorEmitter.emit('permission-error', permissionError);
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not pass turn.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleExchangeTiles = async () => {
+    if (!isPlayerTurn || !firestore || isSubmitting || exchangeSelection.length === 0) return;
+    if (game.tileBag.length < exchangeSelection.length) {
+      toast({ variant: 'destructive', title: 'Not enough tiles in bag', description: `There are only ${game.tileBag.length} tiles left.`});
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Tiles to return to the bag
+      const tilesToReturn = exchangeSelection.map(index => playerTiles[index]!).filter(Boolean) as Tile[];
+      
+      // New tiles to draw
+      const [newTiles, bagAfterDraw] = drawTiles(game.tileBag, tilesToReturn.length);
+
+      // Return old tiles to bag and shuffle
+      const newBag = [...bagAfterDraw, ...tilesToReturn];
+      for (let i = newBag.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [newBag[i], newBag[j]] = [newBag[j], newBag[i]];
+      }
+
+      // Create updated player tiles
+      const updatedPlayerTiles = playerTiles
+        .filter((_, index) => !exchangeSelection.includes(index))
+        .concat(newTiles);
+      
+      // Fill remaining slots with null if any
+      while(updatedPlayerTiles.length < 7) {
+        updatedPlayerTiles.push(null);
+      }
+
+      const gameDocRef = doc(firestore, 'games', game.id);
+      const updatePayload = {
+        tileBag: newBag,
+        [`playerData.${user.uid}.tiles`]: updatedPlayerTiles,
+        currentTurn: opponentUid,
+      };
+
+      await updateDoc(gameDocRef, updatePayload);
+
+      toast({ title: 'Tiles Exchanged', description: `You exchanged ${tilesToReturn.length} tiles.` });
+      setIsExchanging(false);
+      setExchangeSelection([]);
+
+    } catch (error) {
+      const permissionError = new FirestorePermissionError({
+        path: doc(firestore, 'games', game.id).path,
+        operation: 'update',
+        requestResourceData: { info: "Tile exchange action" },
+      } satisfies SecurityRuleContext);
+      errorEmitter.emit('permission-error', permissionError);
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not exchange tiles.' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="flex flex-col gap-4 h-full p-4 sm:p-8 pt-24 sm:pt-24">
        <BlankTileDialog
@@ -359,6 +469,41 @@ function GameInstance({ game }: { game: Game }) {
         onClose={() => setBlankTileData(null)}
         onSelect={handleBlankTileSelect}
       />
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+            <div id="pass-turn-trigger" className="hidden"></div>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+            <AlertDialogTitle>Pass Turn?</AlertDialogTitle>
+            <AlertDialogDescription>
+                Are you sure you want to pass your turn? You will not score any points.
+            </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handlePassTurn}>Pass</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+       </AlertDialog>
+       <AlertDialog>
+        <AlertDialogTrigger asChild>
+            <div id="exchange-tiles-trigger" className="hidden"></div>
+        </AlertDialogTrigger>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+            <AlertDialogTitle>Exchange {exchangeSelection.length} Tiles?</AlertDialogTitle>
+            <AlertDialogDescription>
+                Are you sure you want to exchange these tiles? This will end your turn.
+            </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleExchangeTiles}>Exchange</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+       </AlertDialog>
+
        <div className="absolute top-4 left-1/2 -translate-x-1/2 w-full max-w-md sm:max-w-lg px-4">
         <Scoreboard players={players} isPlayerTurn={isPlayerTurn} currentPlayerName={game.playerData[user.uid].displayName} />
       </div>
@@ -392,6 +537,9 @@ function GameInstance({ game }: { game: Game }) {
           isSubmitting={isSubmitting}
           isGettingHint={isGettingHint}
           hintUsed={currentPlayer?.hintUsed || false}
+          isExchanging={isExchanging}
+          onToggleExchange={handleToggleExchange}
+          exchangeSelection={exchangeSelection}
         />
         <ChatWindow
             isOpen={isChatOpen}
