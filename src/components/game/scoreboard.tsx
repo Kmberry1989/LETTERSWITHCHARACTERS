@@ -29,13 +29,13 @@ export default function Scoreboard({ players = defaultPlayers, isPlayerTurn }: S
   return (
     <Card>
       <CardContent className="relative p-2 sm:p-4">
-        <div className="flex items-center justify-center gap-4 sm:gap-8">
-          <div className="flex items-center gap-3">
+        <div className="flex items-center justify-between gap-4 sm:gap-8">
+          <div className="flex flex-1 items-center gap-3 justify-start">
             <Avatar>
               {player1Avatar && <AvatarImage src={player1Avatar.imageUrl} alt={player1.name} data-ai-hint={player1Avatar.imageHint} />}
               <AvatarFallback>{player1.name.charAt(0)}</AvatarFallback>
             </Avatar>
-            <div className="text-center sm:text-left">
+            <div className="text-left">
               <div className="font-medium">{player1.name}</div>
               <div className="font-bold text-lg text-primary">{player1.score}</div>
             </div>
@@ -43,8 +43,8 @@ export default function Scoreboard({ players = defaultPlayers, isPlayerTurn }: S
           
           <div className="font-bold text-2xl text-muted-foreground">VS</div>
 
-          <div className="flex items-center gap-3">
-            <div className="text-center sm:text-right">
+          <div className="flex flex-1 items-center gap-3 justify-end">
+            <div className="text-right">
               <div className="font-medium">{player2.name}</div>
               <div className="font-bold text-lg text-primary">{player2.score}</div>
             </div>
@@ -54,7 +54,7 @@ export default function Scoreboard({ players = defaultPlayers, isPlayerTurn }: S
             </Avatar>
           </div>
         </div>
-         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pt-12">
+         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pt-10">
             <Badge variant={isPlayerTurn ? 'default' : 'secondary'}>
                 {isPlayerTurn ? 'Your Turn' : "Opponent's Turn"}
             </Badge>
