@@ -28,7 +28,7 @@ export default function Scoreboard({ players = defaultPlayers }: ScoreboardProps
   return (
     <Card>
       <CardContent className="p-2 sm:p-4">
-        <div className="flex items-center justify-around">
+        <div className="flex items-center justify-center gap-8 sm:gap-16">
           <div className="flex items-center gap-3">
             <Avatar>
               {player1Avatar && <AvatarImage src={player1Avatar.imageUrl} alt={player1.name} data-ai-hint={player1Avatar.imageHint} />}
