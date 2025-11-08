@@ -41,7 +41,7 @@ export default function Scoreboard({ players = defaultPlayers, isPlayerTurn }: S
             </div>
           </div>
           
-          <div className="font-bold text-2xl text-muted-foreground">VS</div>
+          <div className="relative font-bold text-2xl text-muted-foreground bottom-1.5">VS</div>
 
           <div className="flex flex-1 items-center gap-3 justify-end">
             <div className="text-right">
