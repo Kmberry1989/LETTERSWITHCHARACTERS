@@ -181,8 +181,10 @@ function GameInstance({ game }: { game: (typeof games)[0] }) {
   };
 
   return (
-    <div className="flex flex-col gap-4 h-full p-4 sm:p-8">
-      <Scoreboard players={game.players} />
+    <div className="flex flex-col gap-4 h-full p-4 sm:p-8 pt-24 sm:pt-24">
+      <div className="absolute top-16 left-1/2 -translate-x-1/2 w-full max-w-md sm:max-w-lg px-4">
+        <Scoreboard players={game.players} />
+      </div>
 
       <div className="flex-grow">
         <Card className="h-full">
@@ -212,7 +214,7 @@ function GameInstance({ game }: { game: (typeof games)[0] }) {
 
 export default function GamePage() {
   return (
-    <main className="min-h-screen bg-background">
+    <main className="min-h-screen bg-background relative">
        <div className="absolute top-4 left-4 z-20">
           <Button asChild variant="outline">
             <Link href="/dashboard">
