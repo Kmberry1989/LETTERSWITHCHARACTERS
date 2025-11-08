@@ -44,16 +44,16 @@ function Cell({ type, children }: { type: string; children?: React.ReactNode }) 
   };
 
   const textMap: { [key: string]: string } = {
-    'DL': '2L',
-    'TL': '3L',
-    'DW': '2W',
-    'TW': '3W',
+    'DL': 'Double Letter',
+    'TL': 'Triple Letter',
+    'DW': 'Double Word',
+    'TW': 'Triple Word',
   };
   
   return (
     <div
       className={cn(
-        'flex aspect-square select-none items-center justify-center rounded-sm text-xs font-bold uppercase',
+        'flex aspect-square select-none items-center justify-center rounded-sm text-xs font-semibold uppercase tracking-tighter text-center leading-none',
         'bg-[#e0d6c4] border border-[#d1c6b4]',
         classMap[type]
       )}
@@ -75,7 +75,7 @@ function Tile({ letter, score }: { letter: string; score: number }) {
 export default function GameBoard() {
   return (
     <div className="w-full aspect-square max-w-full">
-      <div className="grid grid-cols-15 gap-0.5 sm:gap-1">
+      <div className="grid grid-cols-15 gap-0.5 sm:gap-1 p-1 sm:p-2 bg-[#d1c6b4] rounded-md">
         {boardLayout.map((row, rowIndex) =>
           row.map((cellType, colIndex) => {
             const tileKey = `${rowIndex}-${colIndex}`;

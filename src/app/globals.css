@@ -89,9 +89,9 @@ body {
 }
 
 @layer components {
-  .board-cell-dl { @apply bg-blue-200 text-blue-800; }
-  .board-cell-tl { @apply bg-blue-400 text-blue-900; }
-  .board-cell-dw { @apply bg-pink-200 text-pink-800; }
-  .board-cell-tw { @apply bg-red-400 text-red-900; }
+  .board-cell-dl { @apply bg-[#a3d4e6] text-[#2c5a71]; }
+  .board-cell-tl { @apply bg-[#4b9cc1] text-white; }
+  .board-cell-dw { @apply bg-[#f4b6c3] text-[#7d3a4b]; }
+  .board-cell-tw { @apply bg-[#e67c73] text-white; }
   .board-cell-start { @apply bg-primary text-primary-foreground; }
 }
