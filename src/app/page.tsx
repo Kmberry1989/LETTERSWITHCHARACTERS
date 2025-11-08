@@ -59,10 +59,15 @@ function GameInstance({ game }: { game: typeof games[0] }) {
   const [selectedTileIndex, setSelectedTileIndex] = useState<number | null>(null);
   const [pendingTiles, setPendingTiles] = useState<PlacedTile[]>([]);
   const opponentAvatar = PlaceHolderImages.find((p) => p.id === game.opponent.avatarId);
+  const [draggedTile, setDraggedTile] = useState<{ tile: Tile; index: number } | null>(null);
 
   const handleTileSelect = (index: number) => {
     if (playerTiles[index]) {
-      setSelectedTileIndex(index);
+      if (selectedTileIndex === index) {
+        setSelectedTileIndex(null);
+      } else {
+        setSelectedTileIndex(index);
+      }
     }
   };
 
@@ -78,6 +83,51 @@ function GameInstance({ game }: { game: typeof games[0] }) {
       }
     }
   };
+
+  const handleDragStart = (tile: Tile, index: number) => {
+    setDraggedTile({ tile, index });
+    // If a tile is selected for click-placement, unselect it when dragging starts
+    if (selectedTileIndex !== null) {
+      setSelectedTileIndex(null);
+    }
+  };
+
+  const handleDropOnBoard = (row: number, col: number) => {
+    if (draggedTile) {
+      // Prevent dropping on an already occupied cell (initial, pending)
+      const isOccupied =
+        pendingTiles.some((t) => t.row === row && t.col === col) ||
+        Object.keys(GameBoard.defaultProps.placedTiles).includes(`${row}-${col}`);
+      
+      if (!isOccupied) {
+        setPendingTiles([...pendingTiles, { ...draggedTile.tile, row, col }]);
+        const newPlayerTiles = [...playerTiles];
+        newPlayerTiles[draggedTile.index] = null;
+        setPlayerTiles(newPlayerTiles);
+      }
+    }
+    setDraggedTile(null);
+  };
+  
+  const handleDropOnRack = (dropIndex: number) => {
+    if (draggedTile === null) return;
+  
+    const newPlayerTiles = [...playerTiles];
+    // If dropped on an empty slot, just move it
+    if (newPlayerTiles[dropIndex] === null) {
+      newPlayerTiles[dropIndex] = draggedTile.tile;
+      newPlayerTiles[draggedTile.index] = null;
+    } else {
+      // If dropped on an existing tile, swap them
+      const tileAtDropIndex = newPlayerTiles[dropIndex];
+      newPlayerTiles[dropIndex] = draggedTile.tile;
+      newPlayerTiles[draggedTile.index] = tileAtDropIndex;
+    }
+    
+    setPlayerTiles(newPlayerTiles);
+    setDraggedTile(null);
+  };
+
 
   const handleRecall = () => {
     if (pendingTiles.length === 0) return;
@@ -127,7 +177,11 @@ function GameInstance({ game }: { game: typeof games[0] }) {
         <div className="lg:col-span-2">
           <Card className="h-full">
             <CardContent className="p-2 sm:p-4">
-              <GameBoard pendingTiles={pendingTiles} onCellClick={handleCellClick} />
+              <GameBoard
+                pendingTiles={pendingTiles}
+                onCellClick={handleCellClick}
+                onDrop={handleDropOnBoard}
+              />
             </CardContent>
           </Card>
         </div>
@@ -142,6 +196,8 @@ function GameInstance({ game }: { game: typeof games[0] }) {
         onTileSelect={handleTileSelect}
         onRecall={handleRecall}
         onShuffle={handleShuffle}
+        onDragStart={handleDragStart}
+        onDrop={handleDropOnRack}
       />
     </div>
   );
@@ -150,7 +206,7 @@ function GameInstance({ game }: { game: typeof games[0] }) {
 export default function GamePage() {
   return (
     <AppLayout>
-      <div className="flex-1 p-4 sm:p-8">
+      <div className="flex-1 p-4 sm:p-8 h-[calc(100vh-4rem)]">
         <Carousel className="w-full h-full" opts={{ loop: true }}>
           <CarouselContent className="-ml-4 h-full">
             {games.map((game) => (

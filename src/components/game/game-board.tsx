@@ -2,6 +2,7 @@
 
 import { cn } from '@/lib/utils';
 import { Star } from 'lucide-react';
+import React from 'react';
 
 // Simplified types for now
 export type Tile = { letter: string; score: number };
@@ -14,7 +15,7 @@ const boardLayout = [
   ['DL', '', '', 'DW', '', '', '', 'DL', '', '', '', 'DW', '','', 'DL'],
   ['', '', '', '', 'DW', '', '', '', '', '', 'DW', '', '', '', ''],
   ['', 'TL', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'TL', ''],
-  ['', 'DL', '', '', '', 'DL', '', 'DL', '', '', '', 'DL', '', ''],
+  ['', '', 'DL', '', '', '', 'DL', '', 'DL', '', '', '', 'DL', '', ''],
   ['TW', '', '', 'DL', '', '', '', '★', '', '', '', 'DL', '', '', 'TW'],
   ['', '', 'DL', '', '', '', 'DL', '', 'DL', '', '', '', 'DL', '', ''],
   ['', 'TL', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'TL', ''],
@@ -43,9 +44,10 @@ type GameBoardProps = {
   placedTiles?: Record<string, Tile>;
   pendingTiles?: PlacedTile[];
   onCellClick?: (row: number, col: number) => void;
+  onDrop?: (row: number, col: number) => void;
 };
 
-function Cell({ type, children, onClick }: { type: string; children?: React.ReactNode; onClick?: () => void }) {
+function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; children?: React.ReactNode; onClick?: () => void, onDrop?: (e: React.DragEvent) => void, onDragOver?: (e: React.DragEvent) => void }) {
   const classMap: { [key: string]: string } = {
     'DL': 'board-cell-dl',
     'TL': 'board-cell-tl',
@@ -67,11 +69,13 @@ function Cell({ type, children, onClick }: { type: string; children?: React.Reac
         'flex aspect-square select-none items-center justify-center rounded-sm text-xs font-semibold uppercase tracking-tighter text-center leading-none',
         'bg-[#e0d6c4] border border-[#d1c6b4]',
         'transition-colors duration-150',
-        'text-[8px] sm:text-xs',
+        'text-white/30',
         classMap[type],
-        onClick && !children && 'hover:bg-yellow-300/50 cursor-pointer'
+        (onClick || onDrop) && !children && 'hover:bg-yellow-300/50 cursor-pointer'
       )}
       onClick={onClick}
+      onDrop={onDrop}
+      onDragOver={onDragOver}
     >
       {children || (type === '★' ? <Star className="h-3 w-3 sm:h-4 sm:w-4" /> : <span className="hidden sm:inline">{textMap[type]}</span>)}
     </div>
@@ -87,16 +91,27 @@ function PlacedTile({ letter, score }: { letter: string; score: number | string 
   );
 }
 
-export default function GameBoard({ 
+const GameBoard = ({ 
   placedTiles = initialPlacedTiles, 
   pendingTiles = [],
-  onCellClick 
-}: GameBoardProps) {
+  onCellClick,
+  onDrop
+}: GameBoardProps) => {
   const allTiles = { ...placedTiles };
   pendingTiles.forEach(tile => {
     const key = `${tile.row}-${tile.col}`;
     allTiles[key] = tile;
   });
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+  
+  const handleDrop = (e: React.DragEvent, row: number, col: number) => {
+    e.preventDefault();
+    onDrop?.(row, col);
+  };
+
 
   return (
     <div className="w-full aspect-square max-w-full">
@@ -105,12 +120,14 @@ export default function GameBoard({
           row.map((cellType, colIndex) => {
             const tileKey = `${rowIndex}-${colIndex}`;
             const tile = allTiles[tileKey];
-            const canPlace = onCellClick && !tile;
+            const canPlace = (onCellClick || onDrop) && !tile;
             return (
               <Cell 
                 key={`${rowIndex}-${colIndex}`} 
                 type={cellType}
-                onClick={canPlace ? () => onCellClick(rowIndex, colIndex) : undefined}
+                onClick={canPlace && onCellClick ? () => onCellClick(rowIndex, colIndex) : undefined}
+                onDrop={canPlace && onDrop ? (e) => handleDrop(e, rowIndex, colIndex) : undefined}
+                onDragOver={canPlace && onDrop ? handleDragOver : undefined}
               >
                 {tile && <PlacedTile letter={tile.letter} score={Number(tile.score)} />}
               </Cell>
@@ -121,3 +138,11 @@ export default function GameBoard({
     </div>
   );
 }
+
+GameBoard.defaultProps = {
+  placedTiles: initialPlacedTiles,
+  pendingTiles: [],
+};
+
+
+export default GameBoard;

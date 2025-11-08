@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -9,14 +10,18 @@ import { RotateCcw, Shuffle } from 'lucide-react';
 function Tile({ 
   tile, 
   isSelected, 
-  onClick 
+  onClick,
+  onDragStart,
 }: { 
   tile: TileType; 
   isSelected: boolean; 
   onClick: () => void;
+  onDragStart: (e: React.DragEvent) => void;
 }) {
   return (
     <div 
+      draggable
+      onDragStart={onDragStart}
       onClick={onClick}
       className={cn(
         "relative flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 cursor-pointer select-none items-center justify-center rounded-md border-b-4 border-black/20 bg-[#f8e8c7] shadow-md transition-transform duration-150 ease-in-out hover:scale-105",
@@ -30,9 +35,14 @@ function Tile({
   );
 }
 
-function EmptySlot() {
-  return <div className="h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 rounded-md bg-black/10" />;
+function EmptySlot({ onDrop, onDragOver }: { onDrop: (e: React.DragEvent) => void; onDragOver: (e: React.DragEvent) => void }) {
+  return <div 
+    onDrop={onDrop}
+    onDragOver={onDragOver}
+    className="h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 rounded-md bg-black/10" 
+    />;
 }
+
 
 type TileRackProps = {
   tiles: (TileType | null)[];
@@ -40,13 +50,19 @@ type TileRackProps = {
   onTileSelect: (index: number) => void;
   onRecall: () => void;
   onShuffle: () => void;
+  onDragStart: (tile: TileType, index: number) => void;
+  onDrop: (index: number) => void;
 };
 
-export default function TileRack({ tiles, selectedTileIndex, onTileSelect, onRecall, onShuffle }: TileRackProps) {
+export default function TileRack({ tiles, selectedTileIndex, onTileSelect, onRecall, onShuffle, onDragStart, onDrop }: TileRackProps) {
 
   const handlePlay = () => {
     alert('Word Played!');
     // We'll add the real logic here later
+  };
+  
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
   };
 
   return (
@@ -55,16 +71,22 @@ export default function TileRack({ tiles, selectedTileIndex, onTileSelect, onRec
         <div className="flex flex-col items-center gap-2 sm:gap-4">
             <div className="flex items-center justify-center gap-1 sm:gap-2">
               {tiles.map((tile, i) => (
-                tile ? (
-                  <Tile 
-                    key={i} 
-                    tile={tile} 
-                    isSelected={selectedTileIndex === i}
-                    onClick={() => onTileSelect(i)}
-                  />
-                ) : (
-                  <EmptySlot key={i} />
-                )
+                <div 
+                  key={i} 
+                  onDrop={(e) => { e.preventDefault(); onDrop(i); }} 
+                  onDragOver={handleDragOver}
+                >
+                  {tile ? (
+                    <Tile 
+                      tile={tile} 
+                      isSelected={selectedTileIndex === i}
+                      onClick={() => onTileSelect(i)}
+                      onDragStart={() => onDragStart(tile, i)}
+                    />
+                  ) : (
+                    <EmptySlot onDrop={(e) => { e.preventDefault(); onDrop(i); }} onDragOver={handleDragOver} />
+                  )}
+                </div>
               ))}
             </div>
             <div className="flex gap-2">
