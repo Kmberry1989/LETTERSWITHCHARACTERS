@@ -4,6 +4,8 @@ import './globals.css';
 import { cn } from '@/lib/utils';
 import { FirebaseProvider } from '@/firebase/provider';
 import { BerriesProvider } from '@/hooks/use-berries';
+import { AudioProvider } from '@/hooks/use-audio';
+import AudioPlayer from '@/components/audio-player';
 
 export const metadata: Metadata = {
   title: 'Letters with Characters',
@@ -28,7 +30,10 @@ export default function RootLayout({
       <body className={cn('font-body antialiased', 'min-h-screen bg-background font-sans')}>
         <FirebaseProvider>
           <BerriesProvider>
-            {children}
+            <AudioProvider>
+              {children}
+              <AudioPlayer />
+            </AudioProvider>
           </BerriesProvider>
         </FirebaseProvider>
         <Toaster />

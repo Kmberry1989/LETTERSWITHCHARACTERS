@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/carousel';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useAudio } from '@/hooks/use-audio';
 
 const initialPlayerTiles: (Tile | null)[] = [
   { letter: 'A', score: 1 },
@@ -60,6 +61,7 @@ function GameInstance({ game }: { game: typeof games[0] }) {
   const [pendingTiles, setPendingTiles] = useState<PlacedTile[]>([]);
   const opponentAvatar = PlaceHolderImages.find((p) => p.id === game.opponent.avatarId);
   const [draggedTile, setDraggedTile] = useState<{ tile: Tile; index: number } | null>(null);
+  const { playSfx } = useAudio();
 
   const handleTileSelect = (index: number) => {
     if (playerTiles[index]) {
@@ -67,6 +69,7 @@ function GameInstance({ game }: { game: typeof games[0] }) {
         setSelectedTileIndex(null);
       } else {
         setSelectedTileIndex(index);
+        playSfx('click');
       }
     }
   };
@@ -80,6 +83,7 @@ function GameInstance({ game }: { game: typeof games[0] }) {
         newPlayerTiles[selectedTileIndex] = null;
         setPlayerTiles(newPlayerTiles);
         setSelectedTileIndex(null);
+        playSfx('place');
       }
     }
   };
@@ -102,6 +106,7 @@ function GameInstance({ game }: { game: typeof games[0] }) {
         const newPlayerTiles = [...playerTiles];
         newPlayerTiles[draggedTile.index] = null;
         setPlayerTiles(newPlayerTiles);
+        playSfx('place');
       }
     }
     setDraggedTile(null);
@@ -122,6 +127,7 @@ function GameInstance({ game }: { game: typeof games[0] }) {
     
     setPlayerTiles(newPlayerTiles);
     setDraggedTile(null);
+    playSfx('click');
   };
 
   const handleRecallAll = () => {
@@ -135,6 +141,7 @@ function GameInstance({ game }: { game: typeof games[0] }) {
     });
     setPlayerTiles(newPlayerTiles);
     setPendingTiles([]);
+    playSfx('swoosh');
   };
   
   const handleRecallTile = (tileToRecall: PlacedTile) => {
@@ -148,6 +155,7 @@ function GameInstance({ game }: { game: typeof games[0] }) {
     );
     setPlayerTiles(newPlayerTiles);
     setPendingTiles(newPendingTiles);
+    playSfx('swoosh');
   };
 
 
@@ -165,6 +173,7 @@ function GameInstance({ game }: { game: typeof games[0] }) {
       }
     }
     setPlayerTiles(newPlayerTiles);
+    playSfx('swoosh');
   };
 
   return (
