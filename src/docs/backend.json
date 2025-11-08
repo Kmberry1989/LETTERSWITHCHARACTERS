@@ -31,6 +31,18 @@
       },
       "required": ["letter", "score"]
     },
+     "ChatMessage": {
+      "title": "Chat Message",
+      "description": "Represents a single chat message in a game.",
+      "type": "object",
+      "properties": {
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["senderId", "senderName", "text"]
+    },
     "Game": {
       "title": "Game",
       "description": "Represents a single game session.",
@@ -85,6 +97,11 @@
         "winner": {
             "type": "string",
             "description": "The UID of the winning player."
+        },
+        "messages": {
+          "type": "array",
+          "items": { "$ref": "#/entities/ChatMessage" },
+          "description": "A list of chat messages for the game."
         }
       },
       "required": ["players", "playerData", "board", "tileBag", "currentTurn", "status"]

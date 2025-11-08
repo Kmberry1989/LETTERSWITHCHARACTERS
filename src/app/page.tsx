@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import GameBoard, { PlacedTile, Tile } from '@/components/game/game-board';
 import Scoreboard from '@/components/game/scoreboard';
 import TileRack from '@/components/game/tile-rack';
-import ChatWindow, { Message } from '@/components/game/chat-window';
+import ChatWindow, { ChatMessage } from '@/components/game/chat-window';
 import BlankTileDialog from '@/components/game/blank-tile-dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAudio } from '@/hooks/use-audio';
@@ -14,7 +14,7 @@ import { ArrowLeft, Cat, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { useDoc, useUser, useFirestore } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
 import { drawTiles } from '@/lib/game-logic';
 import { calculateScore, getWordsFromPlacedTiles } from '@/lib/scoring';
 import { validateWord } from '@/ai/validate-word';
@@ -34,12 +34,6 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-const initialMessages: Message[] = [
-    { sender: 'Alex', text: 'Hey, good luck!' },
-    { sender: 'You', text: 'You too!' },
-    { sender: 'Alex', text: 'Nice first move.' },
-];
-
 interface PlayerData {
   displayName: string;
   score: number;
@@ -58,6 +52,7 @@ interface Game {
   status: 'active' | 'pending' | 'finished';
   consecutivePasses?: number;
   winner?: string;
+  messages?: ChatMessage[];
 }
 
 
@@ -70,7 +65,6 @@ function GameInstance({ game }: { game: Game }) {
   const [pendingTiles, setPendingTiles] = useState<PlacedTile[]>([]);
   const [draggedTile, setDraggedTile] = useState<{ tile: Tile; index: number } | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const { playSfx } = useAudio();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGettingHint, setIsGettingHint] = useState(false);
@@ -254,7 +248,25 @@ function GameInstance({ game }: { game: Game }) {
   };
   
   const handleSendMessage = (text: string) => {
-    setMessages([...messages, { sender: 'You', text }]);
+    if (!firestore || !user) return;
+    const gameDocRef = doc(firestore, 'games', game.id);
+    const newMessage: ChatMessage = {
+      senderId: user.uid,
+      senderName: user.displayName || 'Player',
+      text: text,
+      timestamp: new Date(),
+    };
+
+    updateDoc(gameDocRef, {
+        messages: arrayUnion(newMessage)
+    }).catch(async (serverError) => {
+        const permissionError = new FirestorePermissionError({
+            path: gameDocRef.path,
+            operation: 'update',
+            requestResourceData: { messages: [newMessage] },
+          } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+    });
   };
   
   const endGame = async (finishingPlayerId: string | null) => {
@@ -648,8 +660,9 @@ function GameInstance({ game }: { game: Game }) {
         <ChatWindow
             isOpen={isChatOpen}
             onClose={() => setIsChatOpen(false)}
-            messages={messages}
+            messages={game.messages || []}
             onSendMessage={handleSendMessage}
+            currentUser={user}
         />
       </div>
     </div>

@@ -15,6 +15,7 @@ import { createTileBag, drawTiles } from '@/lib/game-logic';
 import type { Tile } from '@/components/game/game-board';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
+import { ChatMessage } from '@/components/game/chat-window';
 
 interface PlayerData {
   displayName: string;
@@ -34,6 +35,7 @@ interface Game {
   status: 'active' | 'pending' | 'finished';
   consecutivePasses?: number;
   winner?: string;
+  messages: ChatMessage[];
 }
 
 
@@ -163,6 +165,7 @@ export default function DashboardPage() {
         currentTurn: user.uid,
         status: 'active',
         consecutivePasses: 0,
+        messages: [],
     };
 
     const gamesCollection = collection(firestore, 'games');
