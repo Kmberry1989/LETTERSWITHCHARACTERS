@@ -4,6 +4,7 @@ import { useState } from 'react';
 import GameBoard, { PlacedTile, Tile } from '@/components/game/game-board';
 import Scoreboard from '@/components/game/scoreboard';
 import TileRack from '@/components/game/tile-rack';
+import ChatWindow, { Message } from '@/components/game/chat-window';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Carousel,
@@ -12,10 +13,8 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from '@/components/ui/carousel';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useAudio } from '@/hooks/use-audio';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -28,6 +27,12 @@ const initialPlayerTiles: (Tile | null)[] = [
   { letter: 'V', score: 4 },
   { letter: 'E', score: 1 },
   { letter: 'S', score: 1 },
+];
+
+const initialMessages: Message[] = [
+    { sender: 'Alex', text: 'Hey, good luck!' },
+    { sender: 'You', text: 'You too!' },
+    { sender: 'Alex', text: 'Nice first move.' },
 ];
 
 const games = [
@@ -64,8 +69,9 @@ function GameInstance({ game }: { game: (typeof games)[0] }) {
   const [playerTiles, setPlayerTiles] = useState<(Tile | null)[]>(initialPlayerTiles);
   const [selectedTileIndex, setSelectedTileIndex] = useState<number | null>(null);
   const [pendingTiles, setPendingTiles] = useState<PlacedTile[]>([]);
-  const opponentAvatar = PlaceHolderImages.find((p) => p.id === game.opponent.avatarId);
   const [draggedTile, setDraggedTile] = useState<{ tile: Tile; index: number } | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
   const { playSfx } = useAudio();
 
   const handleTileSelect = (index: number) => {
@@ -179,11 +185,15 @@ function GameInstance({ game }: { game: (typeof games)[0] }) {
     setPlayerTiles(newPlayerTiles);
     playSfx('swoosh');
   };
+  
+  const handleSendMessage = (text: string) => {
+    setMessages([...messages, { sender: 'You', text }]);
+  };
 
   return (
     <div className="flex flex-col gap-4 h-full p-4 sm:p-8 pt-24 sm:pt-24">
-      <div className="absolute top-16 left-1/2 -translate-x-1/2 w-full max-w-md sm:max-w-lg px-4">
-        <Scoreboard players={game.players} />
+      <div className="absolute top-4 left-1/2 -translate-x-1/2 w-full max-w-md sm:max-w-lg px-4">
+        <Scoreboard players={game.players} isPlayerTurn={game.isPlayerTurn} />
       </div>
 
       <div className="flex-grow">
@@ -198,16 +208,24 @@ function GameInstance({ game }: { game: (typeof games)[0] }) {
           </CardContent>
         </Card>
       </div>
-
-      <TileRack
-        tiles={playerTiles}
-        selectedTileIndex={selectedTileIndex}
-        onTileSelect={handleTileSelect}
-        onRecall={handleRecallAll}
-        onShuffle={handleShuffle}
-        onDragStart={handleDragStart}
-        onDrop={handleDropOnRack}
-      />
+      <div className="relative">
+        <TileRack
+          tiles={playerTiles}
+          selectedTileIndex={selectedTileIndex}
+          onTileSelect={handleTileSelect}
+          onRecall={handleRecallAll}
+          onShuffle={handleShuffle}
+          onDragStart={handleDragStart}
+          onDrop={handleDropOnRack}
+          onChatClick={() => setIsChatOpen(true)}
+        />
+        <ChatWindow
+            isOpen={isChatOpen}
+            onClose={() => setIsChatOpen(false)}
+            messages={messages}
+            onSendMessage={handleSendMessage}
+        />
+      </div>
     </div>
   );
 }

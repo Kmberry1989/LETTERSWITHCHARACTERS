@@ -1,6 +1,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { Badge } from '../ui/badge';
 
 type Player = {
   name: string;
@@ -10,15 +11,15 @@ type Player = {
 
 type ScoreboardProps = {
   players: Player[];
+  isPlayerTurn: boolean;
 };
 
 const defaultPlayers: Player[] = [
   { name: 'You', score: 125, avatarId: 'user-1' },
   { name: 'Alex', score: 98, avatarId: 'user-2' },
-  { name: 'Foxy', score: 153, avatarId: 'avatar-base' },
 ];
 
-export default function Scoreboard({ players = defaultPlayers }: ScoreboardProps) {
+export default function Scoreboard({ players = defaultPlayers, isPlayerTurn }: ScoreboardProps) {
   const player1 = players.find(p => p.name === 'You') || players[0];
   const player2 = players.find(p => p.name !== 'You') || players[1];
 
@@ -27,8 +28,8 @@ export default function Scoreboard({ players = defaultPlayers }: ScoreboardProps
 
   return (
     <Card>
-      <CardContent className="p-2 sm:p-4">
-        <div className="flex items-center justify-center gap-8 sm:gap-16">
+      <CardContent className="relative p-2 sm:p-4">
+        <div className="flex items-center justify-center gap-4 sm:gap-8">
           <div className="flex items-center gap-3">
             <Avatar>
               {player1Avatar && <AvatarImage src={player1Avatar.imageUrl} alt={player1.name} data-ai-hint={player1Avatar.imageHint} />}
@@ -47,11 +48,16 @@ export default function Scoreboard({ players = defaultPlayers }: ScoreboardProps
               <div className="font-medium">{player2.name}</div>
               <div className="font-bold text-lg text-primary">{player2.score}</div>
             </div>
-            <Avatar>
+             <Avatar>
               {player2Avatar && <AvatarImage src={player2Avatar.imageUrl} alt={player2.name} data-ai-hint={player2Avatar.imageHint} />}
               <AvatarFallback>{player2.name.charAt(0)}</AvatarFallback>
             </Avatar>
           </div>
+        </div>
+         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 mt-8">
+            <Badge variant={isPlayerTurn ? 'default' : 'secondary'}>
+                {isPlayerTurn ? 'Your Turn' : "Opponent's Turn"}
+            </Badge>
         </div>
       </CardContent>
     </Card>
