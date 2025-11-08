@@ -182,25 +182,6 @@ function GameInstance({ game }: { game: (typeof games)[0] }) {
 
   return (
     <div className="flex flex-col gap-4 h-full p-4 sm:p-8">
-      <div className="flex items-center justify-between gap-2 text-lg font-semibold">
-        <div className="flex items-center gap-2">
-          <Avatar className="h-8 w-8">
-            {opponentAvatar && (
-              <AvatarImage
-                src={opponentAvatar.imageUrl}
-                alt={game.opponent.name}
-                data-ai-hint={opponentAvatar.imageHint}
-              />
-            )}
-            <AvatarFallback>{game.opponent.name.charAt(0)}</AvatarFallback>
-          </Avatar>
-          Your game with {game.opponent.name}
-        </div>
-        <Badge variant={game.isPlayerTurn ? 'default' : 'secondary'}>
-          {game.isPlayerTurn ? "Your Turn" : "Opponent's Turn"}
-        </Badge>
-      </div>
-
       <Scoreboard players={game.players} />
 
       <div className="flex-grow">
