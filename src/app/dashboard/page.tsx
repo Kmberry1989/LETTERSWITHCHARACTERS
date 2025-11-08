@@ -7,8 +7,10 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useCollection, useUser } from '@/firebase';
+import { useCollection, useUser, useUsers, useFirestore } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
+import { addDoc, collection } from 'firebase/firestore';
+import { useToast } from '@/hooks/use-toast';
 
 interface PlayerData {
   displayName: string;
@@ -88,16 +90,77 @@ function GameCardSkeleton() {
 
 export default function DashboardPage() {
   const { user } = useUser();
-  const { data: games, loading } = useCollection<Game>('games');
+  const firestore = useFirestore();
+  const { toast } = useToast();
+  const { data: games, loading: gamesLoading } = useCollection<Game>('games');
+  const { users: allUsers, loading: usersLoading } = useUsers();
   
   const userGames = games.filter(game => game.players.includes(user?.uid || ''));
+  const loading = gamesLoading || usersLoading;
+
+  const handleNewGame = async () => {
+    if (!user || !firestore || allUsers.length === 0) {
+        toast({
+            variant: "destructive",
+            title: "Unable to start new game",
+            description: "Not logged in or no other players available.",
+        });
+        return;
+    }
+
+    const otherPlayers = allUsers.filter(u => u.uid !== user.uid);
+    if (otherPlayers.length === 0) {
+        toast({
+            variant: "destructive",
+            title: "No opponents available",
+            description: "There are no other players to start a game with.",
+        });
+        return;
+    }
+    const opponent = otherPlayers[Math.floor(Math.random() * otherPlayers.length)];
+
+    const newGame: Omit<Game, 'id'> = {
+        players: [user.uid, opponent.uid],
+        playerData: {
+            [user.uid]: {
+                displayName: user.displayName || 'You',
+                score: 0,
+                avatarId: 'user-1' // Placeholder avatar
+            },
+            [opponent.uid]: {
+                displayName: opponent.displayName || 'Opponent',
+                score: 0,
+                avatarId: 'user-2' // Placeholder avatar
+            }
+        },
+        currentTurn: user.uid,
+        status: 'active'
+    };
+
+    try {
+        const gamesCollection = collection(firestore, 'games');
+        const docRef = await addDoc(gamesCollection, newGame);
+        toast({
+            title: "Game created!",
+            description: `You've started a new game against ${opponent.displayName}.`,
+        });
+    } catch(error) {
+        console.error("Error creating new game:", error);
+        toast({
+            variant: "destructive",
+            title: "Error",
+            description: "Could not create new game.",
+        });
+    }
+  };
+
 
   return (
     <AppLayout>
       <div className="flex-1 space-y-4 p-4 sm:p-8">
         <div className="flex items-center justify-between space-y-2">
           <h1 className="text-3xl font-bold tracking-tight font-headline">Your Games</h1>
-           <Button>New Game</Button>
+           <Button onClick={handleNewGame} disabled={loading}>New Game</Button>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {loading && Array.from({ length: 3 }).map((_, i) => <GameCardSkeleton key={i} />)}
@@ -110,7 +173,7 @@ export default function DashboardPage() {
               <CardDescription>Challenge a friend or a random opponent.</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button>Find Match</Button>
+              <Button onClick={handleNewGame} disabled={loading}>Find Match</Button>
             </CardContent>
           </Card>
         </div>
