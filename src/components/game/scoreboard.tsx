@@ -42,7 +42,7 @@ export default function Scoreboard({ players = defaultPlayers, isPlayerTurn, cur
             </div>
           </div>
           
-          <div className="relative font-bold text-2xl text-muted-foreground bottom-5">VS</div>
+          <div className="flex-none w-20" />
 
           <div className="flex flex-1 items-center gap-3 justify-end">
             <div className="text-right">
@@ -55,7 +55,8 @@ export default function Scoreboard({ players = defaultPlayers, isPlayerTurn, cur
             </Avatar>
           </div>
         </div>
-         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[calc(50%+15px)]">
+         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 flex flex-col items-center gap-1">
+            <div className="font-bold text-2xl text-muted-foreground">VS</div>
             <Badge variant={isPlayerTurn ? 'default' : 'secondary'}>
                 {isPlayerTurn ? 'Your Turn' : "Opponent's Turn"}
             </Badge>
