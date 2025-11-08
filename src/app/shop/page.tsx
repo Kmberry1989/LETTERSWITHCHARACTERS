@@ -12,32 +12,32 @@ import { useBerries } from '@/hooks/use-berries';
 
 const shopItems = [
   {
-    id: 'tile-wood',
+    id: 'shop-item-tile-1',
     name: 'Wooden Tile Set',
     description: 'A classic, rustic look for your tiles.',
     price: 500,
     imageId: 'shop-item-tile-1'
   },
   {
-    id: 'tile-metal',
+    id: 'shop-item-tile-2',
     name: 'Metallic Tile Set',
     description: 'A sleek, modern look for your tiles.',
     price: 750,
     imageId: 'shop-item-tile-2'
   },
   {
-    id: 'prop-wizard',
-    name: 'Wizard Hat',
-    description: 'A magical hat for your avatar.',
+    id: 'board-theme-wood',
+    name: 'Dark Wood Board',
+    description: 'A rich, dark wood theme for your game board.',
     price: 1200,
-    imageId: 'shop-item-prop-1'
+    imageId: 'board-theme-wood'
   },
    {
-    id: 'prop-sword',
-    name: 'Pixel Sword',
-    description: 'A classic 8-bit sword for your avatar.',
+    id: 'tile-set-plastic',
+    name: 'Plastic Tile Set',
+    description: 'A vibrant and durable plastic tile design.',
     price: 800,
-    imageId: 'swag-prop-1'
+    imageId: 'tile-set-plastic'
   }
 ];
 
@@ -57,7 +57,7 @@ function ShopItemCard({ item, onPurchase, disabled }: { item: typeof shopItems[0
             width={200}
             height={200}
             data-ai-hint={image.imageHint}
-            className="rounded-lg object-cover"
+            className="rounded-lg object-cover aspect-square"
           />
         )}
       </CardContent>

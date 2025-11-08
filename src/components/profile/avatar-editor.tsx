@@ -5,79 +5,54 @@ import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { cn } from '@/lib/utils';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 
-const hats = [
-  { id: 'swag-hat-1', name: 'Top Hat' },
-  { id: 'swag-hat-2', name: 'Cap' },
+const tileSets = [
+  { id: 'shop-item-tile-1', name: 'Wooden' },
+  { id: 'shop-item-tile-2', name: 'Metallic' },
+  { id: 'tile-set-plastic', name: 'Classic Plastic' },
 ];
 
-const glasses = [
-  { id: 'swag-glasses-1', name: 'Sunglasses' },
-  { id: 'swag-glasses-2', name: 'Spectacles' },
+const boardThemes = [
+  { id: 'board-theme-green', name: 'Classic Green' },
+  { id: 'board-theme-wood', name: 'Dark Wood' },
 ];
-
-const propsItem = [
-  { id: 'swag-prop-1', name: 'Sword' },
-];
-
 
 export default function AvatarEditor() {
-  const [selectedHat, setSelectedHat] = useState<string | null>(null);
-  const [selectedGlasses, setSelectedGlasses] = useState<string | null>(null);
-  const [selectedProp, setSelectedProp] = useState<string | null>(null);
+  const [selectedTileSet, setSelectedTileSet] = useState<string>('shop-item-tile-1');
+  const [selectedBoardTheme, setSelectedBoardTheme] = useState<string>('board-theme-green');
 
-  const avatarBase = PlaceHolderImages.find((p) => p.id === 'avatar-base');
-  const hatImage = PlaceHolderImages.find((p) => p.id === selectedHat);
-  const glassesImage = PlaceHolderImages.find((p) => p.id === selectedGlasses);
-  const propImage = PlaceHolderImages.find((p) => p.id === selectedProp);
+  const tileImage = PlaceHolderImages.find((p) => p.id === selectedTileSet);
+  const boardImage = PlaceHolderImages.find((p) => p.id === selectedBoardTheme);
 
   return (
     <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
       <div className="md:col-span-1">
-        <h2 className="text-xl font-bold mb-4 font-headline">Your Avatar</h2>
+        <h2 className="text-xl font-bold mb-4 font-headline">Your Style</h2>
         <Card>
           <CardContent className="p-4">
-            <div className="relative aspect-square w-full">
-              {avatarBase && (
+            <div className="relative aspect-square w-full rounded-md overflow-hidden">
+              {boardImage && (
                 <Image
-                  src={avatarBase.imageUrl}
-                  alt="Avatar base"
+                  src={boardImage.imageUrl}
+                  alt="Board background"
                   fill
-                  data-ai-hint={avatarBase.imageHint}
-                  className="object-cover rounded-md"
+                  data-ai-hint={boardImage.imageHint}
+                  className="object-cover"
                 />
               )}
-               {propImage && (
-                <Image
-                  src={propImage.imageUrl}
-                  alt={propImage.description}
-                  fill
-                  data-ai-hint={propImage.imageHint}
-                  className="object-contain"
-                  style={{ transform: 'rotate(-15deg) translate(20%, -10%)' }}
-                />
-              )}
-              {hatImage && (
-                <Image
-                  src={hatImage.imageUrl}
-                  alt={hatImage.description}
-                  fill
-                  data-ai-hint={hatImage.imageHint}
-                  className="object-contain"
-                   style={{ transform: 'scale(0.6) translateY(-45%)' }}
-                />
-              )}
-              {glassesImage && (
-                <Image
-                  src={glassesImage.imageUrl}
-                  alt={glassesImage.description}
-                  fill
-                  data-ai-hint={glassesImage.imageHint}
-                  className="object-contain"
-                  style={{ transform: 'scale(0.5) translateY(10%)' }}
-                />
+              {tileImage && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                   <div className="relative w-1/2 aspect-square">
+                     <Image
+                        src={tileImage.imageUrl}
+                        alt={tileImage.description}
+                        fill
+                        data-ai-hint={tileImage.imageHint}
+                        className="object-contain drop-shadow-lg"
+                      />
+                   </div>
+                </div>
               )}
             </div>
           </CardContent>
@@ -85,48 +60,31 @@ export default function AvatarEditor() {
       </div>
       <div className="md:col-span-2">
         <h2 className="text-xl font-bold mb-4 font-headline">Customize</h2>
-        <Tabs defaultValue="hats" className="w-full">
+        <Tabs defaultValue="tiles" className="w-full">
           <TabsList>
-            <TabsTrigger value="hats">Hats</TabsTrigger>
-            <TabsTrigger value="glasses">Glasses</TabsTrigger>
-            <TabsTrigger value="props">Props</TabsTrigger>
+            <TabsTrigger value="tiles">Tile Sets</TabsTrigger>
+            <TabsTrigger value="boards">Board Themes</TabsTrigger>
           </TabsList>
-          <TabsContent value="hats">
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <Button variant={selectedHat === null ? 'default' : 'outline'} onClick={() => setSelectedHat(null)}>None</Button>
-              {hats.map((item) => {
+          <TabsContent value="tiles">
+             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              {tileSets.map((item) => {
                 const image = PlaceHolderImages.find((p) => p.id === item.id);
                 return (
-                  <Button key={item.id} variant={selectedHat === item.id ? 'default' : 'outline'} onClick={() => setSelectedHat(item.id)} className="h-auto flex-col p-2">
-                     {image && <Image src={image.imageUrl} alt={item.name} width={80} height={80} className="mb-2" />}
+                  <Button key={item.id} variant={selectedTileSet === item.id ? 'default' : 'outline'} onClick={() => setSelectedTileSet(item.id)} className="h-auto flex-col p-2 gap-2">
+                     {image && <Image src={image.imageUrl} alt={item.name} width={80} height={80} className="rounded-md" />}
                     {item.name}
                   </Button>
                 );
               })}
             </div>
           </TabsContent>
-           <TabsContent value="glasses">
+           <TabsContent value="boards">
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <Button variant={selectedGlasses === null ? 'default' : 'outline'} onClick={() => setSelectedGlasses(null)}>None</Button>
-              {glasses.map((item) => {
+              {boardThemes.map((item) => {
                 const image = PlaceHolderImages.find((p) => p.id === item.id);
                 return (
-                  <Button key={item.id} variant={selectedGlasses === item.id ? 'default' : 'outline'} onClick={() => setSelectedGlasses(item.id)} className="h-auto flex-col p-2">
-                     {image && <Image src={image.imageUrl} alt={item.name} width={80} height={40} className="mb-2" />}
-                    {item.name}
-                  </Button>
-                );
-              })}
-            </div>
-          </TabsContent>
-          <TabsContent value="props">
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <Button variant={selectedProp === null ? 'default' : 'outline'} onClick={() => setSelectedProp(null)}>None</Button>
-              {propsItem.map((item) => {
-                const image = PlaceHolderImages.find((p) => p.id === item.id);
-                return (
-                  <Button key={item.id} variant={selectedProp === item.id ? 'default' : 'outline'} onClick={() => setSelectedProp(item.id)} className="h-auto flex-col p-2">
-                     {image && <Image src={image.imageUrl} alt={item.name} width={80} height={80} className="mb-2" />}
+                  <Button key={item.id} variant={selectedBoardTheme === item.id ? 'default' : 'outline'} onClick={() => setSelectedBoardTheme(item.id)} className="h-auto flex-col p-2 gap-2">
+                     {image && <Image src={image.imageUrl} alt={item.name} width={80} height={80} className="rounded-md" />}
                     {item.name}
                   </Button>
                 );

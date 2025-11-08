@@ -7,36 +7,6 @@
       "imageHint": "fox character"
     },
     {
-      "id": "swag-hat-1",
-      "description": "A top hat",
-      "imageUrl": "https://images.unsplash.com/photo-1678705385245-ee7b75e35c80?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw2fHx0b3AlMjBoYXR8ZW58MHx8fHwxNzYyNjA5ODI0fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "top hat"
-    },
-    {
-      "id": "swag-hat-2",
-      "description": "A baseball cap",
-      "imageUrl": "https://images.unsplash.com/photo-1539572511325-71494a030b12?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxiYXNlYmFsbCUyMGNhcHxlbnwwfHx8fDE3NjI2MDczMjJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "baseball cap"
-    },
-    {
-      "id": "swag-glasses-1",
-      "description": "Sunglasses",
-      "imageUrl": "https://images.unsplash.com/photo-1610136649349-0f646f318053?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHxzdW5nbGFzc2VzfGVufDB8fHx8MTc2MjYyMDE5NHww&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "sunglasses"
-    },
-    {
-      "id": "swag-glasses-2",
-      "description": "Round spectacles",
-      "imageUrl": "https://images.unsplash.com/photo-1577400983943-874919eca6ce?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwyfHxyb3VuZCUyMGdsYXNzZXN8ZW58MHx8fHwxNzYyNjMwNjgyfDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "round glasses"
-    },
-    {
-      "id": "swag-prop-1",
-      "description": "A sword",
-      "imageUrl": "https://images.unsplash.com/photo-1596301193617-fac8f9152904?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw4fHxzd29yZHxlbnwwfHx8fDE3NjI2MzA2ODJ8MA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "sword"
-    },
-    {
       "id": "user-1",
       "description": "User profile picture 1",
       "imageUrl": "https://images.unsplash.com/photo-1521119989659-a83eee488004?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw5fHxwZXJzb24lMjBwb3J0cmFpdHxlbnwwfHx8fDE3NjI1OTQ3NDd8MA&ixlib=rb-4.1.0&q=80&w=1080",
@@ -79,10 +49,22 @@
       "imageHint": "metal texture"
     },
     {
-      "id": "shop-item-prop-1",
-      "description": "A wizard hat",
-      "imageUrl": "https://images.unsplash.com/photo-1732613942657-61684c51eb55?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw3fHx3aXphcmQlMjBoYXR8ZW58MHx8fHwxNzYyNjMyODE1fDA&ixlib=rb-4.1.0&q=80&w=1080",
-      "imageHint": "wizard hat"
+      "id": "tile-set-plastic",
+      "description": "Classic plastic game tile design",
+      "imageUrl": "https://images.unsplash.com/photo-1601339832262-1d5a278d65a2?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxwbGFzdGljJTIwdGV4dHVyZXxlbnwwfHx8fDE3NjM0MTE4MzV8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "plastic texture"
+    },
+    {
+      "id": "board-theme-green",
+      "description": "Classic green felt board theme",
+      "imageUrl": "https://images.unsplash.com/photo-1594228963453-ca2b41e8e89c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxncmVlbiUyMGZlbHQlMjB0ZXh0dXJlfGVufDB8fHx8MTc2MzQxMTg3MXww&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "green felt"
+    },
+    {
+      "id": "board-theme-wood",
+      "description": "Dark wood board theme",
+      "imageUrl": "https://images.unsplash.com/photo-1604328469438-51f697525ade?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxkYXJrJTIwd29vZCUyMHRleHR1cmV8ZW58MHx8fHwxNzYzNDExODcxfDA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "dark wood"
     }
   ]
 }
