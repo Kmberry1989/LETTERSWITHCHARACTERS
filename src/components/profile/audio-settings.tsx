@@ -10,8 +10,6 @@ export default function AudioSettings() {
   const {
     masterVolume,
     setMasterVolume,
-    musicVolume,
-    setMusicVolume,
     sfxVolume,
     setSfxVolume,
     isMuted,
@@ -36,18 +34,6 @@ export default function AudioSettings() {
             id="master-volume"
             value={[masterVolume]}
             onValueChange={(value) => setMasterVolume(value[0])}
-            max={100}
-            step={1}
-            disabled={isMuted}
-          />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="music-volume">Music Volume ({musicVolume})</Label>
-          <Slider
-            id="music-volume"
-            value={[musicVolume]}
-            onValueChange={(value) => setMusicVolume(value[0])}
             max={100}
             step={1}
             disabled={isMuted}

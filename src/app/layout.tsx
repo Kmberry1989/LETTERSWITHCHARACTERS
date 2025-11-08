@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 import { FirebaseProvider } from '@/firebase/provider';
 import { BerriesProvider } from '@/hooks/use-berries';
 import { AudioProvider } from '@/hooks/use-audio';
-import AudioPlayer from '@/components/audio-player';
 
 export const metadata: Metadata = {
   title: 'Letters with Characters',
@@ -32,7 +31,6 @@ export default function RootLayout({
           <BerriesProvider>
             <AudioProvider>
               {children}
-              <AudioPlayer />
             </AudioProvider>
           </BerriesProvider>
         </FirebaseProvider>
