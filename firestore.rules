@@ -106,9 +106,13 @@ service cloud.firestore {
      * @principle Allows public read access, restricts write access.
      */
     match /games/{gameId} {
+      function isPlayer() {
+        return request.auth.uid in resource.data.players;
+      }
+      
       allow get, list: if true;
-      allow create: if isSignedIn(); // TODO: Implement member check
-      allow update: if false; // TODO: Implement member check
+      allow create: if isSignedIn();
+      allow update: if isSignedIn() && isPlayer();
       allow delete: if false; // TODO: Implement member check
     }
 
