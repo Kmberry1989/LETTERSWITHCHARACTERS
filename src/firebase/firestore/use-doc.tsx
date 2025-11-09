@@ -4,13 +4,19 @@ import { useEffect, useState } from 'react';
 import { doc, onSnapshot, DocumentData, DocumentSnapshot } from 'firebase/firestore';
 import { useFirestore } from '../provider';
 
-export function useDoc<T>(path: string) {
+export function useDoc<T>(path: string | undefined) {
   const firestore = useFirestore();
   const [data, setData] = useState<T | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
+    if (!path) {
+      setLoading(false);
+      setData(null);
+      return;
+    }
+    
     const docRef = doc(firestore, path);
     const unsubscribe = onSnapshot(docRef,
       (snapshot: DocumentSnapshot<DocumentData>) => {

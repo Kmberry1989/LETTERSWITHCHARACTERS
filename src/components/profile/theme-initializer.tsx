@@ -19,9 +19,9 @@ const themes = [
  * This ensures the theme is consistent across sessions.
  */
 export function ClientThemeInitializer() {
-    const { user, loading: userLoading } = useUser();
+    const { user } = useUser();
     // Only call useDoc if we have a user ID.
-    const { data: userProfile, loading: profileLoading } = useDoc<UserProfile>(user ? `users/${user.uid}` : undefined);
+    const { data: userProfile } = useDoc<UserProfile>(user ? `users/${user.uid}` : undefined);
 
     useEffect(() => {
         // We only apply the theme if we have a user profile with a themeId.
