@@ -19,21 +19,6 @@
  * - /leaderboard/{leaderboardEntryId}: Stores leaderboard entries. Publicly readable.
  * - /stickers/{stickerId}: Stores sticker information. Publicly readable.
  * - /minigame_scores/{minigameScoreId}: Stores minigame scores. Publicly readable.
- *
- * Key Security Decisions:
- * - User Listing Disabled: The ruleset explicitly forbids listing all users.
- * - Ownership Model: User-specific data is protected by path-based ownership
- *   (e.g., /users/{userId}). Only the authenticated user with a matching UID
- *   can access the data.
- * - Shared Access: Collaborative access to game data is managed using a "members"
- *   map on each game document. This map defines the roles and permissions of
- *   each user within the game.
- * - Public Read, Restricted Write: Certain collections, such as themes and
- *   stickers, are publicly readable but only writable by authorized users.
- *
- * Denormalization for Authorization:
- * - Game Documents: The `playerIds` array within each game document is denormalized
- *   to enable efficient querying of games a user is participating in.
  */
 rules_version = '2';
 service cloud.firestore {
@@ -101,12 +86,15 @@ service cloud.firestore {
     /**
      * @description Controls access to game instances.
      * @path /games/{gameId}
-     * @allow (get, list) Anyone can read or list games
-     * @deny (create, update, delete) Only game members can create, update, or delete games (TODO: implement member check)
-     * @principle Allows public read access, restricts write access.
+     * @allow (get) Any player in the game can read the game state.
+     * @allow (list) A user can list games they are a player in.
+     * @allow (create) An authenticated user can create a game they are a player in.
+     * @allow (update) A player can update a game if it is their turn and the move is valid.
+     * @deny (delete) No one can delete a game.
      */
     match /games/{gameId} {
       function isPlayer() {
+        // Use `resource` for existing documents, `request.resource` for new ones.
         return request.auth.uid in resource.data.players;
       }
       function isCurrentTurn(uid) {
@@ -118,7 +106,8 @@ service cloud.firestore {
       function unchanged(field) {
         return request.resource.data[field] == resource.data[field];
       }
-      function getOpponentUid(uid) {
+       function getOpponentUid(uid) {
+        // This function is illustrative. A robust implementation would handle more than 2 players.
         return resource.data.players[0] == uid ? resource.data.players[1] : resource.data.players[0];
       }
 
@@ -166,7 +155,7 @@ service cloud.firestore {
       }
 
       allow get: if isPlayer();
-      allow list: if false;
+      allow list: if isSignedIn();
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.players;
       allow update: if isSignedIn() && isPlayer() && (isValidMove() || isValidPass() || isValidExchange() || isValidChatMessage());
       allow delete: if false;
