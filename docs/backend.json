@@ -235,8 +235,7 @@
   },
   "auth": {
     "providers": [
-      "password",
-      "anonymous"
+      "google.com"
     ]
   },
   "firestore": {
@@ -361,3 +360,4 @@
     "reasoning": "The Firestore data structure is designed to support a multiplayer Scrabble game with customizable avatars, themes, leaderboards, and stickers, while prioritizing security, scalability, and debuggability, adhering to the principles of Authorization Independence, Clarity of Intent, DBAC (Database-Based Access Control), and QAPs (Rules are Not Filters). The structure uses Structural Segregation and Access Modeling to facilitate simple and robust security rules.\n\n**Authorization Independence:**\n\n*   **Matches:** The `matches/{matchId}` collection includes a `playerIds` array. While the membership map is preferred, in this case `playerIds` array is acceptable for basic access control to a `match`. Security rules will ensure that only these users can read/write match data.\n*   **MatchStickers:** The `match_stickers/{matchStickerId}` collection denormalizes `matchId` and `userId`. This enables security rules to validate that only players participating in the given match can send stickers.\n\n**Structural Segregation:**\n\n*   User-specific data (avatars) is stored under `/users/{userId}` ensuring only the user has access.\n*   Global data (themes, stickers) are stored in root-level collections with public read access or specific role-based write access.\n\n**Access Modeling:**\n\n*   **Path-Based Ownership:** User avatars are stored under `/users/{userId}/avatars/{avatarId}`, enforcing path-based ownership. Only the user can modify their avatar.\n*   **Membership Maps:**  While not explicitly used in this version, could be added to matches if different roles are required in the future.\n\n**QAPs (Rules are Not Filters):**\n\n*   The structure enables secure `list` operations. For example, listing matches is only allowed if the user is a player in that match. Listing avatars are segregated into the `/users/{userId}/avatars` collection making it secure by design.\n\nThis data structure allows for secure and efficient querying and data management, aligning with the principles of secure Firestore design."
   }
 }
+    
