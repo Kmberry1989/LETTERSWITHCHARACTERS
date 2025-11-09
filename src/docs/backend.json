@@ -124,7 +124,7 @@
     }
   },
   "auth": {
-    "providers": ["google.com"]
+    "providers": ["google.com", "password", "anonymous"]
   },
   "firestore": {
     "/users/{userId}": {
