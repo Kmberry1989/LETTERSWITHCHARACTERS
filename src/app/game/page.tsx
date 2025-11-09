@@ -384,124 +384,125 @@ function Game() {
 
   return (
     <AppLayout>
-      <div className="flex h-[calc(100vh-4rem)] flex-col gap-4 p-4">
-        <Scoreboard
-          players={[
-            { displayName: userPlayerData.displayName, score: userPlayerData.score, avatarId: userPlayerData.avatarId },
-            { displayName: opponentPlayerData.displayName, score: opponentPlayerData.score, avatarId: opponentPlayerData.avatarId },
-          ]}
-          isPlayerTurn={isPlayerTurn}
-          currentPlayerName={userPlayerData.displayName}
-          gameStatus={game.status}
-        />
+      <div className="flex h-full flex-col items-center p-4">
+        <div className="w-full max-w-4xl flex flex-col gap-4">
+          <Scoreboard
+            players={[
+              { displayName: userPlayerData.displayName, score: userPlayerData.score, avatarId: userPlayerData.avatarId },
+              { displayName: opponentPlayerData.displayName, score: opponentPlayerData.score, avatarId: opponentPlayerData.avatarId },
+            ]}
+            isPlayerTurn={isPlayerTurn}
+            currentPlayerName={userPlayerData.displayName}
+            gameStatus={game.status}
+          />
 
-        <div className="flex-grow">
-          <GameBoard 
-            placedTiles={game.board} 
-            pendingTiles={pendingTiles}
-            onCellClick={handleCellClick}
-            onRecallTile={handleRecallTile}
+          <div className="w-full max-w-[600px] self-center">
+            <GameBoard 
+              placedTiles={game.board} 
+              pendingTiles={pendingTiles}
+              onCellClick={handleCellClick}
+              onRecallTile={handleRecallTile}
+            />
+          </div>
+          
+          <TileRack
+            tiles={playerTiles}
+            selectedTileIndex={selectedTileIndex}
+            isPlayerTurn={isPlayerTurn}
+            isSubmitting={isSubmitting}
+            isGettingHint={isGettingHint}
+            hintUsed={userPlayerData.hintUsed || false}
+            isExchanging={isExchanging}
+            exchangeSelection={exchangeSelection}
+            onTileSelect={handleTileSelect}
+            onRecall={handleRecallAll}
+            onShuffle={handleShuffle}
+            onPlay={handlePlay}
+            onHint={handleHint}
+            onChatClick={() => setIsChatOpen(true)}
+            onToggleExchange={() => setIsExchanging(!isExchanging)}
+            onDragStart={(tile, index) => {
+              if (!isExchanging) {
+                  setSelectedTileIndex(index);
+              }
+            }}
+            onDrop={(targetIndex) => {
+              if (selectedTileIndex !== null) {
+                  const newTiles = [...playerTiles];
+                  const draggedTile = newTiles[selectedTileIndex];
+                  
+                  // Erase from original position
+                  newTiles[selectedTileIndex] = null;
+                  // Place temp tile at target to maintain order
+                  const temp = newTiles[targetIndex];
+                  newTiles[targetIndex] = draggedTile;
+
+                  // Find original empty spot and place temp
+                  const originalEmptyIndex = newTiles.indexOf(null);
+                  if (originalEmptyIndex !== -1) {
+                      newTiles[originalEmptyIndex] = temp;
+                  }
+
+                  setPlayerTiles(newTiles);
+                  setSelectedTileIndex(null); // Or targetIndex
+              }
+            }}
+          />
+
+          {/* Action Dialogs */}
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button id="pass-turn-trigger" className="hidden">Pass</button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Are you sure you want to pass?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  If both players pass consecutively, the game will end. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handlePass}>Yes, Pass Turn</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <button id="exchange-tiles-trigger" className="hidden">Exchange</button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Exchange {exchangeSelection.length} tile(s)?</AlertDialogTitle>
+                <AlertDialogDescription>
+                  This will skip your turn. This action cannot be undone.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleExchange}>Yes, Exchange</AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+          
+          <BlankTileDialog
+              isOpen={blankTileDialog.isOpen}
+              onClose={() => {
+                  setBlankTileDialog({isOpen: false, pendingTileIndex: null});
+                  handleRecallAll(); // Recall tiles if dialog is closed without selection
+              }}
+              onSelect={handleBlankTileSelect}
+          />
+          
+          <ChatWindow
+              isOpen={isChatOpen}
+              onClose={() => setIsChatOpen(false)}
+              messages={game.messages || []}
+              onSendMessage={handleSendMessage}
+              currentUser={user}
           />
         </div>
-        
-        <TileRack
-          tiles={playerTiles}
-          selectedTileIndex={selectedTileIndex}
-          isPlayerTurn={isPlayerTurn}
-          isSubmitting={isSubmitting}
-          isGettingHint={isGettingHint}
-          hintUsed={userPlayerData.hintUsed || false}
-          isExchanging={isExchanging}
-          exchangeSelection={exchangeSelection}
-          onTileSelect={handleTileSelect}
-          onRecall={handleRecallAll}
-          onShuffle={handleShuffle}
-          onPlay={handlePlay}
-          onHint={handleHint}
-          onChatClick={() => setIsChatOpen(true)}
-          onToggleExchange={() => setIsExchanging(!isExchanging)}
-          onDragStart={(tile, index) => {
-            if (!isExchanging) {
-                setSelectedTileIndex(index);
-            }
-          }}
-          onDrop={(targetIndex) => {
-            if (selectedTileIndex !== null) {
-                const newTiles = [...playerTiles];
-                const draggedTile = newTiles[selectedTileIndex];
-                
-                // Erase from original position
-                newTiles[selectedTileIndex] = null;
-                // Place temp tile at target to maintain order
-                const temp = newTiles[targetIndex];
-                newTiles[targetIndex] = draggedTile;
-
-                // Find original empty spot and place temp
-                const originalEmptyIndex = newTiles.indexOf(null);
-                if (originalEmptyIndex !== -1) {
-                    newTiles[originalEmptyIndex] = temp;
-                }
-
-                setPlayerTiles(newTiles);
-                setSelectedTileIndex(null); // Or targetIndex
-            }
-          }}
-        />
-
-        {/* Action Dialogs */}
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <button id="pass-turn-trigger" className="hidden">Pass</button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Are you sure you want to pass?</AlertDialogTitle>
-              <AlertDialogDescription>
-                If both players pass consecutively, the game will end. This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handlePass}>Yes, Pass Turn</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <button id="exchange-tiles-trigger" className="hidden">Exchange</button>
-          </AlertDialogTrigger>
-          <AlertDialogContent>
-            <AlertDialogHeader>
-              <AlertDialogTitle>Exchange {exchangeSelection.length} tile(s)?</AlertDialogTitle>
-              <AlertDialogDescription>
-                This will skip your turn. This action cannot be undone.
-              </AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleExchange}>Yes, Exchange</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-        
-        <BlankTileDialog
-            isOpen={blankTileDialog.isOpen}
-            onClose={() => {
-                setBlankTileDialog({isOpen: false, pendingTileIndex: null});
-                handleRecallAll(); // Recall tiles if dialog is closed without selection
-            }}
-            onSelect={handleBlankTileSelect}
-        />
-        
-        <ChatWindow
-            isOpen={isChatOpen}
-            onClose={() => setIsChatOpen(false)}
-            messages={game.messages || []}
-            onSendMessage={handleSendMessage}
-            currentUser={user}
-        />
-
       </div>
     </AppLayout>
   );
