@@ -166,7 +166,7 @@ service cloud.firestore {
       }
 
       allow get: if isPlayer(request.auth.uid);
-      allow list: if isSignedIn() && request.auth.uid == request.query.resource.data.players;
+      allow list: if isSignedIn() && request.query.where[0][2] == request.auth.uid;
       allow create: if isSignedIn();
       allow update: if isSignedIn() && isPlayer(request.auth.uid) && (isValidMove() || isValidPass() || isValidExchange() || isValidChatMessage());
       allow delete: if false;
