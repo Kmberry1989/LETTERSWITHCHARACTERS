@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { Toaster } from '@/components/ui/toaster';
 import './globals.css';
 import { cn } from '@/lib/utils';
-import { FirebaseProvider } from '@/firebase/provider';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { BerriesProvider } from '@/hooks/use-berries';
 import { AudioProvider } from '@/hooks/use-audio';
 import MusicPlayer from '@/components/profile/music-player';
@@ -29,7 +29,7 @@ export default function RootLayout({
         />
       </head>
       <body className={cn('font-body antialiased', 'min-h-screen bg-background font-sans')}>
-        <FirebaseProvider>
+        <FirebaseClientProvider>
           <ClientThemeInitializer />
           <BerriesProvider>
             <AudioProvider>
@@ -37,7 +37,7 @@ export default function RootLayout({
               {children}
             </AudioProvider>
           </BerriesProvider>
-        </FirebaseProvider>
+        </FirebaseClientProvider>
         <Toaster />
       </body>
     </html>
