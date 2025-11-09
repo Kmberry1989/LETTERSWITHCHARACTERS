@@ -114,7 +114,7 @@ export default function DashboardPage() {
     return firestore ? collection(firestore, 'games') : null;
   }, [firestore]);
 
-  const { data: games, loading: gamesLoading } = useCollection<Game>(gamesCollection);
+  const { data: games, isLoading: gamesLoading } = useCollection<Game>(gamesCollection);
   const { users: allUsers, loading: usersLoading } = useUsers();
   
   const userGames = games ? games.filter(game => game.players.includes(user?.uid || '')) : [];
