@@ -388,8 +388,8 @@ function Game() {
         <div className="w-full max-w-4xl flex flex-col gap-4">
           <Scoreboard
             players={[
-              { displayName: userPlayerData.displayName, score: userPlayerData.score, avatarId: userPlayerData.avatarId },
-              { displayName: opponentPlayerData.displayName, score: opponentPlayerData.score, avatarId: opponentPlayerData.avatarId },
+              { displayName: userPlayerData.displayName, score: userPlayerData.score, avatarId: userPlayerData.avatarId, photoURL: userPlayerData.photoURL },
+              { displayName: opponentPlayerData.displayName, score: opponentPlayerData.score, avatarId: opponentPlayerData.avatarId, photoURL: opponentPlayerData.photoURL },
             ]}
             isPlayerTurn={isPlayerTurn}
             currentPlayerName={userPlayerData.displayName}
@@ -402,6 +402,7 @@ function Game() {
               pendingTiles={pendingTiles}
               onCellClick={handleCellClick}
               onRecallTile={handleRecallTile}
+              onDrop={(row, col) => handleCellClick(row, col)}
             />
           </div>
           
