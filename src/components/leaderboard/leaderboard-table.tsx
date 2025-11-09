@@ -18,7 +18,7 @@ export default function LeaderboardTable() {
       name: user.displayName || 'Anonymous',
       // For demo, if totalScore doesn't exist, generate a random one
       score: user.totalScore || Math.floor(Math.random() * 2500),
-      avatarId: 'user-1' // You might want a way to store this on the user profile
+      avatarId: user.avatarId || 'user-1' 
     }))
     .sort((a, b) => b.score - a.score)
     .map((player, index) => ({ ...player, rank: index + 1 }));
