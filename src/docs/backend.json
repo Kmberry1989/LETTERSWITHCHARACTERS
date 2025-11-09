@@ -16,6 +16,10 @@
         "email": {
           "type": "string",
           "description": "The user's email address."
+        },
+        "totalScore": {
+          "type": "number",
+          "description": "The user's total leaderboard score."
         }
       },
       "required": ["displayName", "email"]

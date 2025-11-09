@@ -1,19 +1,28 @@
+
+'use client';
+
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { useUsers } from '@/firebase';
+import { Skeleton } from '../ui/skeleton';
 
-const leaderboardData = [
-  { rank: 1, name: 'PixelProwler', score: 2450, avatarId: 'user-3' },
-  { rank: 2, name: 'LexiLlama', score: 2310, avatarId: 'user-2' },
-  { rank: 3, name: 'WordWizard', score: 2280, avatarId: 'user-1' },
-  { rank: 4, name: 'FoxyScrabbler', score: 2150, avatarId: 'avatar-base' },
-  { rank: 5, name: 'CaptainQuip', score: 2090, avatarId: 'user-4' },
-  { rank: 6, name: 'SilentG', score: 1980, avatarId: 'user-1' },
-  { rank: 7, name: 'VowelVortex', score: 1850, avatarId: 'user-2' },
-];
 
 export default function LeaderboardTable() {
+  const { users, loading } = useUsers();
+  
+  // Create a sorted list of players for the leaderboard
+  const leaderboardData = users
+    .map(user => ({
+      name: user.displayName || 'Anonymous',
+      // For demo, if totalScore doesn't exist, generate a random one
+      score: user.totalScore || Math.floor(Math.random() * 2500),
+      avatarId: 'user-1' // You might want a way to store this on the user profile
+    }))
+    .sort((a, b) => b.score - a.score)
+    .map((player, index) => ({ ...player, rank: index + 1 }));
+
   return (
     <Card>
       <CardContent>
@@ -26,7 +35,23 @@ export default function LeaderboardTable() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {leaderboardData.map((player) => {
+            {loading && Array.from({ length: 5 }).map((_, i) => (
+              <TableRow key={`skeleton-${i}`} className="h-16">
+                  <TableCell className="text-center">
+                      <Skeleton className="h-6 w-6 rounded-full mx-auto" />
+                  </TableCell>
+                  <TableCell>
+                      <div className="flex items-center gap-4">
+                          <Skeleton className="h-10 w-10 rounded-full" />
+                          <Skeleton className="h-6 w-32" />
+                      </div>
+                  </TableCell>
+                  <TableCell className="text-right">
+                       <Skeleton className="h-6 w-20 ml-auto" />
+                  </TableCell>
+              </TableRow>
+            ))}
+            {!loading && leaderboardData.map((player) => {
               const avatarImage = PlaceHolderImages.find(p => p.id === player.avatarId);
               return (
                 <TableRow key={player.rank} className="h-16">
