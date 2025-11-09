@@ -1,4 +1,5 @@
 'use client';
+import { useMemo } from 'react';
 import AppLayout from '@/components/app-layout';
 import LobbyChat, { type LobbyMessage } from '@/components/lobby/lobby-chat';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
