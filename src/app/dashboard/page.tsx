@@ -7,7 +7,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useCollection, useUser, useUsers, useFirestore } from '@/firebase';
+import { useCollection, useUser, useUsers, useFirestore, useMemoFirebase } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { addDoc, collection } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
@@ -109,14 +109,19 @@ export default function DashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const { data: games, loading: gamesLoading } = useCollection<Game>('games');
+  
+  const gamesCollection = useMemoFirebase(() => {
+    return firestore ? collection(firestore, 'games') : null;
+  }, [firestore]);
+
+  const { data: games, loading: gamesLoading } = useCollection<Game>(gamesCollection);
   const { users: allUsers, loading: usersLoading } = useUsers();
   
-  const userGames = games.filter(game => game.players.includes(user?.uid || ''));
+  const userGames = games ? games.filter(game => game.players.includes(user?.uid || '')) : [];
   const loading = gamesLoading || usersLoading;
 
   const handleNewGame = async () => {
-    if (!user || !firestore || allUsers.length === 0) {
+    if (!user || !firestore || !allUsers || allUsers.length === 0) {
         toast({
             variant: "destructive",
             title: "Unable to start new game",
@@ -168,16 +173,16 @@ export default function DashboardPage() {
         messages: [],
     };
 
-    const gamesCollection = collection(firestore, 'games');
+    const gamesCol = collection(firestore, 'games');
     
-    addDoc(gamesCollection, newGame).then(() => {
+    addDoc(gamesCol, newGame).then(() => {
         toast({
             title: "Game created!",
             description: `You've started a new game against ${opponent.displayName}.`,
         });
     }).catch(async (serverError) => {
         const permissionError = new FirestorePermissionError({
-            path: gamesCollection.path,
+            path: gamesCol.path,
             operation: 'create',
             requestResourceData: newGame,
           } satisfies SecurityRuleContext);
@@ -196,7 +201,7 @@ export default function DashboardPage() {
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {loading && Array.from({ length: 3 }).map((_, i) => <GameCardSkeleton key={i} />)}
-          {!loading && userGames.map((game) => (
+          {!loading && userGames && userGames.map((game) => (
             <GameCard key={game.id} game={game} />
           ))}
            <Card className="flex flex-col items-center justify-center border-dashed text-center p-6 shadow-sm">

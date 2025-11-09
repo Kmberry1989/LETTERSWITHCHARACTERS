@@ -12,7 +12,7 @@ import { useAudio } from '@/hooks/use-audio';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Cat, Trophy } from 'lucide-react';
 import Link from 'next/link';
-import { useDoc, useUser, useFirestore } from '@/firebase';
+import { useDoc, useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { drawTiles } from '@/lib/game-logic';
@@ -707,12 +707,17 @@ function NoGameSelected() {
 function GamePageContent() {
   const searchParams = useSearchParams();
   const gameId = searchParams.get('game');
+  const firestore = useFirestore();
+
+  const gameDocRef = useMemoFirebase(() => {
+    return gameId && firestore ? doc(firestore, `games/${gameId}`) : null;
+  }, [gameId, firestore]);
 
   if (!gameId) {
     return <NoGameSelected />;
   }
 
-  const { data: game, loading, error } = useDoc<Game>(`games/${gameId}`);
+  const { data: game, loading, error } = useDoc<Game>(gameDocRef);
 
   if (loading) {
     return <GameLoadingSkeleton />;
