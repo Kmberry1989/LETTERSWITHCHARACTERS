@@ -31,7 +31,7 @@ service cloud.firestore {
     function isOwner(userId) {
       return request.auth.uid == userId;
     }
-
+    
     function isExistingOwner(userId) {
         return isOwner(userId) && resource != null;
     }
@@ -96,67 +96,17 @@ service cloud.firestore {
       function isPlayer() {
         return request.auth.uid in resource.data.players;
       }
-      function isCurrentTurn(uid) {
-        return resource.data.currentTurn == uid;
+      function isCurrentPlayer() {
+          return request.auth.uid == resource.data.currentTurn;
       }
-      function isNextTurn(uid) {
-        return request.resource.data.currentTurn == uid;
-      }
-      function unchanged(field) {
-        return request.resource.data[field] == resource.data[field];
-      }
-       function getOpponentUid(uid) {
-        // This function is illustrative. A robust implementation would handle more than 2 players.
-        return resource.data.players[0] == uid ? resource.data.players[1] : resource.data.players[0];
-      }
-
-      function isValidMove() {
-        let uid = request.auth.uid;
-        let opponentUid = getOpponentUid(uid);
-        let playerData = request.resource.data.playerData[uid];
-        let oldPlayerData = resource.data.playerData[uid];
-        let opponentPlayerData = request.resource.data.playerData[opponentUid];
-        let oldOpponentPlayerData = resource.data.playerData[opponentUid];
-
-        return isCurrentTurn(uid) &&
-               isNextTurn(opponentUid) &&
-               playerData.score > oldPlayerData.score && // score must increase
-               playerData.tiles.size() <= 7 && // player has correct number of tiles
-               opponentPlayerData.score == oldOpponentPlayerData.score && // opponent score unchanged
-               unchanged('players'); // players cannot change mid-game
-      }
-      
-      function isValidPass() {
-        let uid = request.auth.uid;
-        let opponentUid = getOpponentUid(uid);
-         return isCurrentTurn(uid) &&
-               isNextTurn(opponentUid) &&
-               unchanged('board') &&
-               unchanged('playerData') &&
-               (request.resource.data.consecutivePasses == resource.data.consecutivePasses + 1 || request.resource.data.status == 'finished');
-      }
-
-      function isValidExchange() {
-         let uid = request.auth.uid;
-         let opponentUid = getOpponentUid(uid);
-         let playerData = request.resource.data.playerData[uid];
-
-         return isCurrentTurn(uid) &&
-                isNextTurn(opponentUid) &&
-                unchanged('board') &&
-                playerData.tiles.size() == 7;
-      }
-      
-      function isValidChatMessage() {
-        return request.resource.data.messages.size() == resource.data.messages.size() + 1 &&
-               request.resource.data.messages[-1].senderId == request.auth.uid &&
-               unchanged('board') && unchanged('playerData') && unchanged('currentTurn');
+      function playersUnchanged() {
+        return request.resource.data.players == resource.data.players;
       }
 
       allow get: if isPlayer();
       allow list: if isSignedIn() && request.query.where[2][2] == request.auth.uid;
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.players;
-      allow update: if isSignedIn() && isPlayer() && (isValidMove() || isValidPass() || isValidExchange() || isValidChatMessage());
+      allow update: if isPlayer() && isCurrentPlayer() && playersUnchanged();
       allow delete: if false;
     }
     
