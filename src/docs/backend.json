@@ -20,6 +20,18 @@
         "totalScore": {
           "type": "number",
           "description": "The user's total leaderboard score."
+        },
+        "avatarId": {
+          "type": "string",
+          "description": "The ID of the user's selected avatar image."
+        },
+        "tileSetId": {
+          "type": "string",
+          "description": "The ID of the user's selected tile set."
+        },
+        "boardThemeId": {
+          "type": "string",
+          "description": "The ID of the user's selected board theme."
         }
       },
       "required": ["displayName", "email"]

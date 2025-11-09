@@ -7,7 +7,12 @@ import type { User } from 'firebase/auth';
 
 // We'll define a simpler UserProfile type for our app's purposes
 export interface UserProfile extends Partial<User> {
-  // It might have other app-specific properties
+  uid: string;
+  totalScore?: number;
+  avatarId?: string;
+  tileSetId?: string;
+  boardThemeId?: string;
+  themeId?: string;
 }
 
 export function useUsers() {
