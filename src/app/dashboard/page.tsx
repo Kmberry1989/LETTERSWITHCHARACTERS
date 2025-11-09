@@ -7,9 +7,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useCollection, useUser, useUsers, useFirestore, useMemoFirebase } from '@/firebase';
+import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
-import { addDoc, collection } from 'firebase/firestore';
+import { addDoc, collection, query, where } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { createTileBag, drawTiles } from '@/lib/game-logic';
 import type { Tile } from '@/components/game/game-board';
@@ -106,40 +106,33 @@ function GameCardSkeleton() {
 }
 
 export default function DashboardPage() {
-  const { user }- useUser();
+  const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   
-  const gamesCollection = useMemoFirebase(() => {
-    return firestore ? collection(firestore, 'games') : null;
-  }, [firestore]);
+  const gamesQuery = useMemoFirebase(() => {
+    return firestore && user ? query(collection(firestore, 'games'), where('players', 'array-contains', user.uid)) : null;
+  }, [firestore, user]);
 
-  const { data: games, isLoading: gamesLoading } = useCollection<Game>(gamesCollection);
-  const { users: allUsers, loading: usersLoading } = useUsers();
+  const { data: games, isLoading: gamesLoading } = useCollection<Game>(gamesQuery);
   
-  const userGames = games ? games.filter(game => game.players.includes(user?.uid || '')) : [];
-  const loading = gamesLoading || usersLoading;
+  const loading = gamesLoading || !user;
 
   const handleNewGame = async () => {
-    if (!user || !firestore || !allUsers || allUsers.length === 0) {
+    if (!user || !firestore) {
         toast({
             variant: "destructive",
             title: "Unable to start new game",
-            description: "Not logged in or no other players available.",
+            description: "You must be logged in to start a new game.",
         });
         return;
     }
 
-    const otherPlayers = allUsers.filter(u => u.uid !== user.uid);
-    if (otherPlayers.length === 0) {
-        toast({
-            variant: "destructive",
-            title: "No opponents available",
-            description: "There are no other players to start a game with.",
-        });
-        return;
-    }
-    const opponent = otherPlayers[Math.floor(Math.random() * otherPlayers.length)];
+    const opponent = {
+      uid: 'bitty-botty-001',
+      displayName: 'Bitty Botty',
+      avatarId: 'avatar-base',
+    };
 
     let tileBag = createTileBag();
     const [player1Tiles, tileBagAfterP1] = drawTiles(tileBag, 7);
@@ -158,9 +151,9 @@ export default function DashboardPage() {
                 hintUsed: false,
             },
             [opponent.uid]: {
-                displayName: opponent.displayName || 'Opponent',
+                displayName: opponent.displayName,
                 score: 0,
-                avatarId: 'user-2', // Placeholder avatar
+                avatarId: opponent.avatarId,
                 tiles: player2Tiles,
                 hintUsed: false,
             }
@@ -201,7 +194,7 @@ export default function DashboardPage() {
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {loading && Array.from({ length: 3 }).map((_, i) => <GameCardSkeleton key={i} />)}
-          {!loading && userGames && userGames.map((game) => (
+          {!loading && games && games.map((game) => (
             <GameCard key={game.id} game={game} />
           ))}
            <Card className="flex flex-col items-center justify-center border-dashed text-center p-6 shadow-sm">
