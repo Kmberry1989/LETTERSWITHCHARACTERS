@@ -10,7 +10,7 @@ import BlankTileDialog from '@/components/game/blank-tile-dialog';
 import { Card, CardContent } from '@/components/ui/card';
 import { useAudio } from '@/hooks/use-audio';
 import { Button } from '@/components/ui/button';
-import { ArrowLeft, Cat, Trophy } from 'lucide-react';
+import { ArrowLeft, PenSquare, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { useDoc, useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -692,7 +692,7 @@ function GameLoadingSkeleton() {
 function NoGameSelected() {
     return (
         <div className="flex flex-col items-center justify-center h-screen text-center">
-            <Cat className="w-24 h-24 text-muted-foreground" />
+            <PenSquare className="w-24 h-24 text-muted-foreground" />
             <h2 className="mt-6 text-2xl font-semibold">No Game Selected</h2>
             <p className="mt-2 text-muted-foreground">Please select a game from your dashboard to begin.</p>
             <Button asChild className="mt-6">

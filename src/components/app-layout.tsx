@@ -7,9 +7,8 @@ import {
   SidebarHeader,
   SidebarInset,
   SidebarProvider,
-  SidebarTrigger,
 } from '@/components/ui/sidebar';
-import { Cat } from 'lucide-react';
+import { PenSquare } from 'lucide-react';
 
 type AppLayoutProps = {
   children: ReactNode;
@@ -21,7 +20,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
       <Sidebar collapsible="icon">
         <SidebarHeader>
           <div className="flex items-center gap-2 p-2">
-             <Cat className="w-8 h-8 text-primary" />
+             <PenSquare className="w-8 h-8 text-primary" />
              <h2 className="text-lg font-semibold tracking-tight font-headline group-data-[collapsible=icon]:hidden">Letters with Characters</h2>
           </div>
         </SidebarHeader>
