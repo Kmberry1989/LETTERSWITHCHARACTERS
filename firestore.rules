@@ -106,8 +106,8 @@ service cloud.firestore {
      * @principle Allows public read access, restricts write access.
      */
     match /games/{gameId} {
-      function isPlayer(uid) {
-        return uid in resource.data.players;
+      function isPlayer() {
+        return request.auth.uid in resource.data.players;
       }
       function isCurrentTurn(uid) {
         return resource.data.currentTurn == uid;
@@ -165,11 +165,25 @@ service cloud.firestore {
                unchanged('board') && unchanged('playerData') && unchanged('currentTurn');
       }
 
-      allow get: if isPlayer(request.auth.uid);
-      allow list: if false; // Explicitly disallow listing all games
+      allow get: if isPlayer();
+      allow list: if false;
       allow create: if isSignedIn() && request.auth.uid in request.resource.data.players;
-      allow update: if isSignedIn() && isPlayer(request.auth.uid) && (isValidMove() || isValidPass() || isValidExchange() || isValidChatMessage());
+      allow update: if isSignedIn() && isPlayer() && (isValidMove() || isValidPass() || isValidExchange() || isValidChatMessage());
       allow delete: if false;
+    }
+    
+     /**
+     * @description Controls access to the public lobby chat.
+     * @path /lobbyMessages/{messageId}
+     * @allow (get, list) Any signed-in user can read messages.
+     * @allow (create) Any signed-in user can create a message.
+     * @deny (update, delete) No one can update or delete messages.
+     * @principle Allows public chat for authenticated users.
+     */
+    match /lobbyMessages/{messageId} {
+      allow get, list: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if false;
     }
 
     /**

@@ -30,6 +30,7 @@ import BlankTileDialog from '@/components/game/blank-tile-dialog';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
 import ChatWindow, { ChatMessage } from '@/components/game/chat-window';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 
 // Main Game Component
@@ -144,7 +145,7 @@ function Game() {
   const opponentUid = useMemo(() => game?.players.find((p: string) => p !== user?.uid), [game, user]);
 
   const handlePlay = async () => {
-    if (pendingTiles.length === 0 || !gameDocRef || !game || !user) return;
+    if (pendingTiles.length === 0 || !gameDocRef || !game || !user || !opponentUid) return;
     
     setIsSubmitting(true);
 
@@ -205,7 +206,7 @@ function Game() {
   };
 
   const handlePass = async () => {
-    if (!gameDocRef || !game || !user) return;
+    if (!gameDocRef || !game || !user || !opponentUid) return;
     setIsSubmitting(true);
      try {
         const consecutivePasses = (game.consecutivePasses || 0) + 1;
@@ -240,7 +241,7 @@ function Game() {
   };
 
   const handleExchange = async () => {
-     if (exchangeSelection.length === 0 || !gameDocRef || !game || !user) return;
+     if (exchangeSelection.length === 0 || !gameDocRef || !game || !user || !opponentUid) return;
 
      if (game.tileBag.length < 7) {
         toast({ variant: 'destructive', title: 'Cannot Exchange', description: 'Not enough tiles left in the bag to exchange.' });
@@ -379,22 +380,24 @@ function Game() {
   }
 
   const userPlayerData = game.playerData[user.uid];
-  const opponentPlayerData = game.playerData[opponentUid];
+  const opponentPlayerData = opponentUid ? game.playerData[opponentUid] : null;
 
 
   return (
     <AppLayout>
       <div className="flex h-full flex-col items-center p-4">
         <div className="w-full max-w-4xl flex flex-col gap-4">
-          <Scoreboard
-            players={[
-              { displayName: userPlayerData.displayName, score: userPlayerData.score, avatarId: userPlayerData.avatarId, photoURL: userPlayerData.photoURL },
-              { displayName: opponentPlayerData.displayName, score: opponentPlayerData.score, avatarId: opponentPlayerData.avatarId, photoURL: opponentPlayerData.photoURL },
-            ]}
-            isPlayerTurn={isPlayerTurn}
-            currentPlayerName={userPlayerData.displayName}
-            gameStatus={game.status}
-          />
+          {userPlayerData && opponentPlayerData && (
+            <Scoreboard
+                players={[
+                { displayName: userPlayerData.displayName, score: userPlayerData.score, avatarId: userPlayerData.avatarId, photoURL: userPlayerData.photoURL },
+                { displayName: opponentPlayerData.displayName, score: opponentPlayerData.score, avatarId: opponentPlayerData.avatarId, photoURL: opponentPlayerData.photoURL },
+                ]}
+                isPlayerTurn={isPlayerTurn}
+                currentPlayerName={userPlayerData.displayName}
+                gameStatus={game.status}
+            />
+          )}
 
           <div className="w-full max-w-[600px] self-center">
             <GameBoard 
@@ -412,7 +415,7 @@ function Game() {
             isPlayerTurn={isPlayerTurn}
             isSubmitting={isSubmitting}
             isGettingHint={isGettingHint}
-            hintUsed={userPlayerData.hintUsed || false}
+            hintUsed={userPlayerData?.hintUsed || false}
             isExchanging={isExchanging}
             exchangeSelection={exchangeSelection}
             onTileSelect={handleTileSelect}

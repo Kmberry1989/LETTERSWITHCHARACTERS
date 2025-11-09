@@ -18,6 +18,7 @@ import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/e
 import { ChatMessage } from '@/components/game/chat-window';
 import type { UserProfile } from '@/firebase/firestore/use-users';
 import { useEffect, useState } from 'react';
+import { Swords } from 'lucide-react';
 
 interface PlayerData {
   displayName: string;
@@ -162,7 +163,7 @@ export default function DashboardPage() {
   
   const loading = gamesLoading || !user;
 
-  const handleNewGame = async () => {
+  const handleNewBotGame = async () => {
     if (!user || !firestore) {
         toast({
             variant: "destructive",
@@ -171,6 +172,24 @@ export default function DashboardPage() {
         });
         return;
     }
+
+    const opponent = {
+      uid: 'bitty-botty-001',
+      displayName: 'Bitty Botty',
+      avatarId: 'avatar-base',
+    };
+    
+    // Check for existing game with bot
+    const hasBotGame = games.some(game => game.players.includes(opponent.uid) && game.status === 'active');
+    if (hasBotGame) {
+      toast({
+        variant: "destructive",
+        title: "Bot Game Limit Reached",
+        description: "You can only have one active game against Bitty Botty at a time.",
+      });
+      return;
+    }
+
 
     const userDocRef = doc(firestore, 'users', user.uid);
     const userDocSnap = await getDoc(userDocRef);
@@ -185,11 +204,6 @@ export default function DashboardPage() {
         return;
     }
 
-    const opponent = {
-      uid: 'bitty-botty-001',
-      displayName: 'Bitty Botty',
-      avatarId: 'avatar-base',
-    };
 
     let tileBag = createTileBag();
     const [player1Tiles, tileBagAfterP1] = drawTiles(tileBag, 7);
@@ -212,6 +226,7 @@ export default function DashboardPage() {
                 displayName: opponent.displayName,
                 score: 0,
                 avatarId: opponent.avatarId,
+                photoURL: PlaceHolderImages.find(p => p.id === opponent.avatarId)?.imageUrl,
                 tiles: player2Tiles,
                 hintUsed: false,
             }
@@ -255,7 +270,7 @@ export default function DashboardPage() {
       <div className="flex-1 space-y-4 p-4 sm:p-8">
         <div className="flex items-center justify-between space-y-2">
           <h1 className="text-3xl font-bold tracking-tight font-headline">Your Games</h1>
-           <Button onClick={handleNewGame} disabled={loading}>New Game</Button>
+           <Button onClick={handleNewBotGame} disabled={loading}>Play vs. Bot</Button>
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {loading && Array.from({ length: 3 }).map((_, i) => <GameCardSkeleton key={i} />)}
@@ -266,20 +281,24 @@ export default function DashboardPage() {
               <Card className="md:col-span-2 lg:col-span-3 flex flex-col items-center justify-center border-dashed text-center p-6 shadow-sm">
                 <CardHeader>
                     <CardTitle>No Games Yet!</CardTitle>
-                    <CardDescription>Start a new game to see it here.</CardDescription>
+                    <CardDescription>Start a new game against the bot or find a match in the lobby.</CardDescription>
                 </CardHeader>
                  <CardContent>
-                    <Button onClick={handleNewGame} disabled={loading}>Start New Game</Button>
+                    <Button onClick={handleNewBotGame} disabled={loading}>Start Bot Game</Button>
                 </CardContent>
               </Card>
           )}
            <Card className="flex flex-col items-center justify-center border-dashed text-center p-6 shadow-sm">
             <CardHeader className="-mt-6">
-              <CardTitle>Create a New Game</CardTitle>
-              <CardDescription>Challenge a friend or a random opponent.</CardDescription>
+              <CardTitle>Find a Match</CardTitle>
+              <CardDescription>Challenge a friend or a random opponent in the lobby.</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button onClick={handleNewGame} disabled={loading}>Find Match</Button>
+               <Button asChild>
+                  <Link href="/lobby">
+                    <Swords className="mr-2 h-4 w-4" /> Go to Lobby
+                  </Link>
+                </Button>
             </CardContent>
           </Card>
         </div>
