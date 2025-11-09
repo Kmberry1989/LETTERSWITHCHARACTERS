@@ -14,7 +14,7 @@ import { ArrowLeft, Cat, Trophy } from 'lucide-react';
 import Link from 'next/link';
 import { useDoc, useUser, useFirestore } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
-import { doc, updateDoc, arrayUnion, serverTimestamp } from 'firebase/firestore';
+import { doc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { drawTiles } from '@/lib/game-logic';
 import { calculateScore, getWordsFromPlacedTiles } from '@/lib/scoring';
 import { validateWord } from '@/ai/validate-word';
