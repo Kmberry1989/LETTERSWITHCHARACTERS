@@ -165,8 +165,8 @@ service cloud.firestore {
                unchanged('board') && unchanged('playerData') && unchanged('currentTurn');
       }
 
-      allow get: if true;
-      allow list: if isSignedIn();
+      allow get: if isPlayer(request.auth.uid);
+      allow list: if isSignedIn() && request.auth.uid == request.query.resource.data.players;
       allow create: if isSignedIn();
       allow update: if isSignedIn() && isPlayer(request.auth.uid) && (isValidMove() || isValidPass() || isValidExchange() || isValidChatMessage());
       allow delete: if false;
