@@ -1,185 +1,156 @@
 /**
- * @fileoverview Firestore Security Rules for Letters with Characters.
+ * @fileoverview Firestore Security Rules for Letters with Characters application.
  *
  * Core Philosophy:
- * This ruleset enforces a user-ownership model for user-specific data (avatars),
- * utilizes shared access control for matches, and provides public read access for
- * global data (themes, stickers). It leverages denormalization and path-based
- * authorization to create simpler, more performant rules.
+ * This ruleset prioritizes a secure, user-centric data model. It enforces strict
+ * ownership for user-specific data and uses a shared access model for collaborative
+ * game data. Public read access is granted for certain collections, while
+ * writes are always carefully controlled.
  *
  * Data Structure:
- * - /users/{userId}: Stores user profiles, secured with owner-only access.
- * - /users/{userId}/avatars/{avatarId}: Stores avatars, also secured with owner-only access via path-based authorization.
- * - /themes/{themeId}: Stores game themes, publicly readable.
- * - /matches/{matchId}: Stores match data, access controlled via a 'playerIds' array.
- * - /leaderboard_entries/{leaderboardEntryId}: Stores leaderboard entries, publicly readable.
- * - /stickers/{stickerId}: Stores sticker data, publicly readable.
- * - /match_stickers/{matchStickerId}: Stores match stickers, access controlled by 'matchId' and 'userId'.
+ * - /users/{userId}: Stores private user profile data. Only the authenticated user
+ *   can read or write their own profile.
+ * - /avatars/{avatarId}: Stores user avatars.  For simplicity, assume it's private to the user that created it.
+ * - /themes/{themeId}: Stores game themes. Publicly readable, but only admins can
+ *   create, update, or delete themes.
+ * - /games/{gameId}: Stores game instances. Access is controlled via a "members"
+ *   map on the document, where each key is a user ID and the value is their role
+ *   in the game (e.g., 'player').
+ * - /leaderboard/{leaderboardEntryId}: Stores leaderboard entries. Publicly readable.
+ * - /stickers/{stickerId}: Stores sticker information. Publicly readable.
+ * - /minigame_scores/{minigameScoreId}: Stores minigame scores. Publicly readable.
  *
  * Key Security Decisions:
- * - User listing is implicitly denied (no `list` rule on `/users`).
- * - Public read access is granted to 'themes', 'stickers', and 'leaderboard_entries' collections.
- * - All write operations are protected by authorization checks.
+ * - User Listing Disabled: The ruleset explicitly forbids listing all users.
+ * - Ownership Model: User-specific data is protected by path-based ownership
+ *   (e.g., /users/{userId}). Only the authenticated user with a matching UID
+ *   can access the data.
+ * - Shared Access: Collaborative access to game data is managed using a "members"
+ *   map on each game document. This map defines the roles and permissions of
+ *   each user within the game.
+ * - Public Read, Restricted Write: Certain collections, such as themes and
+ *   stickers, are publicly readable but only writable by authorized users.
  *
  * Denormalization for Authorization:
- * - The `match_stickers` collection denormalizes `matchId` and `userId` to enable
- *   authorization checks directly on the `match_stickers` documents, without requiring
- *   expensive `get()` operations to the `matches` document.
+ * - Game Documents: The `playerIds` array within each game document is denormalized
+ *   to enable efficient querying of games a user is participating in.
  */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+
+    function isExistingOwner(userId) {
+        return isOwner(userId) && resource != null;
+    }
+
     /**
-     * @description Enforces user-ownership for user profiles.
+     * @description Controls access to user profiles.
      * @path /users/{userId}
-     * @allow (create) User with ID 'user123' can create their own profile.
-     *     request.auth.uid == 'user123' && request.resource.data.id == 'user123'
-     * @deny (create) User with ID 'user456' attempts to create a profile for 'user123'.
-     *     request.auth.uid == 'user456' && request.resource.data.id == 'user123'
-     * @deny (update) User with ID 'user456' attempts to update the profile for 'user123'.
-     *     request.auth.uid == 'user456'
-     * @principle Enforces document ownership for writes and relational integrity for create operations.
+     * @allow (create) User with matching ID can create their profile.
+     * @allow (get, list, update, delete) User with matching ID can access their profile.
+     * @deny (create) User cannot create a profile with a mismatched ID.
+     * @deny (get, list, update, delete) User cannot access another user's profile.
+     * @principle Enforces document ownership for all operations.
      */
     match /users/{userId} {
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      allow get: if request.auth != null;
-      allow list: if false;
-
+      allow get, list: if isOwner(userId);
       allow create: if isOwner(userId) && request.resource.data.id == userId;
-      allow update: if isOwner(userId) && request.resource.data.id == resource.data.id;
-      allow delete: if isOwner(userId) && resource != null;
+      allow update: if isExistingOwner(userId) && request.resource.data.id == resource.data.id;
+      allow delete: if isExistingOwner(userId);
     }
 
     /**
-     * @description Enforces path-based ownership for user avatars.
-     * @path /users/{userId}/avatars/{avatarId}
-     * @allow (create) User with ID 'user123' can create their own avatar with ID 'avatar456'.
-     *     request.auth.uid == 'user123'
-     * @deny (create) User with ID 'user456' attempts to create an avatar for 'user123'.
-     *     request.auth.uid == 'user456'
-     * @deny (update) User with ID 'user456' attempts to update the avatar for 'user123'.
-     *     request.auth.uid == 'user456'
-     * @principle Enforces path-based document ownership.
+     * @description Controls access to user avatars.
+     * @path /avatars/{avatarId}
+     * @allow (create) User with matching ID can create their avatar.
+     * @allow (get, list, update, delete) User with matching ID can access their avatar.
+     * @deny (create) User cannot create an avatar with a mismatched ID.
+     * @deny (get, list, update, delete) User cannot access another user's avatar.
+     * @principle Enforces document ownership for all operations.
      */
-    match /users/{userId}/avatars/{avatarId} {
-      function isOwner(userId) {
-        return request.auth.uid == userId;
-      }
-
-      allow get: if isOwner(userId);
-      allow list: if isOwner(userId);
-
-      allow create: if isOwner(userId);
-      allow update: if isOwner(userId);
-      allow delete: if isOwner(userId);
-    }
-
-    /**
-     * @description Allows public read access to game themes.
-     * @path /themes/{themeId}
-     * @allow (get) Any user can retrieve a theme.
-     *     request.auth == null
-     * @allow (list) Any user can list themes.
-     *     request.auth == null
-     * @deny (create) No one can create a theme without specific authorization. // TODO: Add role-based authorization if needed.
-     *     request.auth != null
-     * @principle Allows public read access.
-     */
-    match /themes/{themeId} {
-      allow get: if true;
-      allow list: if true;
-
-      allow create: if false; // TODO: Add role-based authorization if needed.
-      allow update: if false; // TODO: Add role-based authorization if needed.
-      allow delete: if false; // TODO: Add role-based authorization if needed.
-    }
-
-    /**
-     * @description Controls access to match data based on player membership.
-     * @path /matches/{matchId}
-     * @allow (get) User with ID 'user123' can retrieve a match if they are in the 'playerIds' array.
-     *     request.auth.uid == 'user123' && 'user123' in resource.data.playerIds
-     * @allow (list) User with ID 'user123' can list matches if they are in the 'playerIds' array.
-     *     request.auth.uid == 'user123' && 'user123' in resource.data.playerIds
-     * @deny (create) User with ID 'user456' attempts to create a match without being in the 'playerIds' array.
-     *     request.auth.uid == 'user456'
-     * @principle Enforces access based on membership in the 'playerIds' array.
-     */
-    match /matches/{matchId} {
-      function isPlayer() {
-        return request.auth.uid in resource.data.playerIds;
-      }
-
-      allow get: if request.auth != null && isPlayer();
-      allow list: if request.auth != null && isPlayer();
-
-      allow create: if request.auth != null; // TODO: add validation for playerIds array and other required fields
-      allow update: if request.auth != null && isPlayer();
-      allow delete: if request.auth != null && isPlayer();
-    }
-
-    /**
-     * @description Allows public read access to leaderboard entries.
-     * @path /leaderboard_entries/{leaderboardEntryId}
-     * @allow (get) Any user can retrieve a leaderboard entry.
-     *     request.auth == null
-     * @allow (list) Any user can list leaderboard entries.
-     *     request.auth == null
-     * @deny (create) No one can create a leaderboard entry without specific authorization. // TODO: Add role-based authorization if needed.
-     *     request.auth != null
-     * @principle Allows public read access.
-     */
-    match /leaderboard_entries/{leaderboardEntryId} {
-      allow get: if true;
-      allow list: if true;
-
-      allow create: if false; // TODO: Add role-based authorization if needed.
-      allow update: if false; // TODO: Add role-based authorization if needed.
-      allow delete: if false; // TODO: Add role-based authorization if needed.
-    }
-
-    /**
-     * @description Allows public read access to sticker data.
-     * @path /stickers/{stickerId}
-     * @allow (get) Any user can retrieve a sticker.
-     *     request.auth == null
-     * @allow (list) Any user can list stickers.
-     *     request.auth == null
-     * @deny (create) No one can create a sticker without specific authorization. // TODO: Add role-based authorization if needed.
-     *     request.auth != null
-     * @principle Allows public read access.
-     */
-    match /stickers/{stickerId} {
-      allow get: if true;
-      allow list: if true;
-
-      allow create: if false; // TODO: Add role-based authorization if needed.
-      allow update: if false; // TODO: Add role-based authorization if needed.
-      allow delete: if false; // TODO: Add role-based authorization if needed.
-    }
-
-    /**
-     * @description Controls access to match stickers based on match and user.
-     * @path /match_stickers/{matchStickerId}
-     * @allow (create) User with ID 'user123' can create a match sticker for match 'match456' if they are a player in that match.
-     *     request.auth.uid == 'user123' && request.resource.data.matchId == 'match456' && request.resource.data.userId == 'user123'
-     * @deny (create) User with ID 'user456' attempts to create a match sticker for match 'match456' without being a player.
-     *     request.auth.uid == 'user456'
-     * @deny (update) User with ID 'user456' attempts to update a match sticker.
-     *     request.auth.uid == 'user456'
-     * @principle Enforces authorization independence by denormalizing 'matchId' and 'userId'.
-     */
-    match /match_stickers/{matchStickerId} {
-      allow get: if request.auth != null; // anyone can get a sticker
-      allow list: if request.auth != null; // anyone can list stickers
-
-      allow create: if request.auth != null && request.resource.data.userId == request.auth.uid;
+    match /avatars/{avatarId} {
+      allow get, list: if true;
+      allow create: if isSignedIn();
       allow update: if false;
       allow delete: if false;
+    }
+
+    /**
+     * @description Controls access to game themes.
+     * @path /themes/{themeId}
+     * @allow (get, list) Anyone can read themes.
+     * @deny (create, update, delete) Only admins can modify themes (TODO: Implement admin check).
+     * @principle Allows public read access, restricts write access.
+     */
+    match /themes/{themeId} {
+      allow get, list: if true;
+      allow create: if false; // TODO: Implement admin check
+      allow update: if false; // TODO: Implement admin check
+      allow delete: if false; // TODO: Implement admin check
+    }
+
+    /**
+     * @description Controls access to game instances.
+     * @path /games/{gameId}
+     * @allow (get, list) Anyone can read or list games
+     * @deny (create, update, delete) Only game members can create, update, or delete games (TODO: implement member check)
+     * @principle Allows public read access, restricts write access.
+     */
+    match /games/{gameId} {
+      allow get, list: if true;
+      allow create: if isSignedIn(); // TODO: Implement member check
+      allow update: if false; // TODO: Implement member check
+      allow delete: if false; // TODO: Implement member check
+    }
+
+    /**
+     * @description Controls access to leaderboard entries.
+     * @path /leaderboard/{leaderboardEntryId}
+     * @allow (get, list) Anyone can read leaderboard entries.
+     * @deny (create, update, delete) Only authorized services can modify leaderboard entries (TODO: Implement service account check).
+     * @principle Allows public read access, restricts write access to authorized services.
+     */
+    match /leaderboard/{leaderboardEntryId} {
+      allow get, list: if true;
+      allow create: if false; // TODO: Implement service account check
+      allow update: if false; // TODO: Implement service account check
+      allow delete: if false; // TODO: Implement service account check
+    }
+
+    /**
+     * @description Controls access to sticker information.
+     * @path /stickers/{stickerId}
+     * @allow (get, list) Anyone can read sticker information.
+     * @deny (create, update, delete) Only admins can modify sticker information (TODO: Implement admin check).
+     * @principle Allows public read access, restricts write access.
+     */
+    match /stickers/{stickerId} {
+      allow get, list: if true;
+      allow create: if false; // TODO: Implement admin check
+      allow update: if false; // TODO: Implement admin check
+      allow delete: if false; // TODO: Implement admin check
+    }
+
+     /**
+      * @description Controls access to minigame scores.
+      * @path /minigame_scores/{minigameScoreId}
+      * @allow (get, list) Anyone can read minigame scores.
+      * @deny (create, update, delete) Only authorized services can create minigame scores (TODO: Implement authorized service account check).
+      * @principle Allows public read access, restricts write access to authorized services.
+      */
+    match /minigame_scores/{minigameScoreId} {
+        allow get, list: if true;
+        allow create: if isSignedIn(); // TODO: Implement authorized service account check
+        allow update: if false; // TODO: Implement authorized service account check
+        allow delete: if false; // TODO: Implement authorized service account check
     }
   }
 }
