@@ -9,18 +9,20 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
-import { addDoc, collection, query, where } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, query, where } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { createTileBag, drawTiles } from '@/lib/game-logic';
 import type { Tile } from '@/components/game/game-board';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { ChatMessage } from '@/components/game/chat-window';
+import type { UserProfile } from '@/firebase/firestore/use-users';
 
 interface PlayerData {
   displayName: string;
   score: number;
   avatarId: string;
+  photoURL?: string | null;
   tiles: (Tile | null)[];
   hintUsed: boolean;
 }
@@ -55,17 +57,17 @@ function GameCard({ game }: { game: Game }) {
     statusText = game.currentTurn === user.uid ? 'Your Turn' : "Opponent's Turn";
   }
 
-  const opponentAvatar = PlaceHolderImages.find((p) => p.id === opponent.avatarId);
+  const opponentAvatarImage = opponent.photoURL || PlaceHolderImages.find((p) => p.id === opponent.avatarId)?.imageUrl;
+
 
   return (
     <Card className="flex flex-col shadow-sm">
       <CardHeader className="flex flex-row items-center gap-4">
         <Avatar className="h-12 w-12">
-          {opponentAvatar && (
+          {opponentAvatarImage && (
             <AvatarImage
-              src={opponentAvatar.imageUrl}
+              src={opponentAvatarImage}
               alt={opponent.displayName}
-              data-ai-hint={opponentAvatar.imageHint}
             />
           )}
           <AvatarFallback>{opponent.displayName.charAt(0)}</AvatarFallback>
@@ -128,6 +130,20 @@ export default function DashboardPage() {
         return;
     }
 
+    // Fetch the current user's full profile
+    const userDocRef = doc(firestore, 'users', user.uid);
+    const userDocSnap = await getDoc(userDocRef);
+    const userProfile = userDocSnap.data() as UserProfile | undefined;
+
+    if (!userProfile) {
+        toast({
+            variant: "destructive",
+            title: "Could not start game",
+            description: "Your user profile could not be found.",
+        });
+        return;
+    }
+
     const opponent = {
       uid: 'bitty-botty-001',
       displayName: 'Bitty Botty',
@@ -144,9 +160,10 @@ export default function DashboardPage() {
         players: [user.uid, opponent.uid],
         playerData: {
             [user.uid]: {
-                displayName: user.displayName || 'You',
+                displayName: userProfile.displayName || 'You',
                 score: 0,
-                avatarId: 'user-1', // Placeholder avatar
+                avatarId: userProfile.avatarId || 'user-1',
+                photoURL: userProfile.photoURL || null,
                 tiles: player1Tiles,
                 hintUsed: false,
             },

@@ -77,6 +77,7 @@
               "displayName": { "type": "string" },
               "score": { "type": "number" },
               "avatarId": { "type": "string" },
+              "photoURL": { "type": "string" },
               "tiles": {
                 "type": "array",
                 "items": { "$ref": "#/entities/Tile" }

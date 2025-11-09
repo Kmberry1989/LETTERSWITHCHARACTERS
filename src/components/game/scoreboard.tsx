@@ -8,6 +8,7 @@ type Player = {
   displayName: string;
   score: number;
   avatarId: string;
+  photoURL?: string | null;
 };
 
 type ScoreboardProps = {
@@ -26,8 +27,9 @@ export default function Scoreboard({ players = defaultPlayers, isPlayerTurn, cur
   const player1 = players.find(p => p.displayName === currentPlayerName) || players[0];
   const player2 = players.find(p => p.displayName !== currentPlayerName) || players[1];
 
-  const player1Avatar = PlaceHolderImages.find(p => p.id === player1.avatarId);
-  const player2Avatar = PlaceHolderImages.find(p => p.id === player2.avatarId);
+  const player1AvatarImage = player1.photoURL || PlaceHolderImages.find(p => p.id === player1.avatarId)?.imageUrl;
+  const player2AvatarImage = player2.photoURL || PlaceHolderImages.find(p => p.id === player2.avatarId)?.imageUrl;
+
 
   let statusText, statusVariant;
   if (gameStatus === 'finished') {
@@ -43,7 +45,7 @@ export default function Scoreboard({ players = defaultPlayers, isPlayerTurn, cur
       <CardContent className="relative flex items-center justify-between gap-4 p-2 sm:p-4">
           <div className="flex flex-1 items-center justify-start gap-3 text-left">
             <Avatar>
-              {player1Avatar && <AvatarImage src={player1Avatar.imageUrl} alt={player1.displayName} data-ai-hint={player1Avatar.imageHint} />}
+              {player1AvatarImage && <AvatarImage src={player1AvatarImage} alt={player1.displayName} />}
               <AvatarFallback>{player1.displayName.charAt(0)}</AvatarFallback>
             </Avatar>
             <div>
@@ -65,7 +67,7 @@ export default function Scoreboard({ players = defaultPlayers, isPlayerTurn, cur
               <div className="font-bold text-lg text-primary">{player2.score}</div>
             </div>
              <Avatar>
-              {player2Avatar && <AvatarImage src={player2Avatar.imageUrl} alt={player2.displayName} data-ai-hint={player2Avatar.imageHint} />}
+              {player2AvatarImage && <AvatarImage src={player2AvatarImage} alt={player2.displayName} />}
               <AvatarFallback>{player2.displayName.charAt(0)}</AvatarFallback>
             </Avatar>
           </div>
