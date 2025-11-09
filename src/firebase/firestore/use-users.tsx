@@ -13,6 +13,7 @@ export interface UserProfile extends Partial<User> {
   tileSetId?: string;
   boardThemeId?: string;
   themeId?: string;
+  gameIds?: string[];
 }
 
 export function useUsers() {

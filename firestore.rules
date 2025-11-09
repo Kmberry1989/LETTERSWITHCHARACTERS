@@ -166,8 +166,8 @@ service cloud.firestore {
       }
 
       allow get: if isPlayer(request.auth.uid);
-      allow list: if isSignedIn();
-      allow create: if isSignedIn();
+      allow list: if false; // Explicitly disallow listing all games
+      allow create: if isSignedIn() && request.auth.uid in request.resource.data.players;
       allow update: if isSignedIn() && isPlayer(request.auth.uid) && (isValidMove() || isValidPass() || isValidExchange() || isValidChatMessage());
       allow delete: if false;
     }

@@ -7,9 +7,9 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { useCollection, useUser, useFirestore, useMemoFirebase } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
-import { addDoc, collection, doc, getDoc, query, where } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { createTileBag, drawTiles } from '@/lib/game-logic';
 import type { Tile } from '@/components/game/game-board';
@@ -17,6 +17,7 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { ChatMessage } from '@/components/game/chat-window';
 import type { UserProfile } from '@/firebase/firestore/use-users';
+import { useEffect, useState } from 'react';
 
 interface PlayerData {
   displayName: string;
@@ -107,16 +108,57 @@ function GameCardSkeleton() {
   )
 }
 
+function useUserGames() {
+    const { user } = useUser();
+    const firestore = useFirestore();
+    const [games, setGames] = useState<Game[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const userDocRef = useMemoFirebase(() => {
+        return firestore && user ? doc(firestore, 'users', user.uid) : null;
+    }, [firestore, user]);
+
+    const { data: userProfile } = useDoc<UserProfile>(userDocRef);
+    
+    useEffect(() => {
+        if (!userProfile || !firestore) {
+             if(!user) setLoading(false);
+             return;
+        };
+
+        const gameIds = userProfile.gameIds || [];
+        if (gameIds.length === 0) {
+            setGames([]);
+            setLoading(false);
+            return;
+        }
+
+        const fetchGames = async () => {
+            setLoading(true);
+            const gamePromises = gameIds.map(id => getDoc(doc(firestore, 'games', id)));
+            const gameSnapshots = await Promise.all(gamePromises);
+            const fetchedGames = gameSnapshots
+                .filter(snap => snap.exists())
+                .map(snap => ({ id: snap.id, ...snap.data() } as Game));
+            
+            setGames(fetchedGames);
+            setLoading(false);
+        };
+
+        fetchGames();
+
+    }, [userProfile, firestore, user]);
+
+    return { games, loading };
+}
+
+
 export default function DashboardPage() {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   
-  const gamesQuery = useMemoFirebase(() => {
-    return firestore && user ? query(collection(firestore, 'games'), where('players', 'array-contains', user.uid)) : null;
-  }, [firestore, user]);
-
-  const { data: games, isLoading: gamesLoading } = useCollection<Game>(gamesQuery);
+  const { games, loading: gamesLoading } = useUserGames();
   
   const loading = gamesLoading || !user;
 
@@ -130,7 +172,6 @@ export default function DashboardPage() {
         return;
     }
 
-    // Fetch the current user's full profile
     const userDocRef = doc(firestore, 'users', user.uid);
     const userDocSnap = await getDoc(userDocRef);
     const userProfile = userDocSnap.data() as UserProfile | undefined;
@@ -183,22 +224,29 @@ export default function DashboardPage() {
         messages: [],
     };
 
-    const gamesCol = collection(firestore, 'games');
-    
-    addDoc(gamesCol, newGame).then(() => {
+    try {
+        const gamesCol = collection(firestore, 'games');
+        const gameDocRef = await addDoc(gamesCol, newGame);
+        
+        // Now update the user's profile with the new game ID
+        await updateDoc(userDocRef, {
+            gameIds: arrayUnion(gameDocRef.id)
+        });
+
         toast({
             title: "Game created!",
             description: `You've started a new game against ${opponent.displayName}.`,
         });
-    }).catch(async (serverError) => {
+
+    } catch(serverError) {
         const permissionError = new FirestorePermissionError({
-            path: gamesCol.path,
+            path: 'games or users',
             operation: 'create',
             requestResourceData: newGame,
           } satisfies SecurityRuleContext);
 
         errorEmitter.emit('permission-error', permissionError);
-    });
+    }
   };
 
 
@@ -211,9 +259,20 @@ export default function DashboardPage() {
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {loading && Array.from({ length: 3 }).map((_, i) => <GameCardSkeleton key={i} />)}
-          {!loading && games && games.map((game) => (
+          {!loading && games.map((game) => (
             <GameCard key={game.id} game={game} />
           ))}
+          {!loading && games.length === 0 && (
+              <Card className="md:col-span-2 lg:col-span-3 flex flex-col items-center justify-center border-dashed text-center p-6 shadow-sm">
+                <CardHeader>
+                    <CardTitle>No Games Yet!</CardTitle>
+                    <CardDescription>Start a new game to see it here.</CardDescription>
+                </CardHeader>
+                 <CardContent>
+                    <Button onClick={handleNewGame} disabled={loading}>Start New Game</Button>
+                </CardContent>
+              </Card>
+          )}
            <Card className="flex flex-col items-center justify-center border-dashed text-center p-6 shadow-sm">
             <CardHeader className="-mt-6">
               <CardTitle>Create a New Game</CardTitle>

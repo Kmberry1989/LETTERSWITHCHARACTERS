@@ -27,6 +27,7 @@ const onUserChange = (firestore: any, user: User | null) => {
         tileSetId: 'tile-plastic',
         boardThemeId: 'board-green',
         themeId: 'default',
+        gameIds: [],
       };
 
       setDoc(userDocRef, profileData, { merge: true }).catch(serverError => {

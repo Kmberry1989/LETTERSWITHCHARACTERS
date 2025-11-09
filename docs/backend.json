@@ -32,6 +32,11 @@
         "boardThemeId": {
           "type": "string",
           "description": "The ID of the user's selected board theme."
+        },
+        "gameIds": {
+            "type": "array",
+            "items": { "type": "string" },
+            "description": "An array of game IDs the user is participating in."
         }
       },
       "required": ["displayName", "email"]
@@ -77,6 +82,7 @@
               "displayName": { "type": "string" },
               "score": { "type": "number" },
               "avatarId": { "type": "string" },
+              "photoURL": { "type": "string" },
               "tiles": {
                 "type": "array",
                 "items": { "$ref": "#/entities/Tile" }
