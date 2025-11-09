@@ -81,7 +81,7 @@ function GameCard({ game }: { game: Game }) {
       </CardHeader>
       <CardFooter className="mt-auto">
         <Button asChild className="w-full">
-          <Link href={`/?game=${game.id}`}>{game.status === 'finished' ? 'View Results' : 'Open Game'}</Link>
+          <Link href={`/game?game=${game.id}`}>{game.status === 'finished' ? 'View Results' : 'Open Game'}</Link>
         </Button>
       </CardFooter>
     </Card>
@@ -106,7 +106,7 @@ function GameCardSkeleton() {
 }
 
 export default function DashboardPage() {
-  const { user } = useUser();
+  const { user }- useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
   

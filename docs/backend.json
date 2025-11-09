@@ -1,359 +1,143 @@
 {
   "entities": {
-    "User": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "User",
+    "UserProfile": {
+      "title": "User Profile",
+      "description": "Represents a user's public profile information.",
       "type": "object",
-      "description": "Represents a user in the Letters with Characters application.",
       "properties": {
-        "id": {
+        "displayName": {
           "type": "string",
-          "description": "Unique identifier for the user entity."
+          "description": "The user's display name."
         },
-        "googleId": {
+        "photoURL": {
           "type": "string",
-          "description": "The Google ID of the user, used for login."
+          "description": "The URL of the user's profile picture."
         },
         "email": {
           "type": "string",
-          "description": "The user's email address.",
-          "format": "email"
+          "description": "The user's email address."
         },
-        "username": {
-          "type": "string",
-          "description": "The user's username."
+        "totalScore": {
+          "type": "number",
+          "description": "The user's total leaderboard score."
         },
         "avatarId": {
           "type": "string",
-          "description": "Reference to Avatar. (Relationship: User 1:1 Avatar)"
+          "description": "The ID of the user's selected avatar image."
+        },
+        "tileSetId": {
+          "type": "string",
+          "description": "The ID of the user's selected tile set."
+        },
+        "boardThemeId": {
+          "type": "string",
+          "description": "The ID of the user's selected board theme."
         }
       },
-      "required": [
-        "id",
-        "googleId",
-        "email",
-        "username",
-        "avatarId"
-      ]
+      "required": ["displayName", "email"]
     },
-    "Avatar": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Avatar",
+    "Tile": {
+      "title": "Tile",
+      "description": "Represents a single game tile.",
       "type": "object",
-      "description": "Represents a user's customizable avatar.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the avatar entity."
-        },
-        "hat": {
-          "type": "string",
-          "description": "The ID of the hat the avatar is wearing. This would reference a specific item."
-        },
-        "props": {
-          "type": "string",
-          "description": "The ID of the prop the avatar is holding. This would reference a specific item."
-        },
-        "tops": {
-          "type": "string",
-          "description": "The ID of the top the avatar is wearing. This would reference a specific item."
-        },
-        "otherVisuals": {
-          "type": "string",
-          "description": "The ID of other visuals the avatar has. This would reference a specific item."
-        }
+        "letter": { "type": "string" },
+        "score": { "type": "number" },
+        "isBlank": { "type": "boolean", "description": "Whether the tile was originally a blank." }
       },
-      "required": [
-        "id"
-      ]
+      "required": ["letter", "score"]
     },
-    "Theme": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Theme",
+     "ChatMessage": {
+      "title": "Chat Message",
+      "description": "Represents a single chat message in a game.",
       "type": "object",
-      "description": "Represents a visual theme for the game board and tiles.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the theme entity."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the theme."
-        },
-        "boardColor": {
-          "type": "string",
-          "description": "The color of the game board for this theme."
-        },
-        "tileDesign": {
-          "type": "string",
-          "description": "The design of the tiles for this theme. This could be a reference to a TileDesign entity."
-        }
+        "senderId": { "type": "string" },
+        "senderName": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
       },
-      "required": [
-        "id",
-        "name",
-        "boardColor",
-        "tileDesign"
-      ]
+      "required": ["senderId", "senderName", "text"]
     },
     "Game": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
       "title": "Game",
+      "description": "Represents a single game session.",
       "type": "object",
-      "description": "Represents a Scrabble game instance.",
       "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the game entity."
-        },
-        "playerIds": {
+        "players": {
           "type": "array",
-          "description": "References to Users. (Relationship: Game 1:N User). Array of user IDs participating in the game.",
-          "items": {
-            "type": "string"
+          "items": { "type": "string" },
+          "description": "An array of user UIDs participating in the game."
+        },
+        "playerData": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "displayName": { "type": "string" },
+              "score": { "type": "number" },
+              "avatarId": { "type": "string" },
+              "tiles": {
+                "type": "array",
+                "items": { "$ref": "#/entities/Tile" }
+              },
+              "hintUsed": { "type": "boolean" }
+            }
           }
         },
-        "currentTurnUserId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: User 1:N Game). ID of the user whose turn it is."
+        "board": {
+            "type": "object",
+            "description": "The state of the game board. Keys are 'row-col', values are Tile objects.",
+            "additionalProperties": {
+                "$ref": "#/entities/Tile"
+            }
         },
-        "boardState": {
-          "type": "string",
-          "description": "Represents the current state of the game board (e.g., JSON string)."
+        "tileBag": {
+            "type": "array",
+            "items": { "$ref": "#/entities/Tile" },
+            "description": "The remaining tiles in the game."
         },
-        "themeId": {
+        "currentTurn": {
           "type": "string",
-          "description": "Reference to Theme. (Relationship: Game 1:1 Theme). ID of the theme used in the game."
+          "description": "The UID of the player whose turn it is."
         },
-        "gameStatus": {
+        "status": {
           "type": "string",
-          "description": "The status of the game (e.g., 'active', 'completed')."
-        }
-      },
-      "required": [
-        "id",
-        "playerIds",
-        "currentTurnUserId",
-        "boardState",
-        "themeId",
-        "gameStatus"
-      ]
-    },
-    "LeaderboardEntry": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "LeaderboardEntry",
-      "type": "object",
-      "description": "Represents an entry in the leaderboard.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the leaderboard entry."
+          "enum": ["active", "pending", "finished"],
+          "description": "The current status of the game."
         },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: LeaderboardEntry 1:1 User). ID of the user associated with this entry."
-        },
-        "rank": {
+        "consecutivePasses": {
           "type": "number",
-          "description": "The user's rank on the leaderboard."
+          "description": "The number of consecutive passes made by players."
         },
-        "score": {
-          "type": "number",
-          "description": "The user's score on the leaderboard."
+        "winner": {
+            "type": "string",
+            "description": "The UID of the winning player."
+        },
+        "messages": {
+          "type": "array",
+          "items": { "$ref": "#/entities/ChatMessage" },
+          "description": "A list of chat messages for the game."
         }
       },
-      "required": [
-        "id",
-        "userId",
-        "rank",
-        "score"
-      ]
-    },
-    "Sticker": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "Sticker",
-      "type": "object",
-      "description": "Represents a sticker that can be sent during a match.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the sticker."
-        },
-        "name": {
-          "type": "string",
-          "description": "The name of the sticker."
-        },
-        "imageUrl": {
-          "type": "string",
-          "description": "URL of the sticker image.",
-          "format": "uri"
-        }
-      },
-      "required": [
-        "id",
-        "name",
-        "imageUrl"
-      ]
-    },
-    "MinigameScore": {
-      "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "MinigameScore",
-      "type": "object",
-      "description": "Represents a user's score in a minigame.",
-      "properties": {
-        "id": {
-          "type": "string",
-          "description": "Unique identifier for the minigame score."
-        },
-        "userId": {
-          "type": "string",
-          "description": "Reference to User. (Relationship: MinigameScore 1:1 User). ID of the user who achieved the score."
-        },
-        "minigameType": {
-          "type": "string",
-          "description": "The type of minigame (e.g., 'word_search')."
-        },
-        "score": {
-          "type": "number",
-          "description": "The user's score in the minigame."
-        },
-        "timestamp": {
-          "type": "string",
-          "description": "The timestamp of when the score was achieved.",
-          "format": "date-time"
-        }
-      },
-      "required": [
-        "id",
-        "userId",
-        "minigameType",
-        "score",
-        "timestamp"
-      ]
+      "required": ["players", "playerData", "board", "tileBag", "currentTurn", "status"]
     }
   },
   "auth": {
-    "providers": [
-      "password",
-      "anonymous"
-    ]
+    "providers": ["google.com", "password", "anonymous"]
   },
   "firestore": {
-    "structure": [
-      {
-        "path": "/users/{userId}",
-        "definition": {
-          "entityName": "User",
-          "schema": {
-            "$ref": "#/backend/entities/User"
-          },
-          "description": "Stores user profiles, keyed by their unique Firebase User ID. Path-based ownership for private user data.",
-          "params": [
-            {
-              "name": "userId",
-              "description": "The Firebase User ID."
-            }
-          ]
-        }
+    "/users/{userId}": {
+      "schema": {
+        "$ref": "#/entities/UserProfile"
       },
-      {
-        "path": "/avatars/{avatarId}",
-        "definition": {
-          "entityName": "Avatar",
-          "schema": {
-            "$ref": "#/backend/entities/Avatar"
-          },
-          "description": "Stores avatar information. Separate collection as avatars might be shared/public, but for simplicity, assume it's private to the user that created it.",
-          "params": [
-            {
-              "name": "avatarId",
-              "description": "The unique Avatar ID."
-            }
-          ]
-        }
+      "description": "Stores public profile information for each user."
+    },
+    "/games/{gameId}": {
+      "schema": {
+        "$ref": "#/entities/Game"
       },
-      {
-        "path": "/themes/{themeId}",
-        "definition": {
-          "entityName": "Theme",
-          "schema": {
-            "$ref": "#/backend/entities/Theme"
-          },
-          "description": "Stores game themes. Accessible to all users for selection.",
-          "params": [
-            {
-              "name": "themeId",
-              "description": "The unique Theme ID."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/games/{gameId}",
-        "definition": {
-          "entityName": "Game",
-          "schema": {
-            "$ref": "#/backend/entities/Game"
-          },
-          "description": "Stores game instances. Includes denormalized 'playerIds' array for efficient querying of games a user is participating in.",
-          "params": [
-            {
-              "name": "gameId",
-              "description": "The unique Game ID."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/leaderboard/{leaderboardEntryId}",
-        "definition": {
-          "entityName": "LeaderboardEntry",
-          "schema": {
-            "$ref": "#/backend/entities/LeaderboardEntry"
-          },
-          "description": "Stores leaderboard entries. Accessible to all users.",
-          "params": [
-            {
-              "name": "leaderboardEntryId",
-              "description": "The unique Leaderboard Entry ID."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/stickers/{stickerId}",
-        "definition": {
-          "entityName": "Sticker",
-          "schema": {
-            "$ref": "#/backend/entities/Sticker"
-          },
-          "description": "Stores sticker information. Accessible to all users.",
-          "params": [
-            {
-              "name": "stickerId",
-              "description": "The unique Sticker ID."
-            }
-          ]
-        }
-      },
-      {
-        "path": "/minigame_scores/{minigameScoreId}",
-        "definition": {
-          "entityName": "MinigameScore",
-          "schema": {
-            "$ref": "#/backend/entities/MinigameScore"
-          },
-          "description": "Stores minigame scores. Accessible to all users.",
-          "params": [
-            {
-              "name": "minigameScoreId",
-              "description": "The unique Minigame Score ID."
-            }
-          ]
-        }
-      }
-    ],
-    "reasoning": "The Firestore structure is designed to address the 'auth/operation-not-allowed' error, which typically indicates that email/password authentication is not enabled in the Firebase project. This fix will not be reflected in the database structure. The database structure has been constructed according to the principle of Authorization Independence by using path-based ownership for user-specific data and membership maps for collaborative data. This approach avoids the need for `get()` calls in security rules, enabling atomic operations and simplifying debugging. The structure also supports the required QAPs by segregating data with different access needs and using a membership model for collaborative access control. User-owned data is stored under `/users/{userId}`, ensuring clear ownership. Collaborative game data uses a `members` map within the game document to manage player roles, enabling efficient authorization rules for game access. Global data like themes and stickers are stored in top-level collections with appropriate read access controls. Leaderboard entries are also stored in a top-level collection, with user IDs included for direct querying and ranking."
+      "description": "Stores all the data for a single game session."
+    }
   }
 }

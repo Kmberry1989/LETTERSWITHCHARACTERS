@@ -22,9 +22,14 @@ export function UserNav() {
   const { user } = useUser();
 
   const handleLogout = async () => {
+    if (!auth) return;
     await signOut(auth);
-    router.push('/login');
+    router.push('/');
   };
+
+  if (!user) {
+    return null;
+  }
 
   return (
     <DropdownMenu>
