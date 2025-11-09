@@ -20,9 +20,11 @@ const themes = [
  */
 export function ClientThemeInitializer() {
     const { user, loading: userLoading } = useUser();
-    const { data: userProfile, loading: profileLoading } = useDoc<UserProfile>(user ? `users/${user.uid}` : '');
+    // Only call useDoc if we have a user ID.
+    const { data: userProfile, loading: profileLoading } = useDoc<UserProfile>(user ? `users/${user.uid}` : undefined);
 
     useEffect(() => {
+        // We only apply the theme if we have a user profile with a themeId.
         if (userProfile?.themeId) {
             const theme = themes.find(t => t.id === userProfile.themeId);
             if (theme) {
