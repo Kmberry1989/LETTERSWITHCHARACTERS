@@ -166,6 +166,7 @@ service cloud.firestore {
       }
 
       allow get: if true;
+      allow list: if isSignedIn();
       allow create: if isSignedIn();
       allow update: if isSignedIn() && isPlayer(request.auth.uid) && (isValidMove() || isValidPass() || isValidExchange() || isValidChatMessage());
       allow delete: if false;
@@ -209,8 +210,8 @@ service cloud.firestore {
     match /minigame_scores/{minigameScoreId} {
         allow get, list: if true;
         allow create: if isSignedIn(); // TODO: Implement authorized service account check
-        allow update: if false; // TODO: Implement authorized service account check
-        allow delete: if false; // TODO: Implement authorized service account check
+        update: if false; // TODO: Implement authorized service account check
+        delete: if false; // TODO: Implement authorized service account check
     }
   }
 }
