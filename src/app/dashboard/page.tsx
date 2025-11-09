@@ -205,7 +205,7 @@ export default function DashboardPage() {
             <GameCard key={game.id} game={game} />
           ))}
            <Card className="flex flex-col items-center justify-center border-dashed text-center p-6 shadow-sm">
-            <CardHeader>
+            <CardHeader className="-mt-6">
               <CardTitle>Create a New Game</CardTitle>
               <CardDescription>Challenge a friend or a random opponent.</CardDescription>
             </CardHeader>
