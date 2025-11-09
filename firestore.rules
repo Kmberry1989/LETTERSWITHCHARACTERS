@@ -1,35 +1,8 @@
-/**
- * @fileoverview Firestore Security Rules for Letters with Characters application.
- *
- * Core Philosophy:
- * This ruleset prioritizes a secure, user-centric data model. It enforces strict
- * ownership for user-specific data and uses a shared access model for collaborative
- * game data. Public read access is granted for certain collections, while
- * writes are always carefully controlled.
- *
- * Data Structure:
- * - /users/{userId}: Stores private user profile data. Only the authenticated user
- *   can read or write their own profile.
- * - /avatars/{avatarId}: Stores user avatars.  For simplicity, assume it's private to the user that created it.
- * - /themes/{themeId}: Stores game themes. Publicly readable, but only admins can
- *   create, update, or delete themes.
- * - /games/{gameId}: Stores game instances. Access is controlled via a "members"
- *   map on the document, where each key is a user ID and the value is their role
- *   in the game (e.g., 'player').
- * - /leaderboard/{leaderboardEntryId}: Stores leaderboard entries. Publicly readable.
- * - /stickers/{stickerId}: Stores sticker information. Publicly readable.
- * - /minigame_scores/{minigameScoreId}: Stores minigame scores. Publicly readable.
- */
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-
-    function isSignedIn() {
-      return request.auth != null;
-    }
-
     match /{document=**} {
-      allow read, write: if isSignedIn();
+      allow read, write: if request.auth != null;
     }
   }
 }
