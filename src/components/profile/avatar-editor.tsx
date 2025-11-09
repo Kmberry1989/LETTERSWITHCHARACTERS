@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { ScrollArea } from '../ui/scroll-area';
-import { useUser, useDoc, useFirestore } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -72,7 +72,12 @@ export default function AvatarEditor() {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const { data: userProfile, loading } = useDoc<UserProfile>(user ? `users/${user.uid}` : '');
+  
+  const userDocRef = useMemoFirebase(() => {
+    return user && firestore ? doc(firestore, `users/${user.uid}`) : null;
+  }, [user, firestore]);
+
+  const { data: userProfile, loading } = useDoc<UserProfile>(userDocRef);
 
   const [selectedTileSet, setSelectedTileSet] = useState<string>('tile-plastic');
   const [selectedBoardTheme, setSelectedBoardTheme] = useState<string>('board-green');
@@ -85,14 +90,13 @@ export default function AvatarEditor() {
   }, [userProfile]);
 
   const handleSelection = (type: 'tileSetId' | 'boardThemeId', id: string) => {
-    if (!user || !firestore) return;
+    if (!user || !userDocRef) return;
     if (type === 'tileSetId') {
       setSelectedTileSet(id);
     } else {
       setSelectedBoardTheme(id);
     }
 
-    const userDocRef = doc(firestore, 'users', user.uid);
     const updatePayload = { [type]: id };
 
     updateDoc(userDocRef, updatePayload)

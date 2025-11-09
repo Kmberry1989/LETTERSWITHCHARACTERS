@@ -5,7 +5,6 @@ import { cn } from '@/lib/utils';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { BerriesProvider } from '@/hooks/use-berries';
 import { AudioProvider } from '@/hooks/use-audio';
-import MusicPlayer from '@/components/profile/music-player';
 import { ClientThemeInitializer } from '@/components/profile/theme-initializer';
 
 export const metadata: Metadata = {
@@ -33,7 +32,6 @@ export default function RootLayout({
           <ClientThemeInitializer />
           <BerriesProvider>
             <AudioProvider>
-              <MusicPlayer />
               {children}
             </AudioProvider>
           </BerriesProvider>

@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card } from '../ui/card';
 import { useEffect, useState } from 'react';
-import { useUser, useFirestore, useDoc } from '@/firebase';
+import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 import type { UserProfile } from '@/firebase/firestore/use-users';
 import { useToast } from '@/hooks/use-toast';
@@ -41,7 +41,12 @@ export default function ThemeSelector() {
   const { user } = useUser();
   const firestore = useFirestore();
   const { toast } = useToast();
-  const { data: userProfile, loading } = useDoc<UserProfile>(user ? `users/${user.uid}` : '');
+
+  const userDocRef = useMemoFirebase(() => {
+    return user && firestore ? doc(firestore, `users/${user.uid}`) : null;
+  }, [user, firestore]);
+  
+  const { data: userProfile, loading } = useDoc<UserProfile>(userDocRef);
   const [selectedTheme, setSelectedTheme] = useState('default');
 
   useEffect(() => {
@@ -58,14 +63,13 @@ export default function ThemeSelector() {
 
   const handleThemeChange = (themeId: string) => {
     const theme = themes.find(t => t.id === themeId);
-    if (!theme || !user || !firestore) return;
+    if (!theme || !user || !userDocRef) return;
 
     const root = document.documentElement;
     root.style.setProperty('--primary', theme.primary);
     root.style.setProperty('--accent', theme.accent);
     setSelectedTheme(themeId);
 
-    const userDocRef = doc(firestore, 'users', user.uid);
     const updatePayload = { themeId };
     updateDoc(userDocRef, updatePayload)
         .catch((serverError) => {

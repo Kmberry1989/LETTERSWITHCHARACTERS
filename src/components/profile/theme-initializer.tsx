@@ -1,8 +1,10 @@
 'use client';
 
-import { useUser, useDoc } from '@/firebase';
+import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
 import type { UserProfile } from '@/firebase/firestore/use-users';
 import { useEffect } from 'react';
+import { doc } from 'firebase/firestore';
+
 
 const themes = [
     { id: 'default', name: 'Classic Red', primary: '231 48% 48%', accent: '55 100% 61.2%' },
@@ -20,8 +22,14 @@ const themes = [
  */
 export function ClientThemeInitializer() {
     const { user } = useUser();
+    const firestore = useFirestore();
+
+    const userDocRef = useMemoFirebase(() => {
+        return user && firestore ? doc(firestore, `users/${user.uid}`) : null;
+    }, [user, firestore]);
+
     // Only call useDoc if we have a user ID.
-    const { data: userProfile } = useDoc<UserProfile>(user ? `users/${user.uid}` : undefined);
+    const { data: userProfile } = useDoc<UserProfile>(userDocRef);
 
     useEffect(() => {
         // We only apply the theme if we have a user profile with a themeId.
