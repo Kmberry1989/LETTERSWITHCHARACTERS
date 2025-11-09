@@ -5,7 +5,7 @@ import { TILE_BAG_CONFIG } from './tile-bag';
  * Creates a new, shuffled tile bag based on the game configuration.
  */
 export function createTileBag(): Tile[] {
-  const tileBag: Tile[] = [];
+  let tileBag: Tile[] = [];
   for (const letter in TILE_BAG_CONFIG) {
     const { score, count } = TILE_BAG_CONFIG[letter as keyof typeof TILE_BAG_CONFIG];
     for (let i = 0; i < count; i++) {
@@ -13,7 +13,7 @@ export function createTileBag(): Tile[] {
     }
   }
 
-  // Shuffle the tile bag
+  // Shuffle the tile bag using Fisher-Yates algorithm
   for (let i = tileBag.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [tileBag[i], tileBag[j]] = [tileBag[j], tileBag[i]];
