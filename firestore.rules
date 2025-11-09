@@ -94,7 +94,8 @@ service cloud.firestore {
      */
     match /games/{gameId} {
       function isPlayer() {
-        return request.auth.uid in resource.data.players;
+        // For updates, check the existing resource. For creates, check the incoming resource.
+        return request.auth.uid in (resource != null ? resource.data.players : request.resource.data.players);
       }
       function isCurrentPlayer() {
           return request.auth.uid == resource.data.currentTurn;
@@ -105,7 +106,7 @@ service cloud.firestore {
 
       allow get: if isPlayer();
       allow list: if isSignedIn() && request.query.where[2][2] == request.auth.uid;
-      allow create: if isSignedIn() && request.auth.uid in request.resource.data.players;
+      allow create: if isSignedIn() && isPlayer();
       allow update: if isPlayer() && isCurrentPlayer() && playersUnchanged();
       allow delete: if false;
     }
