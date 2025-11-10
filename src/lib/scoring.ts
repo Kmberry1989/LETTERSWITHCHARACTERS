@@ -1,4 +1,5 @@
-import { PlacedTile, Tile, boardLayout } from '@/components/game/game-board';
+import type { PlacedTile, Tile } from '@/lib/game/types';
+import { BOARD_LAYOUT } from '@/lib/game/constants';
 
 type WordDirection = 'horizontal' | 'vertical';
 
@@ -25,7 +26,7 @@ export function calculateScore(placedTiles: PlacedTile[], board: Record<string, 
 
     wordInfo.tiles.forEach(tile => {
       const { row, col, score, isBlank } = tile;
-      const bonus = boardLayout[row][col];
+      const bonus = BOARD_LAYOUT[row][col];
       const isNewTile = placedTiles.some(pt => pt.row === row && pt.col === col);
       let letterScore = isBlank ? 0 : score;
       

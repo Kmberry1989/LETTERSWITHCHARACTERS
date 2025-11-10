@@ -4,7 +4,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { Tile as TileType } from './game-board';
+import type { Tile as TileType } from '@/lib/game/types';
 import { ArrowRightLeft, Loader, MessageCircle, RotateCcw, Shuffle, Sparkles, X } from 'lucide-react';
 
 function Tile({ 

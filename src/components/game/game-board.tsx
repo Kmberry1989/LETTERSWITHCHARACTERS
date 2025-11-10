@@ -3,28 +3,10 @@
 import { cn } from '@/lib/utils';
 import { Star } from 'lucide-react';
 import React from 'react';
+import type { Tile, PlacedTile } from '@/lib/game/types';
+import { BOARD_LAYOUT } from '@/lib/game/constants';
 
-// Simplified types for now
-export type Tile = { letter: string; score: number; isBlank?: boolean };
-export type PlacedTile = Tile & { row: number; col: number };
-
-export const boardLayout = [
-  ['TW', '', '', 'DL', '', '', '', 'TW', '', '', '', 'DL', '', '', 'TW'],
-  ['', 'DW', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'DW', ''],
-  ['', '', 'DW', '', '', '', 'DL', '', 'DL', '', '', '', 'DW', '', ''],
-  ['DL', '', '', 'DW', '', '', '', 'DL', '', '', '', 'DW', '','', 'DL'],
-  ['', '', '', '', 'DW', '', '', '', '', '', 'DW', '', '', '', ''],
-  ['', 'TL', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'TL', ''],
-  ['', '', 'DL', '', '', '', 'DL', '', 'DL', '', '', '', 'DL', '', ''],
-  ['TW', '', '', 'DL', '', '', '', '★', '', '', '', 'DL', '', '', 'TW'],
-  ['', '', 'DL', '', '', '', 'DL', '', 'DL', '', '', '', 'DL', '', ''],
-  ['', 'TL', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'TL', ''],
-  ['', '', '', '', 'DW', '', '', '', '', '', 'DW', '', '', '', ''],
-  ['DL', '', '', 'DW', '', '', '', 'DL', '', '', '', 'DW', '', '', 'DL'],
-  ['', '', 'DW', '', '', '', 'DL', '', 'DL', '', '', '', 'DW', '', ''],
-  ['', 'DW', '', '', '', 'TL', '', '', '', 'TL', '', '', '', 'DW', ''],
-  ['TW', '', '', 'DL', '', '', '', 'TW', '', '', '', 'DL', '', '', 'TW'],
-];
+export const boardLayout = BOARD_LAYOUT;
 
 type GameBoardProps = {
   placedTiles?: Record<string, Tile>;

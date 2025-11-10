@@ -1,4 +1,4 @@
-import { Tile } from '@/components/game/game-board';
+import type { Tile } from '@/lib/game/types';
 import { TILE_BAG_CONFIG } from './tile-bag';
 
 /**
