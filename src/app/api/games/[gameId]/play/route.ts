@@ -129,9 +129,22 @@ export async function POST(request: NextRequest, { params }: { params: { gameId:
   }
 
   const newBoard: Record<string, Tile> = { ...gameData.board };
-  pendingTiles.forEach(tile => {
-    newBoard[`${tile.row}-${tile.col}`] = { letter: tile.letter, score: tile.score, isBlank: tile.isBlank };
-  });
+  const seenSquares = new Set<string>();
+
+  for (const tile of pendingTiles) {
+    const squareKey = `${tile.row}-${tile.col}`;
+
+    if (seenSquares.has(squareKey)) {
+      return NextResponse.json({ error: 'Duplicate tile placement detected in play.' }, { status: 400 });
+    }
+
+    if (gameData.board[squareKey]) {
+      return NextResponse.json({ error: 'Cannot place tiles on already occupied squares.' }, { status: 400 });
+    }
+
+    seenSquares.add(squareKey);
+    newBoard[squareKey] = { letter: tile.letter, score: tile.score, isBlank: tile.isBlank };
+  }
 
   const tilesToDrawCount = pendingTiles.length;
   const [newTilesForPlayer, updatedTileBag] = drawTiles(gameData.tileBag, tilesToDrawCount);
