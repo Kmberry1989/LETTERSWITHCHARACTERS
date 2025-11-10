@@ -3,11 +3,12 @@
 import React, { Suspense, useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/app-layout';
-import GameBoard, { PlacedTile, Tile } from '@/components/game/game-board';
+import GameBoard from '@/components/game/game-board';
+import type { PlacedTile, Tile } from '@/lib/game/types';
 import TileRack from '@/components/game/tile-rack';
 import Scoreboard from '@/components/game/scoreboard';
 import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import {
@@ -22,10 +23,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
-import { calculateScore, getWordsFromPlacedTiles } from '@/lib/scoring';
-import { validateWord } from '@/ai/validate-word';
 import { suggestWord } from '@/ai/ai-suggest-word';
-import { drawTiles } from '@/lib/game-logic';
 import BlankTileDialog from '@/components/game/blank-tile-dialog';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError } from '@/firebase/errors';
@@ -149,47 +147,29 @@ function Game() {
     
     setIsSubmitting(true);
 
-    const formedWordsInfo = getWordsFromPlacedTiles(pendingTiles, game.board);
-    if (formedWordsInfo.length === 0 && pendingTiles.length > 1) {
-        toast({ variant: 'destructive', title: 'Invalid Placement', description: 'Tiles must form a single continuous line.'});
-        setIsSubmitting(false);
-        return;
-    }
-
     try {
-        for (const wordInfo of formedWordsInfo) {
-            const { isValid, reason } = await validateWord({ word: wordInfo.word });
-            if (!isValid) {
-                toast({ variant: 'destructive', title: 'Invalid Word', description: `"${wordInfo.word}" is not a valid word. ${reason}` });
-                setIsSubmitting(false);
-                return;
-            }
-        }
-
-        const score = calculateScore(pendingTiles, game.board);
-        const newBoard = { ...game.board };
-        pendingTiles.forEach(tile => {
-            newBoard[`${tile.row}-${tile.col}`] = { letter: tile.letter, score: tile.score, isBlank: tile.isBlank };
+        const token = await user.getIdToken();
+        const response = await fetch(`/api/games/${gameId}/play`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ pendingTiles }),
         });
 
-        const tilesToDrawCount = pendingTiles.length;
-        const [newTilesForPlayer, updatedTileBag] = drawTiles(game.tileBag, tilesToDrawCount);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(errorData?.error || 'Could not process your move.');
+        }
 
-        const currentTiles = playerTiles.filter(t => t !== null) as Tile[];
-        const finalPlayerTiles = [...currentTiles, ...newTilesForPlayer];
+        const result = await response.json();
+        const scoredPoints = typeof result?.score === 'number' ? result.score : null;
 
-        const updatePayload = {
-            board: newBoard,
-            tileBag: updatedTileBag,
-            [`playerData.${user.uid}.score`]: game.playerData[user.uid].score + score,
-            [`playerData.${user.uid}.tiles`]: finalPlayerTiles,
-            currentTurn: opponentUid,
-            consecutivePasses: 0,
-        };
-
-        await updateDoc(gameDocRef, updatePayload);
-
-        toast({ title: 'Word Played!', description: `You scored ${score} points!` });
+        toast({
+          title: 'Word Played!',
+          description: scoredPoints !== null ? `You scored ${scoredPoints} points!` : 'Move submitted successfully.',
+        });
         setPendingTiles([]);
 
     } catch (e: any) {
@@ -198,6 +178,7 @@ function Game() {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: gameDocRef.path,
             operation: 'update',
+            requestResourceData: { pendingTiles },
           }));
         }
     } finally {
@@ -206,29 +187,26 @@ function Game() {
   };
 
   const handlePass = async () => {
-    if (!gameDocRef || !game || !user || !opponentUid) return;
+    if (!gameId || !user || !opponentUid) return;
     setIsSubmitting(true);
      try {
-        const consecutivePasses = (game.consecutivePasses || 0) + 1;
-        let updatePayload: any = {
-            currentTurn: opponentUid,
-            consecutivePasses: consecutivePasses,
-        };
+        const token = await user.getIdToken();
+        const response = await fetch(`/api/games/${gameId}/pass`, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
 
-        // End game logic
-        if (consecutivePasses >= 2) {
-            updatePayload.status = 'finished';
-            // Determine winner
-            const p1Score = game.playerData[user.uid].score;
-            const p2Score = game.playerData[opponentUid].score;
-            updatePayload.winner = p1Score > p2Score ? user.uid : p2Score > p1Score ? opponentUid : 'draw';
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(errorData?.error || 'Could not pass turn.');
         }
 
-        await updateDoc(gameDocRef, updatePayload);
         toast({ title: 'Turn Passed', description: "It's now your opponent's turn." });
 
     } catch (e: any) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not pass turn.' });
+        toast({ variant: 'destructive', title: 'Error', description: e.message || 'Could not pass turn.' });
          if(gameDocRef) {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: gameDocRef.path,
@@ -241,47 +219,43 @@ function Game() {
   };
 
   const handleExchange = async () => {
-     if (exchangeSelection.length === 0 || !gameDocRef || !game || !user || !opponentUid) return;
+     if (exchangeSelection.length === 0 || !game || !user || !gameId) return;
 
      if (game.tileBag.length < 7) {
         toast({ variant: 'destructive', title: 'Cannot Exchange', description: 'Not enough tiles left in the bag to exchange.' });
         return;
      }
 
+     const tilesToExchange = exchangeSelection.map(index => playerTiles[index]!).filter(Boolean) as Tile[];
+     if (tilesToExchange.length === 0) return;
+
      setIsSubmitting(true);
      try {
-        // Get tiles to exchange from player's hand
-        const tilesToExchange = exchangeSelection.map(index => playerTiles[index]!).filter(Boolean) as Tile[];
-        
-        // Get remaining tiles from player's hand
-        const remainingPlayerTiles = playerTiles.filter((_, index) => !exchangeSelection.includes(index)).filter(Boolean) as Tile[];
+        const token = await user.getIdToken();
+        const response = await fetch(`/api/games/${gameId}/exchange`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({ tiles: tilesToExchange }),
+        });
 
-        // Draw new tiles from the bag
-        const [newTilesForPlayer, tileBagAfterDraw] = drawTiles(game.tileBag, tilesToExchange.length);
-
-        // Add exchanged tiles back to the bag and shuffle
-        const finalTileBag = [...tileBagAfterDraw, ...tilesToExchange].sort(() => Math.random() - 0.5);
-
-        const finalPlayerTiles = [...remainingPlayerTiles, ...newTilesForPlayer];
-        
-        const updatePayload = {
-            tileBag: finalTileBag,
-            [`playerData.${user.uid}.tiles`]: finalPlayerTiles,
-            currentTurn: opponentUid,
-            consecutivePasses: 0,
-        };
-
-        await updateDoc(gameDocRef, updatePayload);
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => null);
+          throw new Error(errorData?.error || 'Could not exchange tiles.');
+        }
 
         toast({ title: 'Tiles Exchanged', description: `You exchanged ${tilesToExchange.length} tiles. It's now your opponent's turn.` });
         setExchangeSelection([]);
         setIsExchanging(false);
      } catch (e: any) {
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not exchange tiles.' });
+        toast({ variant: 'destructive', title: 'Error', description: e.message || 'Could not exchange tiles.' });
         if(gameDocRef) {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: gameDocRef.path,
             operation: 'update',
+            requestResourceData: { tiles: tilesToExchange },
           }));
         }
      } finally {
@@ -302,10 +276,17 @@ function Game() {
             description: `How about playing: ${result.suggestions[0] || 'Hmm, I am stumped...'}`
         });
 
-        if (gameDocRef) {
-          await updateDoc(gameDocRef, {
-             [`playerData.${user.uid}.hintUsed`]: true
+        if (gameId) {
+          const token = await user.getIdToken();
+          const response = await fetch(`/api/games/${gameId}/hint`, {
+            method: 'POST',
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
           });
+          if (!response.ok) {
+            throw new Error('Failed to record hint usage.');
+          }
         }
 
     } catch (e) {
@@ -331,7 +312,7 @@ function Game() {
   };
   
   const handleSendMessage = async (text: string) => {
-    if (!gameDocRef || !game || !user) return;
+    if (!gameId || !game || !user) return;
 
     const newMessage: ChatMessage = {
       senderId: user.uid,
@@ -339,17 +320,29 @@ function Game() {
       text: text,
       timestamp: new Date(),
     };
-    
-    const updatedMessages = [...(game.messages || []), newMessage];
 
     try {
-      await updateDoc(gameDocRef, { messages: updatedMessages });
-    } catch(e) {
-        toast({ variant: 'destructive', title: 'Send Error', description: 'Could not send message.' });
+      const token = await user.getIdToken();
+      const response = await fetch(`/api/games/${gameId}/message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ text, senderName: newMessage.senderName }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        throw new Error(errorData?.error || 'Could not send message.');
+      }
+    } catch(e: any) {
+        toast({ variant: 'destructive', title: 'Send Error', description: e.message || 'Could not send message.' });
         if(gameDocRef) {
           errorEmitter.emit('permission-error', new FirestorePermissionError({
             path: gameDocRef.path,
             operation: 'update',
+            requestResourceData: { message: newMessage.text },
           }));
         }
     }

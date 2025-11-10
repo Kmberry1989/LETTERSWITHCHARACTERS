@@ -12,7 +12,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { addDoc, collection, doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 import { createTileBag, drawTiles } from '@/lib/game-logic';
-import type { Tile } from '@/components/game/game-board';
+import type { Tile } from '@/lib/game/types';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { ChatMessage } from '@/components/game/chat-window';
