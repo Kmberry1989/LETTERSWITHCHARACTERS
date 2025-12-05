@@ -10,6 +10,7 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
+    DialogTrigger,
 } from "@/components/ui/dialog"
 import {
     Select,
@@ -111,7 +112,7 @@ export function BotGameDialog({ disabled, existingGames, children }: BotGameDial
                     displayName: opponent.displayName,
                     score: 0,
                     avatarId: opponent.avatarId,
-                    photoURL: PlaceHolderImages.find(p => p.id === opponent.avatarId)?.imageUrl,
+                    photoURL: PlaceHolderImages.find(p => p.id === opponent.avatarId)?.imageUrl || null,
                     tiles: player2Tiles,
                     hintUsed: false,
                 }
@@ -142,62 +143,70 @@ export function BotGameDialog({ disabled, existingGames, children }: BotGameDial
             // Redirect or let the dashboard update
             window.location.href = `/game?game=${gameDocRef.id}`;
 
-        } catch (serverError) {
-            const permissionError = new FirestorePermissionError({
-                path: 'games or users',
-                operation: 'create',
-                requestResourceData: newGame,
-            } satisfies SecurityRuleContext);
+        } catch (error: any) {
+            console.error("Error creating bot game:", error);
 
-            errorEmitter.emit('permission-error', permissionError);
+            if (error.code === 'permission-denied') {
+                const permissionError = new FirestorePermissionError({
+                    path: 'games or users',
+                    operation: 'create',
+                    requestResourceData: newGame,
+                } satisfies SecurityRuleContext);
+                errorEmitter.emit('permission-error', permissionError);
+            } else {
+                toast({
+                    variant: "destructive",
+                    title: "Error creating game",
+                    description: error.message || "An unexpected error occurred.",
+                });
+            }
         } finally {
             setIsCreating(false);
         }
     };
 
     return (
-        <>
-            <Button disabled={disabled} onClick={() => setIsOpen(true)}>
-                {children || (
-                    <>
-                        <Bot className="mr-2 h-4 w-4" />
-                        Play vs. Bot
-                    </>
-                )}
-            </Button>
-
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
-                <DialogContent className="sm:max-w-[425px]">
-                    <DialogHeader>
-                        <DialogTitle>Start a Bot Game</DialogTitle>
-                        <DialogDescription>
-                            Choose your difficulty level for Bitty Botty.
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="grid gap-4 py-4">
-                        <div className="grid grid-cols-4 items-center gap-4">
-                            <Label htmlFor="difficulty" className="text-right">
-                                Difficulty
-                            </Label>
-                            <Select value={selectedDifficulty} onValueChange={(val: any) => setSelectedDifficulty(val)}>
-                                <SelectTrigger className="col-span-3">
-                                    <SelectValue placeholder="Select difficulty" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="Easy">Easy</SelectItem>
-                                    <SelectItem value="Medium">Medium</SelectItem>
-                                    <SelectItem value="Hard">Hard</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
+        <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <DialogTrigger asChild>
+                <Button disabled={disabled}>
+                    {children || (
+                        <>
+                            <Bot className="mr-2 h-4 w-4" />
+                            Play vs. Bot
+                        </>
+                    )}
+                </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+                <DialogHeader>
+                    <DialogTitle>Start a Bot Game</DialogTitle>
+                    <DialogDescription>
+                        Choose your difficulty level for Bitty Botty.
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="difficulty" className="text-right">
+                            Difficulty
+                        </Label>
+                        <Select value={selectedDifficulty} onValueChange={(val: any) => setSelectedDifficulty(val)}>
+                            <SelectTrigger className="col-span-3">
+                                <SelectValue placeholder="Select difficulty" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem value="Easy">Easy</SelectItem>
+                                <SelectItem value="Medium">Medium</SelectItem>
+                                <SelectItem value="Hard">Hard</SelectItem>
+                            </SelectContent>
+                        </Select>
                     </div>
-                    <DialogFooter>
-                        <Button onClick={handleNewBotGame} disabled={isCreating}>
-                            {isCreating ? 'Starting...' : 'Start Game'}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        </>
+                </div>
+                <DialogFooter>
+                    <Button onClick={handleNewBotGame} disabled={isCreating}>
+                        {isCreating ? 'Starting...' : 'Start Game'}
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     );
 }
