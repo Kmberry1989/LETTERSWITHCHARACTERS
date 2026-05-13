@@ -28,6 +28,7 @@ export function useGameState(gameId: string | null, user: any, game: any) {
     const [blankTileDialog, setBlankTileDialog] = useState<{ isOpen: boolean, pendingTileIndex: number | null }>({ isOpen: false, pendingTileIndex: null });
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [optimisticBoard, setOptimisticBoard] = useState<Record<string, Tile> | null>(null);
+    const [draggedTileIndex, setDraggedTileIndex] = useState<number | null>(null);
 
     const isPlayerTurn = user && game ? game.currentTurn === user.uid : false;
     const opponentUid = useMemo(() => game?.players.find((p: string) => p !== user?.uid), [game, user]);
@@ -40,9 +41,45 @@ export function useGameState(gameId: string | null, user: any, game: any) {
             }
             // Reset optimistic board when game updates (server sync)
             setOptimisticBoard(null);
+            setPendingTiles([]);
+            setSelectedTileIndex(null);
+            setDraggedTileIndex(null);
         }
 
     }, [game, user, gameId]);
+
+    const placeTileAt = (tileIndex: number, row: number, col: number) => {
+        if (!isPlayerTurn) return;
+
+        const tile = playerTiles[tileIndex];
+        if (!tile) return;
+
+        if (pendingTiles.some((pendingTile) => pendingTile.row === row && pendingTile.col === col)) {
+            return;
+        }
+
+        if (tile.letter === ' ') {
+            setPendingTiles((prev: PlacedTile[]) => [...prev, { ...tile, row, col, letter: '' }]);
+            setPlayerTiles((prev: (Tile | null)[]) => {
+                const newTiles = [...prev];
+                newTiles[tileIndex] = null;
+                return newTiles;
+            });
+            setSelectedTileIndex(null);
+            setDraggedTileIndex(null);
+            setBlankTileDialog({ isOpen: true, pendingTileIndex: pendingTiles.length });
+            return;
+        }
+
+        setPendingTiles((prev: PlacedTile[]) => [...prev, { ...tile, row, col }]);
+        setPlayerTiles((prev: (Tile | null)[]) => {
+            const newTiles = [...prev];
+            newTiles[tileIndex] = null;
+            return newTiles;
+        });
+        setSelectedTileIndex(null);
+        setDraggedTileIndex(null);
+    };
 
     const handleTileSelect = (index: number) => {
         if (isExchanging) {
@@ -59,30 +96,8 @@ export function useGameState(gameId: string | null, user: any, game: any) {
     };
 
     const handleCellClick = (row: number, col: number) => {
-        if (selectedTileIndex === null || !isPlayerTurn) return;
-
-        const tile = playerTiles[selectedTileIndex];
-        if (tile) {
-            if (tile.letter === ' ') { // It's a blank tile
-                setPendingTiles((prev: PlacedTile[]) => [...prev, { ...tile, row, col, letter: '' }]);
-                setPlayerTiles((prev: (Tile | null)[]) => {
-                    const newTiles = [...prev];
-                    newTiles[selectedTileIndex] = null;
-                    return newTiles;
-                });
-                setSelectedTileIndex(null);
-                setBlankTileDialog({ isOpen: true, pendingTileIndex: pendingTiles.length });
-
-            } else {
-                setPendingTiles((prev: PlacedTile[]) => [...prev, { ...tile, row, col }]);
-                setPlayerTiles((prev: (Tile | null)[]) => {
-                    const newTiles = [...prev];
-                    newTiles[selectedTileIndex] = null;
-                    return newTiles;
-                });
-                setSelectedTileIndex(null);
-            }
-        }
+        if (selectedTileIndex === null) return;
+        placeTileAt(selectedTileIndex, row, col);
     };
 
     const handleRecallTile = (tileToRecall: PlacedTile) => {
@@ -122,6 +137,7 @@ export function useGameState(gameId: string | null, user: any, game: any) {
         if (pendingTiles.length === 0 || !gameDocRef || !game || !user || !opponentUid) return;
 
         setIsSubmitting(true);
+        const previousPlayerTiles = [...playerTiles];
 
         // Optimistic Update
         const newBoard = { ...game.board };
@@ -163,6 +179,7 @@ export function useGameState(gameId: string | null, user: any, game: any) {
             // Revert Optimistic Update
             setOptimisticBoard(null);
             setPendingTiles(tilesToSubmit); // Restore pending tiles so user can try again or fix
+            setPlayerTiles(previousPlayerTiles);
 
             if (gameDocRef) {
                 errorEmitter.emit('permission-error', new FirestorePermissionError({
@@ -339,18 +356,18 @@ export function useGameState(gameId: string | null, user: any, game: any) {
     };
 
     const handleDragStart = (tile: Tile | null, index: number) => {
-        if (!isExchanging) {
-            setSelectedTileIndex(index);
-        }
+        if (isExchanging || !tile || !isPlayerTurn) return;
+        setSelectedTileIndex(index);
+        setDraggedTileIndex(index);
     };
 
     const handleDrop = (targetIndex: number) => {
-        if (selectedTileIndex !== null) {
+        if (draggedTileIndex !== null) {
             const newTiles = [...playerTiles];
-            const draggedTile = newTiles[selectedTileIndex];
+            const draggedTile = newTiles[draggedTileIndex];
 
             // Erase from original position
-            newTiles[selectedTileIndex] = null;
+            newTiles[draggedTileIndex] = null;
             // Place temp tile at target to maintain order
             const temp = newTiles[targetIndex];
             newTiles[targetIndex] = draggedTile;
@@ -362,8 +379,14 @@ export function useGameState(gameId: string | null, user: any, game: any) {
             }
 
             setPlayerTiles(newTiles);
-            setSelectedTileIndex(null); // Or targetIndex
+            setSelectedTileIndex(null);
+            setDraggedTileIndex(null);
         }
+    };
+
+    const handleBoardDrop = (row: number, col: number) => {
+        if (draggedTileIndex === null) return;
+        placeTileAt(draggedTileIndex, row, col);
     };
 
     return {
@@ -398,6 +421,7 @@ export function useGameState(gameId: string | null, user: any, game: any) {
         handleBlankTileSelect,
         handleSendMessage,
         handleDragStart,
-        handleDrop
+        handleDrop,
+        handleBoardDrop
     };
 }

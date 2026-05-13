@@ -9,9 +9,12 @@ import { useAuth, useFirestore } from '@/firebase';
 import {
   GoogleAuthProvider,
   signInWithPopup,
+  signInWithRedirect,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signInAnonymously,
+  browserLocalPersistence,
+  setPersistence,
   type User,
 } from 'firebase/auth';
 import { doc, setDoc } from 'firebase/firestore';
@@ -77,13 +80,39 @@ export default function LoginPage() {
   };
 
   const handleGoogleSignIn = async () => {
-    if (!auth) return;
+    if (!auth) {
+      toast({
+        variant: 'destructive',
+        title: 'Authentication unavailable',
+        description: 'Firebase Auth is not ready yet. Refresh and try again.',
+      });
+      return;
+    }
     setIsLoading(true);
     const provider = new GoogleAuthProvider();
     try {
+      await setPersistence(auth, browserLocalPersistence);
       const result = await signInWithPopup(auth, provider);
       handleAuthSuccess(result.user);
-    } catch (error) {
+    } catch (error: any) {
+      const shouldFallbackToRedirect = [
+        'auth/popup-blocked',
+        'auth/popup-closed-by-user',
+        'auth/cancelled-popup-request',
+        'auth/operation-not-supported-in-this-environment',
+      ].includes(error?.code);
+
+      if (shouldFallbackToRedirect) {
+        try {
+          await setPersistence(auth, browserLocalPersistence);
+          await signInWithRedirect(auth, provider);
+          return;
+        } catch (redirectError) {
+          handleAuthError(redirectError);
+          return;
+        }
+      }
+
       handleAuthError(error);
     }
   };

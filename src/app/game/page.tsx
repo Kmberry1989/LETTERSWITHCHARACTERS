@@ -68,6 +68,7 @@ function Game() {
     handleSendMessage,
     handleDragStart,
     handleDrop,
+    handleBoardDrop,
     setIsExchanging
   } = useGameState(gameId, user, game);
 
@@ -121,7 +122,7 @@ function Game() {
               pendingTiles={pendingTiles}
               onCellClick={handleCellClick}
               onRecallTile={handleRecallTile}
-              onDrop={(row, col) => handleCellClick(row, col)}
+              onDrop={handleBoardDrop}
             />
           </div>
 
