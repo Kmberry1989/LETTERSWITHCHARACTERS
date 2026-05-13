@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect, useRef } from 'react';
 
 import { useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/app-layout';
@@ -29,6 +29,7 @@ import { useGameState } from '@/hooks/use-game-state';
 
 // Main Game Component
 function Game() {
+  const botTurnRequestRef = useRef<string | null>(null);
   const searchParams = useSearchParams();
   const gameId = searchParams.get('game');
   const firestore = useFirestore();
@@ -98,6 +99,43 @@ function Game() {
 
   const userPlayerData = game.playerData[user.uid];
   const opponentPlayerData = opponentUid ? game.playerData[opponentUid] : null;
+  const isBotGame = game.players.includes('bitty-botty-001');
+
+  useEffect(() => {
+    if (!gameId || !game || !isBotGame || game.status !== 'active') {
+      botTurnRequestRef.current = null;
+      return;
+    }
+
+    if (game.currentTurn !== 'bitty-botty-001') {
+      botTurnRequestRef.current = null;
+      return;
+    }
+
+    const turnKey = `${gameId}:${game.currentTurn}:${Object.keys(game.board).length}:${game.consecutivePasses ?? 0}`;
+    if (botTurnRequestRef.current === turnKey) {
+      return;
+    }
+
+    botTurnRequestRef.current = turnKey;
+
+    const runBotTurn = async () => {
+      try {
+        await fetch(`/api/games/${gameId}/bot-move`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ difficulty: game.difficulty || 'Medium' }),
+        });
+      } catch (error) {
+        console.error('Failed to trigger bot move:', error);
+        botTurnRequestRef.current = null;
+      }
+    };
+
+    void runBotTurn();
+  }, [gameId, game, isBotGame]);
 
 
   return (

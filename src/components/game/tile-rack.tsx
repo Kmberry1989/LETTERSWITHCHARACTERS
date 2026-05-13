@@ -12,6 +12,7 @@ function Tile({
   isSelected, 
   onClick,
   onDragStart,
+  canDrag,
   isExchanging,
   isExchangeSelected,
 }: { 
@@ -19,13 +20,14 @@ function Tile({
   isSelected: boolean; 
   onClick: () => void;
   onDragStart: (e: React.DragEvent) => void;
+  canDrag: boolean;
   isExchanging: boolean;
   isExchangeSelected: boolean;
 }) {
   const isBlank = tile.letter === ' ';
   return (
     <div 
-      draggable={!isExchanging}
+      draggable={canDrag}
       onDragStart={onDragStart}
       onClick={onClick}
       className={cn(
@@ -33,6 +35,7 @@ function Tile({
         isSelected && !isExchanging && "ring-2 ring-primary ring-offset-2 scale-105 shadow-lg",
         isExchangeSelected && "ring-2 ring-destructive ring-offset-2 scale-105 shadow-lg",
         isExchanging && !isExchangeSelected && "opacity-60",
+        !canDrag && "cursor-default hover:scale-100",
         "active:scale-95"
       )}
     >
@@ -72,9 +75,11 @@ type TileRackProps = {
 };
 
 export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSubmitting, isGettingHint, hintUsed, isExchanging, exchangeSelection, onTileSelect, onRecall, onShuffle, onDragStart, onDrop, onChatClick, onPlay, onHint, onToggleExchange }: TileRackProps) {
+  const canMoveTiles = isPlayerTurn && !isSubmitting && !isExchanging;
   
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
   };
 
   const triggerPassDialog = () => {
@@ -103,7 +108,17 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
                       tile={tile} 
                       isSelected={selectedTileIndex === i}
                       onClick={() => onTileSelect(i)}
-                      onDragStart={(e) => onDragStart(tile, i)}
+                      onDragStart={(e) => {
+                        if (!canMoveTiles) {
+                          e.preventDefault();
+                          return;
+                        }
+
+                        e.dataTransfer.effectAllowed = 'move';
+                        e.dataTransfer.setData('text/plain', String(i));
+                        onDragStart(tile, i);
+                      }}
+                      canDrag={canMoveTiles}
                       isExchanging={isExchanging}
                       isExchangeSelected={exchangeSelection.includes(i)}
                     />

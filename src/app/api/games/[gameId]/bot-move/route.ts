@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAdminAuth, getAdminFirestore } from '@/firebase/admin';
+import { getAdminFirestore } from '@/firebase/admin';
 import type { PlacedTile, Tile } from '@/lib/game/types';
 import { calculateScore } from '@/lib/scoring';
 import { drawTiles } from '@/lib/game-logic';
 import { generateBotMove } from '@/ai/ai-bot-move';
+export const dynamic = 'force-dynamic';
 
 type GameDoc = {
     players: string[];
@@ -20,6 +21,8 @@ type GameDoc = {
     currentTurn: string;
     status: 'active' | 'pending' | 'finished';
     consecutivePasses?: number;
+    difficulty?: 'Easy' | 'Medium' | 'Hard';
+    winner?: string;
 };
 
 // Helper to remove used tiles from bot's rack
@@ -44,14 +47,13 @@ function removeTilesFromRack(rack: Tile[], placedTiles: PlacedTile[]): Tile[] | 
     return workingRack;
 }
 
-export async function POST(request: NextRequest, { params }: { params: { gameId: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ gameId: string }> }) {
     // 1. Verify Request (can be triggered by client or cron, but for now client triggers it)
     // We might want to verify the user triggering it is the *other* player, or just verify the game state.
     // For simplicity, we'll check if it is indeed the bot's turn.
 
-    const { gameId } = params;
-    const body = await request.json();
-    const difficulty = body.difficulty || 'Medium';
+    const { gameId } = await params;
+    const body = await request.json().catch(() => ({}));
 
     const db = getAdminFirestore();
     const gameRef = db.collection('games').doc(gameId);
@@ -63,6 +65,11 @@ export async function POST(request: NextRequest, { params }: { params: { gameId:
 
     const gameData = gameSnap.data() as GameDoc;
     const botUid = 'bitty-botty-001'; // Hardcoded for now
+    const difficulty = body.difficulty || gameData.difficulty || 'Medium';
+
+    if (gameData.status !== 'active') {
+        return NextResponse.json({ error: 'The game is not currently active.' }, { status: 409 });
+    }
 
     if (gameData.currentTurn !== botUid) {
         return NextResponse.json({ error: "It's not the bot's turn." }, { status: 409 });
@@ -84,9 +91,22 @@ export async function POST(request: NextRequest, { params }: { params: { gameId:
     });
 
     if (!move) {
-        // Bot passes if it can't find a move
-        // TODO: Implement pass logic
-        return NextResponse.json({ message: 'Bot passed.' });
+        const opponentUid = gameData.players.find(p => p !== botUid);
+        const consecutivePasses = (gameData.consecutivePasses || 0) + 1;
+        const updatePayload: Record<string, unknown> = {
+            currentTurn: opponentUid,
+            consecutivePasses,
+        };
+
+        if (consecutivePasses >= 2 && opponentUid) {
+            updatePayload.status = 'finished';
+            const botScore = gameData.playerData[botUid]?.score || 0;
+            const opponentScore = gameData.playerData[opponentUid]?.score || 0;
+            updatePayload.winner = botScore > opponentScore ? botUid : opponentScore > botScore ? opponentUid : 'draw';
+        }
+
+        await gameRef.update(updatePayload);
+        return NextResponse.json({ message: 'Bot passed.', ...updatePayload });
     }
 
     // 3. Process Move (Convert AI output to PlacedTiles)

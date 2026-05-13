@@ -35,7 +35,6 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
-next-env.d.ts
 
 .genkit/*
 .env*
@@ -43,3 +42,8 @@ next-env.d.ts
 # firebase
 firebase-debug.log
 firestore-debug.log
+
+# local editor / workspace state
+.idx/
+.vscode/
+.modified
