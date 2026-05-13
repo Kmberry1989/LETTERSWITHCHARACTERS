@@ -9,34 +9,12 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
-import { addDoc, collection, doc, getDoc, updateDoc, arrayUnion } from 'firebase/firestore';
-import { useToast } from '@/hooks/use-toast';
-import { createTileBag, drawTiles } from '@/lib/game-logic';
+import { doc, getDoc } from 'firebase/firestore';
 import type { Tile } from '@/lib/game/types';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { ChatMessage } from '@/components/game/chat-window';
 import type { UserProfile } from '@/firebase/firestore/use-users';
 import { useEffect, useState } from 'react';
-import { Swords, Bot } from 'lucide-react';
-import { BotGameDialog } from './bot-game-dialog';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Label } from "@/components/ui/label"
+import { Swords } from 'lucide-react';
 
 interface PlayerData {
   displayName: string;
@@ -58,7 +36,6 @@ interface Game {
   consecutivePasses?: number;
   winner?: string;
   messages: ChatMessage[];
-  difficulty?: 'Easy' | 'Medium' | 'Hard';
 }
 
 
@@ -99,7 +76,6 @@ function GameCard({ game }: { game: Game }) {
             <Badge variant={game.status === 'finished' ? 'destructive' : (game.currentTurn === user.uid ? 'default' : 'secondary')} className="mt-1">
               {statusText}
             </Badge>
-            {game.difficulty && <Badge variant="outline" className="ml-2">{game.difficulty}</Badge>}
           </CardDescription>
         </div>
       </CardHeader>
@@ -178,9 +154,6 @@ function useUserGames() {
 
 export default function DashboardPage() {
   const { user } = useUser();
-  const firestore = useFirestore();
-  const { toast } = useToast();
-
   const { games, loading: gamesLoading } = useUserGames();
 
   const loading = gamesLoading || !user;
@@ -191,7 +164,11 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between space-y-2">
           <h1 className="text-3xl font-bold tracking-tight font-headline">Your Games</h1>
 
-          <BotGameDialog disabled={loading} existingGames={games} />
+          <Button asChild disabled={loading}>
+            <Link href="/lobby">
+              <Swords className="mr-2 h-4 w-4" /> Find a Match
+            </Link>
+          </Button>
 
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -203,11 +180,8 @@ export default function DashboardPage() {
             <Card className="md:col-span-2 lg:col-span-3 flex flex-col items-center justify-center border-dashed text-center p-6 shadow-sm">
               <CardHeader>
                 <CardTitle>No Games Yet!</CardTitle>
-                <CardDescription>Start a new game against the bot or find a match in the lobby.</CardDescription>
+                <CardDescription>Create or accept an open challenge in the lobby to start your first game.</CardDescription>
               </CardHeader>
-              <CardContent>
-                <BotGameDialog disabled={loading} existingGames={games}>Start Bot Game</BotGameDialog>
-              </CardContent>
             </Card>
           )}
           <Card className="flex flex-col items-center justify-center border-dashed text-center p-6 shadow-sm">

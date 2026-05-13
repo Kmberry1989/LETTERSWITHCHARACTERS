@@ -3,6 +3,8 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { Badge } from '../ui/badge';
+import type { VariantProps } from 'class-variance-authority';
+import type { badgeVariants } from '../ui/badge';
 
 type Player = {
   displayName: string;
@@ -30,8 +32,8 @@ export default function Scoreboard({ players = defaultPlayers, isPlayerTurn, cur
   const player1AvatarImage = player1.photoURL || PlaceHolderImages.find(p => p.id === player1.avatarId)?.imageUrl;
   const player2AvatarImage = player2.photoURL || PlaceHolderImages.find(p => p.id === player2.avatarId)?.imageUrl;
 
-
-  let statusText, statusVariant;
+  let statusText: string;
+  let statusVariant: VariantProps<typeof badgeVariants>['variant'];
   if (gameStatus === 'finished') {
     statusText = 'Game Over';
     statusVariant = 'destructive' as const;

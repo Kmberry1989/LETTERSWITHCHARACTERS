@@ -77,7 +77,7 @@ export default function AvatarEditor() {
     return user && firestore ? doc(firestore, `users/${user.uid}`) : null;
   }, [user, firestore]);
 
-  const { data: userProfile, loading } = useDoc<UserProfile>(userDocRef);
+  const { data: userProfile, isLoading } = useDoc<UserProfile>(userDocRef);
 
   const [selectedTileSet, setSelectedTileSet] = useState<string>('tile-plastic');
   const [selectedBoardTheme, setSelectedBoardTheme] = useState<string>('board-green');
@@ -124,7 +124,7 @@ export default function AvatarEditor() {
   const tileImage = PlaceHolderImages.find((p) => p.id === selectedTileSet);
   const boardImage = PlaceHolderImages.find((p) => p.id === selectedBoardTheme);
 
-  if (loading || !userProfile) {
+  if (isLoading || !userProfile) {
     return <AvatarEditorSkeleton />;
   }
 

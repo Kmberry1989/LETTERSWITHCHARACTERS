@@ -42,27 +42,6 @@ export function useGameState(gameId: string | null, user: any, game: any) {
             setOptimisticBoard(null);
         }
 
-        // Bot Trigger Logic
-        if (game && game.currentTurn === 'bitty-botty-001' && game.status === 'active') {
-            // Only trigger if we are the user playing against the bot (to avoid double triggers if we had 2 real players, but here it's fine)
-            // Ideally, this should be server-side or handled by a cloud function, but for this MVP client-side trigger is acceptable.
-            // We check if the *current user* is the opponent of the bot, to ensure only one client triggers it.
-            const isUserOpponent = game.players.includes(user?.uid) && user?.uid !== 'bitty-botty-001';
-
-            if (isUserOpponent) {
-                const triggerBot = async () => {
-                    try {
-                        await fetch(`/api/games/${gameId}/bot-move`, {
-                            method: 'POST',
-                            body: JSON.stringify({ difficulty: game.difficulty || 'Medium' }),
-                        });
-                    } catch (e) {
-                        console.error("Failed to trigger bot move", e);
-                    }
-                };
-                triggerBot();
-            }
-        }
     }, [game, user, gameId]);
 
     const handleTileSelect = (index: number) => {
@@ -147,7 +126,7 @@ export function useGameState(gameId: string | null, user: any, game: any) {
         // Optimistic Update
         const newBoard = { ...game.board };
         pendingTiles.forEach(tile => {
-            newBoard[`${tile.row},${tile.col}`] = { letter: tile.letter, score: tile.score, isBlank: tile.isBlank };
+            newBoard[`${tile.row}-${tile.col}`] = { letter: tile.letter, score: tile.score, isBlank: tile.isBlank };
         });
         setOptimisticBoard(newBoard);
         const tilesToSubmit = [...pendingTiles]; // Copy for submission

@@ -46,7 +46,7 @@ export default function ThemeSelector() {
     return user && firestore ? doc(firestore, `users/${user.uid}`) : null;
   }, [user, firestore]);
   
-  const { data: userProfile, loading } = useDoc<UserProfile>(userDocRef);
+  const { data: userProfile, isLoading } = useDoc<UserProfile>(userDocRef);
   const [selectedTheme, setSelectedTheme] = useState('default');
 
   useEffect(() => {
@@ -87,7 +87,7 @@ export default function ThemeSelector() {
         });
   };
   
-  if (loading) {
+  if (isLoading) {
     return <ThemeSelectorSkeleton />;
   }
 

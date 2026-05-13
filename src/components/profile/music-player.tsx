@@ -7,7 +7,7 @@ const MUSIC_URL = 'https://cdn.pixabay.com/audio/2022/05/27/audio_18c499e74c.mp3
 
 export default function MusicPlayer() {
   const { masterVolume, musicVolume, isMuted } = useAudio();
-  const audioRef = useRef<HTMLAudioElement>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     if (!audioRef.current) {
@@ -26,6 +26,13 @@ export default function MusicPlayer() {
     audio.volume = (masterVolume / 100) * (musicVolume / 100);
 
   }, [masterVolume, musicVolume, isMuted]);
+
+  useEffect(() => {
+    return () => {
+      audioRef.current?.pause();
+      audioRef.current = null;
+    };
+  }, []);
 
   return null;
 }

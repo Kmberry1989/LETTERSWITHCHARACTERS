@@ -4,6 +4,7 @@ import type { PlacedTile, Tile } from '@/lib/game/types';
 import { calculateScore, getWordsFromPlacedTiles } from '@/lib/scoring';
 import { drawTiles } from '@/lib/game-logic';
 import { validateWord } from '@/ai/validate-word';
+export const dynamic = 'force-dynamic';
 
 type GameDoc = {
   players: string[];
@@ -65,13 +66,13 @@ async function verifyAuth(request: NextRequest) {
   }
 }
 
-export async function POST(request: NextRequest, { params }: { params: { gameId: string } }) {
+export async function POST(request: NextRequest, { params }: { params: Promise<{ gameId: string }> }) {
   const uid = await verifyAuth(request);
   if (!uid) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { gameId } = params;
+  const { gameId } = await params;
   const body = await request.json();
   const pendingTiles = normalizePendingTiles(body.pendingTiles || []) as PlacedTile[];
 

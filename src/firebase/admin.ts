@@ -17,5 +17,7 @@ export function getAdminAuth() {
 }
 
 export function getAdminFirestore() {
-  return getFirestore(getAdminApp());
+  const firestore = getFirestore(getAdminApp());
+  firestore.settings({ ignoreUndefinedProperties: true });
+  return firestore;
 }
