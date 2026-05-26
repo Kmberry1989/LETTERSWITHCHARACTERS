@@ -1,0 +1,34 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Generic document storage used as a Firebase-free compatibility layer while
+/// the app is migrated toward purpose-built relational tables.
+model AppDocument {
+  id         String   @id @default(cuid())
+  collection String
+  documentId String
+  data       Json
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([collection, documentId])
+  @@index([collection])
+  @@map("app_documents")
+}
+
+/// Session/token storage for the lightweight local auth system.
+model AppSession {
+  token     String   @id
+  userId    String
+  createdAt DateTime @default(now())
+  expiresAt DateTime
+
+  @@index([userId])
+  @@map("app_sessions")
+}
