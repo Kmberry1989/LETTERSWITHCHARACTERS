@@ -1,16 +1,14 @@
 'use client';
 
 import { useMemo } from 'react';
-import { addDoc, collection, doc, getDoc, limit, orderBy, query, runTransaction, serverTimestamp, Timestamp } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, limit, orderBy, query, runTransaction, serverTimestamp, Timestamp } from '@/lib/client/document-client';
 import AppLayout from '@/components/app-layout';
 import LobbyChat, { type LobbyMessage } from '@/components/lobby/lobby-chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useUser, useFirestore, useCollection, useMemoFirebase } from '@/firebase';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
+import { useUser, useCollection, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { createTileBag, drawTiles } from '@/lib/game-logic';
 import type { Tile } from '@/lib/game/types';
@@ -95,18 +93,15 @@ function OpenChallenges({
 
 export default function LobbyPage() {
   const { user } = useUser();
-  const firestore = useFirestore();
   const { toast } = useToast();
 
   const messagesQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'lobbyMessages'), orderBy('timestamp', 'desc'), limit(50));
-  }, [firestore]);
+    return query(collection(null, 'lobbyMessages'), orderBy('timestamp', 'desc'), limit(50));
+  }, []);
 
   const challengesQuery = useMemoFirebase(() => {
-    if (!firestore) return null;
-    return query(collection(firestore, 'lobbyChallenges'), orderBy('createdAt', 'desc'), limit(25));
-  }, [firestore]);
+    return query(collection(null, 'lobbyChallenges'), orderBy('createdAt', 'desc'), limit(25));
+  }, []);
 
   const { data: messages, isLoading } = useCollection<LobbyMessage>(messagesQuery);
   const { data: rawChallenges, isLoading: isChallengesLoading } = useCollection<Challenge>(challengesQuery);
@@ -117,9 +112,9 @@ export default function LobbyPage() {
   );
 
   const handleSendMessage = async (text: string) => {
-    if (!firestore || !user) return;
+    if (!user) return;
 
-    const lobbyMessagesCol = collection(firestore, 'lobbyMessages');
+    const lobbyMessagesCol = collection(null, 'lobbyMessages');
     const newMessage = {
       senderId: user.uid,
       senderName: user.displayName || 'Anonymous',
@@ -128,14 +123,11 @@ export default function LobbyPage() {
       timestamp: serverTimestamp(),
     };
 
-    addDoc(lobbyMessagesCol, newMessage).catch(() => {
-      const permissionError = new FirestorePermissionError({
-        path: lobbyMessagesCol.path,
-        operation: 'create',
-        requestResourceData: newMessage,
-      });
-      errorEmitter.emit('permission-error', permissionError);
-    });
+    try {
+      await addDoc(lobbyMessagesCol, newMessage);
+    } catch {
+      toast({ variant: 'destructive', title: 'Send Failed', description: 'Could not send your lobby message.' });
+    }
   };
 
   const buildNewGame = (creatorUid: string, accepterUid: string, creatorProfile: UserProfile, accepterProfile: UserProfile) => {
@@ -176,9 +168,8 @@ export default function LobbyPage() {
   };
 
   const handleCreateChallenge = async () => {
-    if (!firestore || !user) return;
-
-    const userDocRef = doc(firestore, 'users', user.uid);
+    if (!user) return;
+    const userDocRef = doc(null, 'users', user.uid);
     const userDocSnap = await getDoc(userDocRef);
     const userProfile = userDocSnap.data() as UserProfile | undefined;
 
@@ -209,24 +200,20 @@ export default function LobbyPage() {
       createdAt: serverTimestamp(),
     };
 
-    addDoc(collection(firestore, 'lobbyChallenges'), payload).then(() => {
+    try {
+      await addDoc(collection(null, 'lobbyChallenges'), payload);
       toast({ title: 'Challenge Created', description: 'Your challenge is now visible to other players.' });
-    }).catch(() => {
-      errorEmitter.emit('permission-error', new FirestorePermissionError({
-        path: 'lobbyChallenges',
-        operation: 'create',
-        requestResourceData: payload,
-      }));
+    } catch {
       toast({ variant: 'destructive', title: 'Create Failed', description: 'Could not create your challenge.' });
-    });
+    }
   };
 
   const handleAcceptChallenge = async (challengeId: string) => {
-    if (!firestore || !user) return;
+    if (!user) return;
 
     try {
-      const gameId = await runTransaction(firestore, async (transaction) => {
-        const challengeRef = doc(firestore, 'lobbyChallenges', challengeId);
+      const gameId = await runTransaction(null, async (transaction) => {
+        const challengeRef = doc(null, 'lobbyChallenges', challengeId);
         const challengeSnap = await transaction.get(challengeRef);
 
         if (!challengeSnap.exists()) {
@@ -241,8 +228,8 @@ export default function LobbyPage() {
           throw new Error('You cannot accept your own challenge.');
         }
 
-        const creatorUserRef = doc(firestore, 'users', challenge.creatorUid);
-        const accepterUserRef = doc(firestore, 'users', user.uid);
+        const creatorUserRef = doc(null, 'users', challenge.creatorUid);
+        const accepterUserRef = doc(null, 'users', user.uid);
         const creatorUserSnap = await transaction.get(creatorUserRef);
         const accepterUserSnap = await transaction.get(accepterUserRef);
 
@@ -252,17 +239,17 @@ export default function LobbyPage() {
 
         const creatorProfile = creatorUserSnap.data() as UserProfile;
         const accepterProfile = accepterUserSnap.data() as UserProfile;
-        const gameRef = doc(collection(firestore, 'games'));
+        const gameRef = doc(collection(null, 'games'));
         const gameData = buildNewGame(challenge.creatorUid, user.uid, creatorProfile, accepterProfile);
 
-        transaction.set(gameRef, gameData);
-        transaction.update(creatorUserRef, {
+        await transaction.set(gameRef, gameData);
+        await transaction.update(creatorUserRef, {
           gameIds: [...new Set([...(creatorProfile.gameIds || []), gameRef.id])],
         });
-        transaction.update(accepterUserRef, {
+        await transaction.update(accepterUserRef, {
           gameIds: [...new Set([...(accepterProfile.gameIds || []), gameRef.id])],
         });
-        transaction.update(challengeRef, {
+        await transaction.update(challengeRef, {
           status: 'accepted',
           acceptedAt: serverTimestamp(),
           acceptedByUid: user.uid,
