@@ -1,22 +1,18 @@
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
-import { useFirestore, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { doc } from '@/lib/client/document-client';
 import { useToast } from '@/hooks/use-toast';
-import { errorEmitter } from '@/firebase/error-emitter';
-import { FirestorePermissionError } from '@/firebase/errors';
 import { suggestWord } from '@/ai/ai-suggest-word';
 import { Tile, PlacedTile } from '@/lib/game/types';
 import { ChatMessage } from '@/components/game/chat-window';
 
 export function useGameState(gameId: string | null, user: any, game: any) {
-    const firestore = useFirestore();
     const { toast } = useToast();
 
-    const gameDocRef = useMemoFirebase(() => {
-        return firestore && gameId ? doc(firestore, 'games', gameId) : null;
-    }, [firestore, gameId]);
+    const gameDocRef = useMemo(() => {
+        return gameId ? doc(null, 'games', gameId) : null;
+    }, [gameId]);
 
     const [playerTiles, setPlayerTiles] = useState<(Tile | null)[]>([]);
     const [pendingTiles, setPendingTiles] = useState<PlacedTile[]>([]);
@@ -39,7 +35,6 @@ export function useGameState(gameId: string | null, user: any, game: any) {
             if (userPlayerData) {
                 setPlayerTiles(userPlayerData.tiles.slice(0, 7));
             }
-            // Reset optimistic board when game updates (server sync)
             setOptimisticBoard(null);
             setPendingTiles([]);
             setSelectedTileIndex(null);
@@ -106,7 +101,6 @@ export function useGameState(gameId: string | null, user: any, game: any) {
         if (firstEmptyIndex !== -1) {
             setPlayerTiles((prev: (Tile | null)[]) => {
                 const newTiles = [...prev];
-                // If it was a blank, recall it as a blank
                 newTiles[firstEmptyIndex] = tileToRecall.isBlank ? { letter: ' ', score: 0 } : { letter: tileToRecall.letter, score: tileToRecall.score };
                 return newTiles;
             });
@@ -139,14 +133,13 @@ export function useGameState(gameId: string | null, user: any, game: any) {
         setIsSubmitting(true);
         const previousPlayerTiles = [...playerTiles];
 
-        // Optimistic Update
         const newBoard = { ...game.board };
         pendingTiles.forEach(tile => {
             newBoard[`${tile.row}-${tile.col}`] = { letter: tile.letter, score: tile.score, isBlank: tile.isBlank };
         });
         setOptimisticBoard(newBoard);
-        const tilesToSubmit = [...pendingTiles]; // Copy for submission
-        setPendingTiles([]); // Clear pending immediately
+        const tilesToSubmit = [...pendingTiles];
+        setPendingTiles([]);
 
         try {
             const token = await user.getIdToken();
@@ -171,23 +164,12 @@ export function useGameState(gameId: string | null, user: any, game: any) {
                 title: 'Word Played!',
                 description: scoredPoints !== null ? `You scored ${scoredPoints} points!` : 'Move submitted successfully.',
             });
-            // pendingTiles is already cleared
-            // optimisticBoard will be cleared/replaced when the game doc updates via the listener
 
         } catch (e: any) {
             toast({ variant: 'destructive', title: 'Error', description: e.message || 'Could not process your move.' });
-            // Revert Optimistic Update
             setOptimisticBoard(null);
-            setPendingTiles(tilesToSubmit); // Restore pending tiles so user can try again or fix
+            setPendingTiles(tilesToSubmit);
             setPlayerTiles(previousPlayerTiles);
-
-            if (gameDocRef) {
-                errorEmitter.emit('permission-error', new FirestorePermissionError({
-                    path: gameDocRef.path,
-                    operation: 'update',
-                    requestResourceData: { pendingTiles: tilesToSubmit },
-                }));
-            }
         } finally {
             setIsSubmitting(false);
         }
@@ -214,12 +196,6 @@ export function useGameState(gameId: string | null, user: any, game: any) {
 
         } catch (e: any) {
             toast({ variant: 'destructive', title: 'Error', description: e.message || 'Could not pass turn.' });
-            if (gameDocRef) {
-                errorEmitter.emit('permission-error', new FirestorePermissionError({
-                    path: gameDocRef.path,
-                    operation: 'update',
-                }));
-            }
         } finally {
             setIsSubmitting(false);
         }
@@ -258,13 +234,6 @@ export function useGameState(gameId: string | null, user: any, game: any) {
             setIsExchanging(false);
         } catch (e: any) {
             toast({ variant: 'destructive', title: 'Error', description: e.message || 'Could not exchange tiles.' });
-            if (gameDocRef) {
-                errorEmitter.emit('permission-error', new FirestorePermissionError({
-                    path: gameDocRef.path,
-                    operation: 'update',
-                    requestResourceData: { tiles: tilesToExchange },
-                }));
-            }
         } finally {
             setIsSubmitting(false);
         }
@@ -321,13 +290,6 @@ export function useGameState(gameId: string | null, user: any, game: any) {
     const handleSendMessage = async (text: string) => {
         if (!gameId || !game || !user) return;
 
-        const newMessage: ChatMessage = {
-            senderId: user.uid,
-            senderName: user.displayName || 'Anonymous',
-            text: text,
-            timestamp: new Date(),
-        };
-
         try {
             const token = await user.getIdToken();
             const response = await fetch(`/api/games/${gameId}/message`, {
@@ -336,7 +298,7 @@ export function useGameState(gameId: string | null, user: any, game: any) {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
                 },
-                body: JSON.stringify({ text, senderName: newMessage.senderName }),
+                body: JSON.stringify({ text, senderName: user.displayName || 'Anonymous' }),
             });
 
             if (!response.ok) {
@@ -345,13 +307,6 @@ export function useGameState(gameId: string | null, user: any, game: any) {
             }
         } catch (e: any) {
             toast({ variant: 'destructive', title: 'Send Error', description: e.message || 'Could not send message.' });
-            if (gameDocRef) {
-                errorEmitter.emit('permission-error', new FirestorePermissionError({
-                    path: gameDocRef.path,
-                    operation: 'update',
-                    requestResourceData: { message: newMessage.text },
-                }));
-            }
         }
     };
 
@@ -365,19 +320,13 @@ export function useGameState(gameId: string | null, user: any, game: any) {
         if (draggedTileIndex !== null) {
             const newTiles = [...playerTiles];
             const draggedTile = newTiles[draggedTileIndex];
-
-            // Erase from original position
             newTiles[draggedTileIndex] = null;
-            // Place temp tile at target to maintain order
             const temp = newTiles[targetIndex];
             newTiles[targetIndex] = draggedTile;
-
-            // Find original empty spot and place temp
             const originalEmptyIndex = newTiles.indexOf(null);
             if (originalEmptyIndex !== -1) {
                 newTiles[originalEmptyIndex] = temp;
             }
-
             setPlayerTiles(newTiles);
             setSelectedTileIndex(null);
             setDraggedTileIndex(null);
