@@ -14,7 +14,6 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth, useUser } from '@/firebase';
-import { signOut } from 'firebase/auth';
 
 export function UserNav() {
   const router = useRouter();
@@ -22,8 +21,7 @@ export function UserNav() {
   const { user } = useUser();
 
   const handleLogout = async () => {
-    if (!auth) return;
-    await signOut(auth);
+    await auth.signOut();
     router.push('/');
   };
 
@@ -51,20 +49,14 @@ export function UserNav() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <Link href="/profile" passHref>
-            <DropdownMenuItem>
-              Profile
-            </DropdownMenuItem>
+            <DropdownMenuItem>Profile</DropdownMenuItem>
           </Link>
           <Link href="/leaderboard" passHref>
-            <DropdownMenuItem>
-              Leaderboard
-            </DropdownMenuItem>
+            <DropdownMenuItem>Leaderboard</DropdownMenuItem>
           </Link>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={handleLogout}>
-          Log out
-        </DropdownMenuItem>
+        <DropdownMenuItem onClick={handleLogout}>Log out</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
