@@ -7,8 +7,8 @@ import AppLayout from '@/components/app-layout';
 import GameBoard from '@/components/game/game-board';
 import TileRack from '@/components/game/tile-rack';
 import Scoreboard from '@/components/game/scoreboard';
-import { useDoc, useFirestore, useUser, useMemoFirebase } from '@/firebase';
-import { doc } from 'firebase/firestore';
+import { useDoc, useUser, useMemoFirebase } from '@/firebase';
+import { doc } from '@/lib/client/document-client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import {
@@ -26,18 +26,15 @@ import BlankTileDialog from '@/components/game/blank-tile-dialog';
 import ChatWindow from '@/components/game/chat-window';
 import { useGameState } from '@/hooks/use-game-state';
 
-
-// Main Game Component
 function Game() {
   const botTurnRequestRef = useRef<string | null>(null);
   const searchParams = useSearchParams();
   const gameId = searchParams.get('game');
-  const firestore = useFirestore();
   const { user } = useUser();
 
   const gameDocRef = useMemoFirebase(() => {
-    return firestore && gameId ? doc(firestore, 'games', gameId) : null;
-  }, [firestore, gameId]);
+    return gameId ? doc(null, 'games', gameId) : null;
+  }, [gameId]);
 
   const { data: game, isLoading: gameLoading } = useDoc<any>(gameDocRef);
 
@@ -66,7 +63,6 @@ function Game() {
     handleExchange,
     handleHint,
     handleBlankTileSelect,
-    handleSendMessage,
     handleDragStart,
     handleDrop,
     handleBoardDrop,
@@ -137,7 +133,6 @@ function Game() {
     void runBotTurn();
   }, [gameId, game, isBotGame]);
 
-
   return (
     <AppLayout>
       <div className="flex h-full flex-col items-center p-4">
@@ -184,7 +179,6 @@ function Game() {
             onDrop={handleDrop}
           />
 
-          {/* Action Dialogs */}
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <button id="pass-turn-trigger" className="hidden">Pass</button>
@@ -225,7 +219,7 @@ function Game() {
             isOpen={blankTileDialog.isOpen}
             onClose={() => {
               setBlankTileDialog({ isOpen: false, pendingTileIndex: null });
-              handleRecallAll(); // Recall tiles if dialog is closed without selection
+              handleRecallAll();
             }}
             onSelect={handleBlankTileSelect}
           />
@@ -243,8 +237,6 @@ function Game() {
   );
 }
 
-
-// Suspense boundary for client components that use searchParams
 export default function GamePage() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
