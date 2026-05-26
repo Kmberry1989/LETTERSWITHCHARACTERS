@@ -1,13 +1,12 @@
 # Letters with Characters
 
-Human-only multiplayer word game built with Next.js 15, Firebase Auth, Firestore, and optional Genkit-powered hints.
+Human-only multiplayer word game built with Next.js 15, PostgreSQL, Prisma, local session auth, and optional Genkit-powered hints.
 
 ## Requirements
 
 - Node.js 20+
 - npm
-- A Firebase project with Authentication and Firestore enabled
-- Local credentials for Firebase Admin if you want to exercise the server routes outside Firebase App Hosting
+- PostgreSQL database URL
 - Optional: Google AI / Genkit credentials if you want hints and AI word validation to work
 
 ## Local setup
@@ -18,18 +17,28 @@ Human-only multiplayer word game built with Next.js 15, Firebase Auth, Firestore
 npm install
 ```
 
-2. Configure Firebase for the project you want to use.
+2. Configure your environment:
 
-- Client config is currently sourced from [`src/firebase/config.ts`](/Users/kyleberry/Documents/GitHub/LETTERSWITHCHARACTERS/src/firebase/config.ts).
-- For local server-side route execution, provide Google application default credentials or another Firebase Admin credential source that `firebase-admin` can use.
+```bash
+cp .env.example .env.local
+```
 
-3. Start the app:
+Set `DATABASE_URL` to your PostgreSQL connection string.
+
+3. Generate Prisma client and create/update database tables:
+
+```bash
+npm run db:generate
+npm run db:push
+```
+
+4. Start the app:
 
 ```bash
 npm run dev
 ```
 
-4. Optional: start Genkit tooling for AI development:
+5. Optional: start Genkit tooling for AI development:
 
 ```bash
 npm run genkit:dev
@@ -61,7 +70,11 @@ Manual smoke test:
 - both players get the same game id added to their user documents
 - gameplay APIs return 401 when called without auth
 
-## Firestore collections
+## Data model
+
+The first Firebase-free pass uses a generic Prisma-backed document table so the existing game data shape can keep working while the app migrates toward purpose-built relational tables.
+
+Primary document collections currently stored in Postgres:
 
 - `users`
 - `games`
@@ -70,6 +83,8 @@ Manual smoke test:
 
 ## Notes
 
-- Firestore rules in [`firestore.rules`](/Users/kyleberry/Documents/GitHub/LETTERSWITHCHARACTERS/firestore.rules) are currently wide open for development.
-- Bot gameplay has been removed.
+- Firebase dependencies have been removed from `package.json`.
+- Local session auth is intentionally lightweight for development/prototyping. Before a public launch, replace it with a hardened auth provider such as Auth.js, Clerk, or a full credential system with password hashing and OAuth.
+- Realtime Firestore listeners have been replaced with API-backed polling hooks. For production multiplayer, add Socket.IO or a hosted realtime layer.
+- Bot gameplay remains behind existing API routes if present.
 - AI hints remain optional. If AI credentials are not configured, the app should still boot and human-vs-human gameplay should still work.
