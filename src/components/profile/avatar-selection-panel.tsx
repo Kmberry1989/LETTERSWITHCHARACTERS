@@ -9,7 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useToast } from '@/hooks/use-toast';
-import { useDoc, useMemoFirebase, useUser } from '@/firebase';
+import { useAuth, useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { doc, updateDoc } from '@/lib/client/document-client';
 import { avatarCatalog, getAvatarPresetById, hasCompletedAvatarOnboarding, isAvatarMetadataComplete } from '@/lib/avatar-catalog';
 import type { UserProfile } from '@/firebase/firestore/use-users';
@@ -44,6 +44,7 @@ export default function AvatarSelectionPanel({
   const router = useRouter();
   const { toast } = useToast();
   const { user } = useUser();
+  const auth = useAuth();
   const userDocRef = useMemoFirebase(() => (user ? doc(null, 'users', user.uid) : null), [user]);
   const { data: userProfile, isLoading } = useDoc<UserProfile>(userDocRef);
   const [selectedPresetId, setSelectedPresetId] = useState<string>(avatarCatalog[0]?.id || '');
@@ -96,6 +97,7 @@ export default function AvatarSelectionPanel({
           : `${selectedPreset.name} is now ready for play.`,
       });
 
+      await auth.refresh();
       router.push(onCompleteRoute);
       router.refresh();
     } catch (error: any) {
