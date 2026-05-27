@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -145,7 +144,6 @@ function useUserGames() {
 }
 
 export default function DashboardPage() {
-  const router = useRouter();
   const { user, isUserLoading, canPlay } = usePlayableGate();
   const { games, loading: gamesLoading } = useUserGames();
   const loading = isUserLoading || gamesLoading || !user || !canPlay;

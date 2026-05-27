@@ -13,3 +13,20 @@
 [  752373ms] [LOG] [Fast Refresh] done in 398ms @ http://localhost:9002/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5816
 [  942981ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:9002/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5956
 [  943087ms] [LOG] [Fast Refresh] done in 210ms @ http://localhost:9002/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5816
+[ 1094992ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:9002/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5956
+[ 1095060ms] [LOG] [Fast Refresh] done in 180ms @ http://localhost:9002/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5816
+[ 1165583ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:9002/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5956
+[ 1166240ms] [LOG] [Fast Refresh] done in 759ms @ http://localhost:9002/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5816
+[ 1166400ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:9002/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5956
+[ 1166598ms] [LOG] [Fast Refresh] done in 299ms @ http://localhost:9002/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5816
+[ 1176434ms] [LOG] [Fast Refresh] rebuilding @ http://localhost:9002/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5956
+[ 1176488ms] [LOG] [Fast Refresh] done in 155ms @ http://localhost:9002/_next/static/chunks/node_modules_next_dist_client_cf1d9188._.js:5816
+[ 1246511ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:9002/_next/static/chunks/node_modules_firebase_app_dist_esm_index_esm_ebcd0789.js:0
+[ 1246514ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:9002/_next/static/chunks/node_modules_firebase_auth_dist_esm_index_esm_58527836.js:0
+[ 1246514ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:9002/_next/static/chunks/node_modules_firebase_auth_dist_esm_index_esm_ebcd0789.js:0
+[ 1246514ms] [ERROR] Failed to load resource: the server responded with a status of 404 (Not Found) @ http://localhost:9002/_next/static/chunks/node_modules_922c8f1f._.js:0
+[ 1246524ms] [ERROR] Authentication Error Error: Failed to load chunk /_next/static/chunks/node_modules_firebase_app_dist_esm_index_esm_ebcd0789.js from module [project]/node_modules/firebase/app/dist/esm/index.esm.js [app-client] (ecmascript, async loader)
+    at FirebaseProvider.useMemo[auth] [as signIn] (http://localhost:9002/_next/static/chunks/src_0c6bf5ef._.js?id=%255Bproject%255D%252Fsrc%252Ffirebase%252Fprovider.tsx+%255Bapp-client%255D+%2528ecmascript%2529:133:39)
+    at async handleGoogleSignIn (http://localhost:9002/_next/static/chunks/_e28ae1e1._.js?id=%255Bproject%255D%252Fsrc%252Fapp%252Fpage.tsx+%255Bapp-client%255D+%2528ecmascript%2529:67:26) @ http://localhost:9002/_next/static/chunks/node_modules_next_dist_b0daae9a._.js:2405
+[ 1256408ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:9002/:0
+[ 1256527ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:9002/favicon.ico:0

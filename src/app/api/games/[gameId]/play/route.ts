@@ -16,6 +16,8 @@ type GameDoc = {
       score: number;
       avatarId: string;
       photoURL?: string | null;
+      avatarPresetId?: string | null;
+      avatarPosterUrl?: string | null;
       tiles: Tile[];
       hintUsed?: boolean;
     }

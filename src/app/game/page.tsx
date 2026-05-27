@@ -2,12 +2,12 @@
 
 import React, { Suspense, useEffect, useRef } from 'react';
 
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/app-layout';
 import GameBoard from '@/components/game/game-board';
 import TileRack from '@/components/game/tile-rack';
 import Scoreboard from '@/components/game/scoreboard';
-import { useDoc, useUser, useMemoFirebase } from '@/firebase';
+import { useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from '@/lib/client/document-client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -29,7 +29,6 @@ import { usePlayableGate } from '@/hooks/use-playable-gate';
 
 function Game() {
   const botTurnRequestRef = useRef<string | null>(null);
-  const router = useRouter();
   const searchParams = useSearchParams();
   const gameId = searchParams.get('game');
   const { user, isUserLoading, canPlay } = usePlayableGate();

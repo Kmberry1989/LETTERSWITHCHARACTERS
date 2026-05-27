@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
-import { useRouter } from 'next/navigation';
 import { addDoc, collection, doc, getDoc, limit, orderBy, query, runTransaction, serverTimestamp } from '@/lib/client/document-client';
 import AppLayout from '@/components/app-layout';
 import LobbyChat, { type LobbyMessage } from '@/components/lobby/lobby-chat';
@@ -9,7 +8,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useUser, useCollection, useMemoFirebase } from '@/firebase';
+import { useCollection, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { createTileBag, drawTiles } from '@/lib/game-logic';
 import type { Tile } from '@/lib/game/types';
@@ -105,7 +104,6 @@ function OpenChallenges({
 
 export default function LobbyPage() {
   const { user, canPlay } = usePlayableGate();
-  const router = useRouter();
   const { toast } = useToast();
 
   const messagesQuery = useMemoFirebase(() => {

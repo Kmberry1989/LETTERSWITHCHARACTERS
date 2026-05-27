@@ -6,6 +6,7 @@ import AvatarSelectionPanel from '@/components/profile/avatar-selection-panel';
 import { Card, CardContent } from '@/components/ui/card';
 import { useUser } from '@/firebase';
 import { getPostLoginRoute } from '@/lib/auth-flow';
+import { hasCompletedAvatarOnboarding } from '@/lib/avatar-catalog';
 
 export default function AvatarOnboardingPage() {
   const router = useRouter();
@@ -17,7 +18,7 @@ export default function AvatarOnboardingPage() {
       return;
     }
 
-    if (!isUserLoading && user?.onboardingCompletedAt) {
+    if (!isUserLoading && hasCompletedAvatarOnboarding(user)) {
       router.replace(getPostLoginRoute(user));
     }
   }, [isUserLoading, router, user]);
