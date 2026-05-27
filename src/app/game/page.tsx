@@ -77,33 +77,9 @@ function Game() {
     setIsExchanging
   } = useGameState(gameId, user, game);
 
-  if (gameLoading || isUserLoading || !user) {
-    return (
-      <AppLayout>
-        <div className="p-4 space-y-4">
-          <Skeleton className="h-24 w-full" />
-          <Skeleton className="h-[400px] w-full" />
-          <Skeleton className="h-32 w-full" />
-        </div>
-      </AppLayout>
-    );
-  }
-
-  if (!game) {
-    return (
-      <AppLayout>
-        <div className="p-4 text-center">
-          <h2 className="text-xl font-semibold">Game not found</h2>
-          <p className="text-muted-foreground">The game you are looking for does not exist or has been deleted.</p>
-          <Button asChild className="mt-4"><a href="/dashboard">Go to Dashboard</a></Button>
-        </div>
-      </AppLayout>
-    );
-  }
-
-  const userPlayerData = game.playerData[user.uid];
-  const opponentPlayerData = opponentUid ? game.playerData[opponentUid] : null;
-  const isBotGame = game.players.includes('bitty-botty-001');
+  const userPlayerData = user && game ? game.playerData[user.uid] : null;
+  const opponentPlayerData = game && opponentUid ? game.playerData[opponentUid] : null;
+  const isBotGame = Boolean(game?.players.includes('bitty-botty-001'));
 
   useEffect(() => {
     if (!gameId || !game || !isBotGame || game.status !== 'active') {
@@ -140,6 +116,30 @@ function Game() {
 
     void runBotTurn();
   }, [gameId, game, isBotGame]);
+
+  if (gameLoading || isUserLoading || !user) {
+    return (
+      <AppLayout>
+        <div className="p-4 space-y-4">
+          <Skeleton className="h-24 w-full" />
+          <Skeleton className="h-[400px] w-full" />
+          <Skeleton className="h-32 w-full" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!game) {
+    return (
+      <AppLayout>
+        <div className="p-4 text-center">
+          <h2 className="text-xl font-semibold">Game not found</h2>
+          <p className="text-muted-foreground">The game you are looking for does not exist or has been deleted.</p>
+          <Button asChild className="mt-4"><a href="/dashboard">Go to Dashboard</a></Button>
+        </div>
+      </AppLayout>
+    );
+  }
 
   return (
     <AppLayout>

@@ -3,6 +3,8 @@
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { firebaseConfig } from '@/firebase/config';
 
+const FIREBASE_CLIENT_APP_NAME = 'letters-with-characters-client';
+
 export type AppUser = {
   uid: string;
   email: string | null;
@@ -111,12 +113,22 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
 
       if (payload?.mode === 'google') {
         try {
-          const [{ initializeApp, getApps }, { getAuth, GoogleAuthProvider, signInWithPopup }] = await Promise.all([
+          const [{ initializeApp, getApp }, { getAuth, GoogleAuthProvider, signInWithPopup }] = await Promise.all([
             import('firebase/app'),
             import('firebase/auth'),
           ]);
 
-          const app = getApps()[0] ?? initializeApp(firebaseConfig);
+          if (!firebaseConfig.apiKey || !firebaseConfig.appId || !firebaseConfig.authDomain) {
+            throw new Error('Firebase web configuration is incomplete.');
+          }
+
+          let app;
+          try {
+            app = getApp(FIREBASE_CLIENT_APP_NAME);
+          } catch {
+            app = initializeApp(firebaseConfig, FIREBASE_CLIENT_APP_NAME);
+          }
+
           const provider = new GoogleAuthProvider();
           provider.setCustomParameters({ prompt: 'select_account' });
           const credential = await signInWithPopup(getAuth(app), provider);
