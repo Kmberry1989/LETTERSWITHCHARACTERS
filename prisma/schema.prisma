@@ -32,3 +32,16 @@ model AppSession {
   @@index([userId])
   @@map("app_sessions")
 }
+
+/// Local username/password credentials for the lightweight auth system.
+model AppCredential {
+  id           String   @id @default(cuid())
+  userId       String   @unique
+  username     String   @unique
+  passwordHash String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([username])
+  @@map("app_credentials")
+}

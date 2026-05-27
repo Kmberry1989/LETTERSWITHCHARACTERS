@@ -1,19 +1,23 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { PenSquare, Chrome } from 'lucide-react';
+import { PenSquare, UserRound } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuth, type AppUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { getPostLoginRoute } from '@/lib/auth-flow';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 export default function LoginPage() {
   const router = useRouter();
   const auth = useAuth();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const user = auth.currentUser;
 
   useEffect(() => {
@@ -41,13 +45,17 @@ export default function LoginPage() {
     setIsLoading(false);
   };
 
-  const handleGoogleSignIn = async () => {
+  const handlePasswordAuth = async (action: 'signin' | 'signup') => {
     setIsLoading(true);
     try {
-      const user = await auth.signIn({
-        mode: 'google',
+      const signedInUser = await auth.signIn({
+        mode: 'email',
+        action,
+        username,
+        password,
+        displayName: username,
       });
-      handleAuthSuccess(user);
+      handleAuthSuccess(signedInUser);
     } catch (error) {
       handleAuthError(error);
     }
@@ -62,18 +70,58 @@ export default function LoginPage() {
           </div>
           <CardTitle className="text-2xl font-headline">Letters with Characters</CardTitle>
           <CardDescription>
-            Sign in with Google, then choose your playable 3D character before entering the lobby.
+            Sign in or create an account, then choose your playable 3D character before entering the lobby.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4 py-4">
-            <Button onClick={handleGoogleSignIn} disabled={isLoading} className="h-11 w-full shadow-sm">
-              <Chrome className="mr-2 h-4 w-4" /> Continue with Google
-            </Button>
-            <div className="rounded-xl border bg-muted/40 p-4 text-sm text-muted-foreground">
-              Every playable account now completes one avatar setup step after sign-in. Your chosen character appears in the lobby, profile, and game UI.
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              void handlePasswordAuth('signin');
+            }}
+            className="space-y-4 py-4"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="username">Username</Label>
+              <Input
+                id="username"
+                value={username}
+                onChange={(event) => setUsername(event.target.value)}
+                placeholder="wordplayer"
+                autoComplete="username"
+                required
+              />
             </div>
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="password">Password</Label>
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                placeholder="At least 8 characters"
+                autoComplete="current-password"
+                required
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button type="submit" disabled={isLoading} className="w-full">
+                <UserRound className="mr-2 h-4 w-4" /> Sign In
+              </Button>
+              <Button
+                type="button"
+                variant="secondary"
+                disabled={isLoading}
+                className="w-full"
+                onClick={() => void handlePasswordAuth('signup')}
+              >
+                Create Account
+              </Button>
+            </div>
+            <div className="rounded-xl border bg-muted/40 p-4 text-sm text-muted-foreground">
+              Usernames use lowercase letters, numbers, and underscores. New accounts continue into avatar setup before gameplay.
+            </div>
+          </form>
         </CardContent>
       </Card>
     </div>

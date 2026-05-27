@@ -23,7 +23,9 @@ export type AppUser = {
 
 type SignInPayload = {
   mode?: 'email' | 'guest' | 'google';
+  action?: 'signin' | 'signup';
   email?: string;
+  username?: string;
   password?: string;
   displayName?: string;
 };
