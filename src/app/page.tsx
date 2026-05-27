@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { PenSquare, Chrome, Mail, User as UserIcon } from 'lucide-react';
+import { PenSquare, Chrome, Mail } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -43,19 +43,7 @@ export default function LoginPage() {
     try {
       const user = await auth.signIn({
         mode: 'google',
-        email: email || undefined,
-        displayName: email ? email.split('@')[0] : 'Google Player',
       });
-      handleAuthSuccess(user);
-    } catch (error) {
-      handleAuthError(error);
-    }
-  };
-
-  const handleAnonymousSignIn = async () => {
-    setIsLoading(true);
-    try {
-      const user = await auth.signIn({ mode: 'guest', displayName: 'Anonymous Player' });
       handleAuthSuccess(user);
     } catch (error) {
       handleAuthError(error);
@@ -97,17 +85,17 @@ export default function LoginPage() {
         <CardContent>
           <Tabs defaultValue="social">
             <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="social">Social</TabsTrigger>
+              <TabsTrigger value="social">Google</TabsTrigger>
               <TabsTrigger value="email">Email</TabsTrigger>
             </TabsList>
             <TabsContent value="social">
               <div className="flex flex-col space-y-4 py-4">
                 <Button onClick={handleGoogleSignIn} disabled={isLoading} className="shadow-sm">
-                  <Chrome className="mr-2 h-4 w-4" /> Continue without Firebase
+                  <Chrome className="mr-2 h-4 w-4" /> Continue with Google
                 </Button>
-                <Button variant="secondary" onClick={handleAnonymousSignIn} disabled={isLoading} className="shadow-sm">
-                  <UserIcon className="mr-2 h-4 w-4" /> Continue as Guest
-                </Button>
+                <p className="text-sm text-muted-foreground">
+                  Google sign-in is required for playable sessions. Email login remains available as a development fallback.
+                </p>
               </div>
             </TabsContent>
             <TabsContent value="email">

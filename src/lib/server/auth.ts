@@ -8,6 +8,7 @@ export type AppUser = {
   displayName: string | null;
   photoURL: string | null;
   isAnonymous?: boolean;
+  providerId?: 'google.com' | 'password' | 'guest';
   getIdToken?: () => Promise<string>;
 };
 
@@ -73,6 +74,7 @@ export async function getUserByToken(token?: string | null): Promise<AppUser | n
     displayName: profile.displayName || profile.email || 'Player',
     photoURL: profile.photoURL || null,
     isAnonymous: profile.isAnonymous || false,
+    providerId: profile.providerId || (profile.isAnonymous ? 'guest' : 'password'),
   };
 }
 
@@ -88,6 +90,7 @@ export async function verifyBearerToken(request: Request) {
 }
 
 export async function upsertUserProfile(user: AppUser) {
+  const existing = await getDocument<any>('users', user.uid);
   return setDocument(
     'users',
     user.uid,
@@ -97,9 +100,13 @@ export async function upsertUserProfile(user: AppUser) {
       displayName: user.displayName || user.email || 'Player',
       photoURL: user.photoURL,
       isAnonymous: Boolean(user.isAnonymous),
-      totalScore: 0,
-      avatarId: 'user-1',
-      gameIds: [],
+      providerId: user.providerId || (user.isAnonymous ? 'guest' : 'password'),
+      totalScore: existing?.totalScore ?? 0,
+      avatarId: existing?.avatarId ?? 'user-1',
+      tileSetId: existing?.tileSetId ?? 'tile-plastic',
+      boardThemeId: existing?.boardThemeId ?? 'board-green',
+      themeId: existing?.themeId ?? 'default',
+      gameIds: existing?.gameIds ?? [],
       updatedAt: new Date().toISOString(),
     },
     true
@@ -113,5 +120,6 @@ export function makeUser(overrides: Partial<AppUser> & Pick<AppUser, 'uid'>): Ap
     displayName: overrides.displayName ?? overrides.email ?? 'Player',
     photoURL: overrides.photoURL ?? null,
     isAnonymous: overrides.isAnonymous ?? false,
+    providerId: overrides.providerId ?? (overrides.isAnonymous ? 'guest' : 'password'),
   };
 }

@@ -8,7 +8,7 @@ import { Input } from '../ui/input';
 import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 import { Send, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { User } from 'firebase/auth';
+import type { AppUser } from '@/firebase';
 
 export type ChatMessage = {
   senderId: string;
@@ -22,7 +22,7 @@ type ChatWindowProps = {
   onClose: () => void;
   messages: ChatMessage[];
   onSendMessage: (text: string) => void;
-  currentUser: User | null;
+  currentUser: AppUser | null;
 };
 
 export default function ChatWindow({ isOpen, onClose, messages, onSendMessage, currentUser }: ChatWindowProps) {

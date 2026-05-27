@@ -1,6 +1,7 @@
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
+import { firebaseConfig } from '@/firebase/config';
 
 export type AppUser = {
   uid: string;
@@ -8,6 +9,7 @@ export type AppUser = {
   displayName: string | null;
   photoURL: string | null;
   isAnonymous?: boolean;
+  providerId?: 'google.com' | 'password' | 'guest';
   token?: string;
   getIdToken: () => Promise<string>;
 };
@@ -105,10 +107,42 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
   const auth = useMemo<LocalAuth>(() => ({
     currentUser: userAuthState.user,
     signIn: async (payload: SignInPayload) => {
+      let sessionPayload: Record<string, unknown> = payload ? { ...payload } : {};
+
+      if (payload?.mode === 'google') {
+        try {
+          const [{ initializeApp, getApps }, { getAuth, GoogleAuthProvider, signInWithPopup }] = await Promise.all([
+            import('firebase/app'),
+            import('firebase/auth'),
+          ]);
+
+          const app = getApps()[0] ?? initializeApp(firebaseConfig);
+          const provider = new GoogleAuthProvider();
+          provider.setCustomParameters({ prompt: 'select_account' });
+          const credential = await signInWithPopup(getAuth(app), provider);
+
+          sessionPayload = {
+            mode: 'google',
+            uid: credential.user.uid,
+            email: credential.user.email,
+            displayName: credential.user.displayName,
+            photoURL: credential.user.photoURL,
+          };
+        } catch (error: any) {
+          if (error?.code === 'auth/popup-closed-by-user') {
+            throw new Error('Google sign-in was canceled.');
+          }
+          if (error?.code === 'auth/popup-blocked') {
+            throw new Error('Google sign-in popup was blocked by the browser.');
+          }
+          throw new Error(error?.message || 'Google sign-in failed.');
+        }
+      }
+
       const response = await fetch('/api/auth/session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(sessionPayload),
       });
 
       const data = await response.json().catch(() => null);

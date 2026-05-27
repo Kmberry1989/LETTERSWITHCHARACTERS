@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminAuth, getAdminFirestore } from '@/firebase/admin';
-import { FieldValue } from 'firebase-admin/firestore';
 export const dynamic = 'force-dynamic';
 
 type GameDoc = {
@@ -61,7 +60,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     senderId: uid,
     senderName,
     text,
-    timestamp: FieldValue.serverTimestamp(),
+    timestamp: new Date().toISOString(),
   };
 
   await gameRef.update({

@@ -22,6 +22,22 @@ export async function POST(request: Request) {
       displayName: body?.displayName || 'Anonymous Player',
       photoURL: null,
       isAnonymous: true,
+      providerId: 'guest',
+    });
+  } else if (mode === 'google') {
+    const uid = String(body?.uid || '').trim();
+    const email = String(body?.email || '').trim().toLowerCase();
+
+    if (!uid || !email) {
+      return NextResponse.json({ error: 'Google sign-in did not return a valid user profile.' }, { status: 400 });
+    }
+
+    user = makeUser({
+      uid,
+      email,
+      displayName: body?.displayName || email.split('@')[0] || 'Google Player',
+      photoURL: body?.photoURL || null,
+      providerId: 'google.com',
     });
   } else {
     const email = String(body?.email || '').trim().toLowerCase();
@@ -34,6 +50,7 @@ export async function POST(request: Request) {
       email,
       displayName: body?.displayName || email.split('@')[0],
       photoURL: null,
+      providerId: 'password',
     });
   }
 

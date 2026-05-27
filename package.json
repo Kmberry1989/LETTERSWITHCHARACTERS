@@ -19,7 +19,7 @@
     "@genkit-ai/google-genai": "^1.20.0",
     "@genkit-ai/next": "^1.20.0",
     "@hookform/resolvers": "^4.1.3",
-    "@prisma/client": "latest",
+    "@prisma/client": "^6.16.2",
     "@radix-ui/react-accordion": "^1.2.3",
     "@radix-ui/react-alert-dialog": "^1.1.6",
     "@radix-ui/react-avatar": "^1.1.3",
@@ -47,6 +47,7 @@
     "date-fns": "^3.6.0",
     "dotenv": "^16.5.0",
     "embla-carousel-react": "^8.6.0",
+    "firebase": "^11.10.0",
     "framer-motion": "^11.2.10",
     "genkit": "^1.20.0",
     "lucide-react": "^0.475.0",
@@ -67,13 +68,11 @@
     "@types/react-dom": "^18",
     "genkit-cli": "^0.0.2",
     "postcss": "^8.5.14",
-    "prisma": "latest",
+    "prisma": "^6.16.2",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.9.3"
   },
   "overrides": {
-    "@opentelemetry/auto-instrumentations-node": "^0.75.0",
-    "@opentelemetry/sdk-node": "^0.218.0",
     "@tootallnate/once": "^3.0.1",
     "postcss": "$postcss"
   }

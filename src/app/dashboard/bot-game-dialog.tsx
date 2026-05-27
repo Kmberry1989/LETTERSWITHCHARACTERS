@@ -20,15 +20,14 @@ import {
     SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { useFirestore, useUser } from '@/firebase';
+import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { addDoc, collection, doc, updateDoc, arrayUnion, getDoc } from 'firebase/firestore';
+import { addDoc, collection, doc, getDoc, updateDoc } from '@/lib/client/document-client';
 import { createTileBag, drawTiles } from '@/lib/game-logic';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
 import type { UserProfile } from '@/firebase/firestore/use-users';
-import type { Tile } from '@/lib/game/types';
 
 interface BotGameDialogProps {
     disabled?: boolean;
@@ -41,11 +40,10 @@ export function BotGameDialog({ disabled, existingGames, children }: BotGameDial
     const [selectedDifficulty, setSelectedDifficulty] = useState<'Easy' | 'Medium' | 'Hard'>('Medium');
     const [isCreating, setIsCreating] = useState(false);
     const { user } = useUser();
-    const firestore = useFirestore();
     const { toast } = useToast();
 
     const handleNewBotGame = async () => {
-        if (!user || !firestore) {
+        if (!user) {
             toast({
                 variant: "destructive",
                 title: "Unable to start new game",
@@ -75,8 +73,7 @@ export function BotGameDialog({ disabled, existingGames, children }: BotGameDial
             return;
         }
 
-
-        const userDocRef = doc(firestore, 'users', user.uid);
+        const userDocRef = doc(null, 'users', user.uid);
         const userDocSnap = await getDoc(userDocRef);
         const userProfile = userDocSnap.data() as UserProfile | undefined;
 
@@ -127,12 +124,13 @@ export function BotGameDialog({ disabled, existingGames, children }: BotGameDial
         };
 
         try {
-            const gamesCol = collection(firestore, 'games');
+            const gamesCol = collection(null, 'games');
             const gameDocRef = await addDoc(gamesCol, newGame);
 
             // Now update the user's profile with the new game ID
+            const nextGameIds = Array.from(new Set([...(userProfile.gameIds || []), gameDocRef.id]));
             await updateDoc(userDocRef, {
-                gameIds: arrayUnion(gameDocRef.id)
+                gameIds: nextGameIds,
             });
 
             toast({
@@ -146,20 +144,18 @@ export function BotGameDialog({ disabled, existingGames, children }: BotGameDial
         } catch (error: any) {
             console.error("Error creating bot game:", error);
 
-            if (error.code === 'permission-denied') {
-                const permissionError = new FirestorePermissionError({
-                    path: 'games or users',
-                    operation: 'create',
-                    requestResourceData: newGame,
-                } satisfies SecurityRuleContext);
-                errorEmitter.emit('permission-error', permissionError);
-            } else {
-                toast({
-                    variant: "destructive",
-                    title: "Error creating game",
-                    description: error.message || "An unexpected error occurred.",
-                });
-            }
+            const permissionError = new FirestorePermissionError({
+                path: 'games or users',
+                operation: 'create',
+                requestResourceData: newGame,
+                user,
+            } satisfies SecurityRuleContext);
+            errorEmitter.emit('permission-error', permissionError);
+            toast({
+                variant: "destructive",
+                title: "Error creating game",
+                description: error.message || "An unexpected error occurred.",
+            });
         } finally {
             setIsCreating(false);
         }

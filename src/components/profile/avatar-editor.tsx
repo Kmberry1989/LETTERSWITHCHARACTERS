@@ -7,8 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { ScrollArea } from '../ui/scroll-area';
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { useUser, useDoc, useMemoFirebase } from '@/firebase';
+import { doc, updateDoc } from '@/lib/client/document-client';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
@@ -70,12 +70,11 @@ function AvatarEditorSkeleton() {
 
 export default function AvatarEditor() {
   const { user } = useUser();
-  const firestore = useFirestore();
   const { toast } = useToast();
   
   const userDocRef = useMemoFirebase(() => {
-    return user && firestore ? doc(firestore, `users/${user.uid}`) : null;
-  }, [user, firestore]);
+    return user ? doc(null, 'users', user.uid) : null;
+  }, [user]);
 
   const { data: userProfile, isLoading } = useDoc<UserProfile>(userDocRef);
 
@@ -106,11 +105,12 @@ export default function AvatarEditor() {
                 description: 'Your new look has been applied.',
             });
         })
-        .catch((serverError) => {
+        .catch(() => {
             const permissionError = new FirestorePermissionError({
                 path: userDocRef.path,
                 operation: 'update',
                 requestResourceData: updatePayload,
+                user,
             } satisfies SecurityRuleContext);
             errorEmitter.emit('permission-error', permissionError);
             toast({

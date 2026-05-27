@@ -1,6 +1,8 @@
 'use client';
 
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import AppLayout from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +15,6 @@ import { doc, getDoc } from '@/lib/client/document-client';
 import type { Tile } from '@/lib/game/types';
 import { ChatMessage } from '@/components/game/chat-window';
 import type { UserProfile } from '@/firebase/firestore/use-users';
-import { useEffect, useState } from 'react';
 import { Swords } from 'lucide-react';
 
 interface PlayerData {
@@ -141,10 +142,17 @@ function useUserGames() {
 }
 
 export default function DashboardPage() {
-  const { user } = useUser();
+  const router = useRouter();
+  const { user, isUserLoading } = useUser();
   const { games, loading: gamesLoading } = useUserGames();
 
-  const loading = gamesLoading || !user;
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.replace('/');
+    }
+  }, [isUserLoading, router, user]);
+
+  const loading = isUserLoading || gamesLoading || !user;
 
   return (
     <AppLayout>

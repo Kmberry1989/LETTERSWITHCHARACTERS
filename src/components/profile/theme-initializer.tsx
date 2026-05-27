@@ -1,9 +1,9 @@
 'use client';
 
-import { useUser, useDoc, useFirestore, useMemoFirebase } from '@/firebase';
+import { useUser, useDoc, useMemoFirebase } from '@/firebase';
 import type { UserProfile } from '@/firebase/firestore/use-users';
 import { useEffect } from 'react';
-import { doc } from 'firebase/firestore';
+import { doc } from '@/lib/client/document-client';
 
 
 const themes = [
@@ -22,11 +22,10 @@ const themes = [
  */
 export function ClientThemeInitializer() {
     const { user } = useUser();
-    const firestore = useFirestore();
 
     const userDocRef = useMemoFirebase(() => {
-        return user && firestore ? doc(firestore, `users/${user.uid}`) : null;
-    }, [user, firestore]);
+        return user ? doc(null, 'users', user.uid) : null;
+    }, [user]);
 
     // Only call useDoc if we have a user ID.
     const { data: userProfile } = useDoc<UserProfile>(userDocRef);

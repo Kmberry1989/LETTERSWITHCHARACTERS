@@ -7,7 +7,7 @@ import { Input } from '../ui/input';
 import { ScrollArea } from '../ui/scroll-area';
 import { Send } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import type { User } from 'firebase/auth';
+import type { AppUser } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Skeleton } from '../ui/skeleton';
 
@@ -23,7 +23,7 @@ export type LobbyMessage = {
 type LobbyChatProps = {
   messages: LobbyMessage[];
   onSendMessage: (text: string) => void;
-  currentUser: User | null;
+  currentUser: AppUser | null;
   isLoading: boolean;
 };
 

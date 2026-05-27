@@ -2,7 +2,7 @@
 
 import React, { Suspense, useEffect, useRef } from 'react';
 
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/app-layout';
 import GameBoard from '@/components/game/game-board';
 import TileRack from '@/components/game/tile-rack';
@@ -28,9 +28,16 @@ import { useGameState } from '@/hooks/use-game-state';
 
 function Game() {
   const botTurnRequestRef = useRef<string | null>(null);
+  const router = useRouter();
   const searchParams = useSearchParams();
   const gameId = searchParams.get('game');
-  const { user } = useUser();
+  const { user, isUserLoading } = useUser();
+
+  useEffect(() => {
+    if (!isUserLoading && !user) {
+      router.replace('/');
+    }
+  }, [isUserLoading, router, user]);
 
   const gameDocRef = useMemoFirebase(() => {
     return gameId ? doc(null, 'games', gameId) : null;
@@ -62,6 +69,7 @@ function Game() {
     handlePass,
     handleExchange,
     handleHint,
+    handleSendMessage,
     handleBlankTileSelect,
     handleDragStart,
     handleDrop,
@@ -69,7 +77,7 @@ function Game() {
     setIsExchanging
   } = useGameState(gameId, user, game);
 
-  if (gameLoading || !user) {
+  if (gameLoading || isUserLoading || !user) {
     return (
       <AppLayout>
         <div className="p-4 space-y-4">

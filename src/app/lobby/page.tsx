@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo } from 'react';
-import { addDoc, collection, doc, getDoc, limit, orderBy, query, runTransaction, serverTimestamp, Timestamp } from '@/lib/client/document-client';
+import { useEffect, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { addDoc, collection, doc, getDoc, limit, orderBy, query, runTransaction, serverTimestamp } from '@/lib/client/document-client';
 import AppLayout from '@/components/app-layout';
 import LobbyChat, { type LobbyMessage } from '@/components/lobby/lobby-chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -14,6 +15,8 @@ import { createTileBag, drawTiles } from '@/lib/game-logic';
 import type { Tile } from '@/lib/game/types';
 import type { UserProfile } from '@/firebase/firestore/use-users';
 
+type LocalTimestamp = Date | string | { toDate: () => Date };
+
 type Challenge = {
   id: string;
   creatorUid: string;
@@ -21,8 +24,8 @@ type Challenge = {
   creatorAvatarId?: string;
   creatorPhotoURL?: string | null;
   status: 'open' | 'accepted';
-  createdAt?: Date | Timestamp;
-  acceptedAt?: Date | Timestamp;
+  createdAt?: LocalTimestamp;
+  acceptedAt?: LocalTimestamp;
   acceptedByUid?: string;
   gameId?: string;
 };
@@ -93,7 +96,14 @@ function OpenChallenges({
 
 export default function LobbyPage() {
   const { user } = useUser();
+  const router = useRouter();
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (!user) {
+      router.replace('/');
+    }
+  }, [router, user]);
 
   const messagesQuery = useMemoFirebase(() => {
     return query(collection(null, 'lobbyMessages'), orderBy('timestamp', 'desc'), limit(50));

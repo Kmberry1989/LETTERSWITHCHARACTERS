@@ -1,13 +1,16 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { collection, onSnapshot, QuerySnapshot, DocumentData } from 'firebase/firestore';
-import { useFirestore } from '../provider';
-import type { User } from 'firebase/auth';
+import { useMemo } from 'react';
+import { collection } from '@/lib/client/document-client';
+import { useCollection } from './use-collection';
 
-// We'll define a simpler UserProfile type for our app's purposes
-export interface UserProfile extends Partial<User> {
+export interface UserProfile {
   uid: string;
+  email?: string | null;
+  displayName?: string | null;
+  photoURL?: string | null;
+  isAnonymous?: boolean;
+  providerId?: string;
   totalScore?: number;
   avatarId?: string;
   tileSetId?: string;
@@ -17,33 +20,12 @@ export interface UserProfile extends Partial<User> {
 }
 
 export function useUsers() {
-  const firestore = useFirestore();
-  const [users, setUsers] = useState<UserProfile[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<Error | null>(null);
+  const usersCollectionRef = useMemo(() => collection(null, 'users'), []);
+  const { data, isLoading, error } = useCollection<UserProfile>(usersCollectionRef);
 
-  useEffect(() => {
-    if (!firestore) return;
-
-    const usersCollectionRef = collection(firestore, 'users');
-    const unsubscribe = onSnapshot(usersCollectionRef, 
-      (snapshot: QuerySnapshot<DocumentData>) => {
-        const userList = snapshot.docs.map(doc => ({
-          uid: doc.id,
-          ...doc.data(),
-        })) as UserProfile[];
-        setUsers(userList);
-        setLoading(false);
-      },
-      (err) => {
-        console.error("Error fetching users:", err);
-        setError(err);
-        setLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [firestore]);
-
-  return { users, loading, error };
+  return {
+    users: data || [],
+    loading: isLoading,
+    error,
+  };
 }

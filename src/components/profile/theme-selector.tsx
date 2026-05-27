@@ -4,8 +4,8 @@ import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Card } from '../ui/card';
 import { useEffect, useState } from 'react';
-import { useUser, useFirestore, useDoc, useMemoFirebase } from '@/firebase';
-import { doc, updateDoc } from 'firebase/firestore';
+import { useUser, useDoc, useMemoFirebase } from '@/firebase';
+import { doc, updateDoc } from '@/lib/client/document-client';
 import type { UserProfile } from '@/firebase/firestore/use-users';
 import { useToast } from '@/hooks/use-toast';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -39,12 +39,11 @@ function ThemeSelectorSkeleton() {
 
 export default function ThemeSelector() {
   const { user } = useUser();
-  const firestore = useFirestore();
   const { toast } = useToast();
 
   const userDocRef = useMemoFirebase(() => {
-    return user && firestore ? doc(firestore, `users/${user.uid}`) : null;
-  }, [user, firestore]);
+    return user ? doc(null, 'users', user.uid) : null;
+  }, [user]);
   
   const { data: userProfile, isLoading } = useDoc<UserProfile>(userDocRef);
   const [selectedTheme, setSelectedTheme] = useState('default');
@@ -72,11 +71,12 @@ export default function ThemeSelector() {
 
     const updatePayload = { themeId };
     updateDoc(userDocRef, updatePayload)
-        .catch((serverError) => {
+        .catch(() => {
             const permissionError = new FirestorePermissionError({
                 path: userDocRef.path,
                 operation: 'update',
                 requestResourceData: updatePayload,
+                user,
             } satisfies SecurityRuleContext);
             errorEmitter.emit('permission-error', permissionError);
             toast({
