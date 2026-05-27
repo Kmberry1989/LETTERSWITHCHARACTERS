@@ -1,0 +1,21 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - generic [ref=e4]:
+      - img [ref=e6]
+      - generic [ref=e9]: Letters with Characters
+      - generic [ref=e10]: Sign in to start playing
+    - generic [ref=e12]:
+      - tablist [ref=e13]:
+        - tab "Google" [selected] [ref=e14] [cursor=pointer]
+        - tab "Email" [ref=e15] [cursor=pointer]
+      - tabpanel "Google" [ref=e16]:
+        - generic [ref=e17]:
+          - button "Continue with Google" [ref=e18] [cursor=pointer]:
+            - img
+            - text: Continue with Google
+          - paragraph [ref=e19]: Google sign-in is required for playable sessions. Email login remains available as a development fallback.
+  - region "Notifications (F8)":
+    - list
+  - button "Open Next.js Dev Tools" [ref=e25] [cursor=pointer]:
+    - img [ref=e26]
+  - alert [ref=e29]

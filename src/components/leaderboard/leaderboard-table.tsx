@@ -4,7 +4,7 @@
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { resolveAvatarImage } from '@/lib/avatar-catalog';
 import { useUsers } from '@/firebase';
 import { Skeleton } from '../ui/skeleton';
 
@@ -18,7 +18,8 @@ export default function LeaderboardTable() {
       name: user.displayName || 'Anonymous',
       // For demo, if totalScore doesn't exist, generate a random one
       score: user.totalScore || Math.floor(Math.random() * 2500),
-      avatarId: user.avatarId || 'user-1' 
+      avatarPosterUrl: user.avatarPosterUrl || null,
+      photoURL: user.photoURL || null,
     }))
     .sort((a, b) => b.score - a.score)
     .map((player, index) => ({ ...player, rank: index + 1 }));
@@ -52,14 +53,14 @@ export default function LeaderboardTable() {
               </TableRow>
             ))}
             {!loading && leaderboardData.map((player) => {
-              const avatarImage = PlaceHolderImages.find(p => p.id === player.avatarId);
+              const avatarImage = resolveAvatarImage(player);
               return (
                 <TableRow key={player.rank} className="h-16">
                   <TableCell className="text-center text-lg font-bold text-muted-foreground">{player.rank}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-4">
                       <Avatar>
-                        {avatarImage && <AvatarImage src={avatarImage.imageUrl} alt={player.name} data-ai-hint={avatarImage.imageHint} />}
+                        {avatarImage && <AvatarImage src={avatarImage} alt={player.name} />}
                         <AvatarFallback>{player.name.substring(0, 2)}</AvatarFallback>
                       </Avatar>
                       <span className="font-medium">{player.name}</span>

@@ -1,7 +1,7 @@
 'use client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Card, CardContent } from '@/components/ui/card';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
+import { resolveAvatarImage } from '@/lib/avatar-catalog';
 import { Badge } from '../ui/badge';
 import type { VariantProps } from 'class-variance-authority';
 import type { badgeVariants } from '../ui/badge';
@@ -11,6 +11,7 @@ type Player = {
   score: number;
   avatarId: string;
   photoURL?: string | null;
+  avatarPosterUrl?: string | null;
 };
 
 type ScoreboardProps = {
@@ -21,16 +22,16 @@ type ScoreboardProps = {
 };
 
 const defaultPlayers: Player[] = [
-  { displayName: 'WordWizard', score: 125, avatarId: 'user-1' },
-  { displayName: 'Alex', score: 98, avatarId: 'user-2' },
+  { displayName: 'WordWizard', score: 125, avatarId: 'user-1', avatarPosterUrl: '/avatars/posters/aurora-pilot.svg' },
+  { displayName: 'Alex', score: 98, avatarId: 'user-2', avatarPosterUrl: '/avatars/posters/ember-scribe.svg' },
 ];
 
 export default function Scoreboard({ players = defaultPlayers, isPlayerTurn, currentPlayerName, gameStatus }: ScoreboardProps) {
   const player1 = players.find(p => p.displayName === currentPlayerName) || players[0];
   const player2 = players.find(p => p.displayName !== currentPlayerName) || players[1];
 
-  const player1AvatarImage = player1.photoURL || PlaceHolderImages.find(p => p.id === player1.avatarId)?.imageUrl;
-  const player2AvatarImage = player2.photoURL || PlaceHolderImages.find(p => p.id === player2.avatarId)?.imageUrl;
+  const player1AvatarImage = resolveAvatarImage(player1);
+  const player2AvatarImage = resolveAvatarImage(player2);
 
   let statusText: string;
   let statusVariant: VariantProps<typeof badgeVariants>['variant'];

@@ -12,6 +12,11 @@ export type AppUser = {
   photoURL: string | null;
   isAnonymous?: boolean;
   providerId?: 'google.com' | 'password' | 'guest';
+  avatarPresetId?: string | null;
+  avatarModelUrl?: string | null;
+  avatarPosterUrl?: string | null;
+  avatarConfiguredAt?: string | null;
+  onboardingCompletedAt?: string | null;
   token?: string;
   getIdToken: () => Promise<string>;
 };
@@ -75,6 +80,12 @@ function withTokenGetter(user: any): AppUser | null {
     displayName: user.displayName ?? user.email ?? 'Player',
     photoURL: user.photoURL ?? null,
     isAnonymous: Boolean(user.isAnonymous),
+    providerId: user.providerId,
+    avatarPresetId: user.avatarPresetId ?? null,
+    avatarModelUrl: user.avatarModelUrl ?? null,
+    avatarPosterUrl: user.avatarPosterUrl ?? null,
+    avatarConfiguredAt: user.avatarConfiguredAt ?? null,
+    onboardingCompletedAt: user.onboardingCompletedAt ?? null,
     token: user.token,
     getIdToken: async () => {
       if (user.token) return user.token;

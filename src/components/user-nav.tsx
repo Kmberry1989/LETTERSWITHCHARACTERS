@@ -14,6 +14,7 @@ import {
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth, useUser } from '@/firebase';
+import { resolveAvatarImage } from '@/lib/avatar-catalog';
 
 export function UserNav() {
   const router = useRouter();
@@ -29,12 +30,14 @@ export function UserNav() {
     return null;
   }
 
+  const avatarImage = resolveAvatarImage(user);
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-9 w-9">
-            {user?.photoURL && <AvatarImage src={user.photoURL} alt={user.displayName || 'User'} />}
+            {avatarImage && <AvatarImage src={avatarImage} alt={user.displayName || 'User'} />}
             <AvatarFallback>{user?.displayName?.substring(0, 2) || 'P'}</AvatarFallback>
           </Avatar>
         </Button>

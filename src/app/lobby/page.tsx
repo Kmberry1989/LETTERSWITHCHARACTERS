@@ -14,6 +14,8 @@ import { useToast } from '@/hooks/use-toast';
 import { createTileBag, drawTiles } from '@/lib/game-logic';
 import type { Tile } from '@/lib/game/types';
 import type { UserProfile } from '@/firebase/firestore/use-users';
+import { resolveAvatarImage } from '@/lib/avatar-catalog';
+import { usePlayableGate } from '@/hooks/use-playable-gate';
 
 type LocalTimestamp = Date | string | { toDate: () => Date };
 
@@ -23,6 +25,7 @@ type Challenge = {
   creatorDisplayName: string;
   creatorAvatarId?: string;
   creatorPhotoURL?: string | null;
+  creatorAvatarPosterUrl?: string | null;
   status: 'open' | 'accepted';
   createdAt?: LocalTimestamp;
   acceptedAt?: LocalTimestamp;
@@ -35,6 +38,8 @@ type PlayerData = {
   score: number;
   avatarId: string;
   photoURL?: string | null;
+  avatarPresetId?: string | null;
+  avatarPosterUrl?: string | null;
   tiles: Tile[];
   hintUsed: boolean;
 };
@@ -70,11 +75,15 @@ function OpenChallenges({
           )}
           {challenges.map((challenge) => {
             const isOwn = challenge.creatorUid === currentUserId;
+            const creatorAvatar = resolveAvatarImage({
+              avatarPosterUrl: challenge.creatorAvatarPosterUrl,
+              photoURL: challenge.creatorPhotoURL,
+            });
             return (
               <div key={challenge.id} className="flex items-center justify-between gap-3 rounded-lg border p-3">
                 <div className="flex items-center gap-3">
                   <Avatar className="h-9 w-9">
-                    <AvatarImage src={challenge.creatorPhotoURL || undefined} />
+                    <AvatarImage src={creatorAvatar || undefined} />
                     <AvatarFallback>{challenge.creatorDisplayName.charAt(0)}</AvatarFallback>
                   </Avatar>
                   <div>
@@ -95,15 +104,9 @@ function OpenChallenges({
 }
 
 export default function LobbyPage() {
-  const { user } = useUser();
+  const { user, canPlay } = usePlayableGate();
   const router = useRouter();
   const { toast } = useToast();
-
-  useEffect(() => {
-    if (!user) {
-      router.replace('/');
-    }
-  }, [router, user]);
 
   const messagesQuery = useMemoFirebase(() => {
     return query(collection(null, 'lobbyMessages'), orderBy('timestamp', 'desc'), limit(50));
@@ -152,6 +155,8 @@ export default function LobbyPage() {
         score: 0,
         avatarId: creatorProfile.avatarId || 'user-1',
         photoURL: creatorProfile.photoURL || null,
+        avatarPresetId: creatorProfile.avatarPresetId || null,
+        avatarPosterUrl: creatorProfile.avatarPosterUrl || null,
         tiles: creatorTiles,
         hintUsed: false,
       },
@@ -160,6 +165,8 @@ export default function LobbyPage() {
         score: 0,
         avatarId: accepterProfile.avatarId || 'user-1',
         photoURL: accepterProfile.photoURL || null,
+        avatarPresetId: accepterProfile.avatarPresetId || null,
+        avatarPosterUrl: accepterProfile.avatarPosterUrl || null,
         tiles: accepterTiles,
         hintUsed: false,
       },
@@ -179,6 +186,7 @@ export default function LobbyPage() {
 
   const handleCreateChallenge = async () => {
     if (!user) return;
+    if (!canPlay) return;
     const userDocRef = doc(null, 'users', user.uid);
     const userDocSnap = await getDoc(userDocRef);
     const userProfile = userDocSnap.data() as UserProfile | undefined;
@@ -206,6 +214,7 @@ export default function LobbyPage() {
       creatorDisplayName: userProfile.displayName || userProfile.email || 'Anonymous',
       creatorAvatarId: userProfile.avatarId || 'user-1',
       creatorPhotoURL: userProfile.photoURL || null,
+      creatorAvatarPosterUrl: userProfile.avatarPosterUrl || null,
       status: 'open' as const,
       createdAt: serverTimestamp(),
     };

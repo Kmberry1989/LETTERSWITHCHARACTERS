@@ -24,7 +24,6 @@ import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { addDoc, collection, doc, getDoc, updateDoc } from '@/lib/client/document-client';
 import { createTileBag, drawTiles } from '@/lib/game-logic';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
 import type { UserProfile } from '@/firebase/firestore/use-users';
@@ -58,6 +57,7 @@ export function BotGameDialog({ disabled, existingGames, children }: BotGameDial
             uid: 'bitty-botty-001',
             displayName: 'Bitty Botty',
             avatarId: 'avatar-base',
+            avatarPosterUrl: '/avatars/posters/ember-scribe.svg',
         };
 
         // Check for existing game with bot
@@ -102,6 +102,8 @@ export function BotGameDialog({ disabled, existingGames, children }: BotGameDial
                     score: 0,
                     avatarId: userProfile.avatarId || 'user-1',
                     photoURL: userProfile.photoURL || null,
+                    avatarPresetId: userProfile.avatarPresetId || null,
+                    avatarPosterUrl: userProfile.avatarPosterUrl || null,
                     tiles: player1Tiles,
                     hintUsed: false,
                 },
@@ -109,7 +111,9 @@ export function BotGameDialog({ disabled, existingGames, children }: BotGameDial
                     displayName: opponent.displayName,
                     score: 0,
                     avatarId: opponent.avatarId,
-                    photoURL: PlaceHolderImages.find(p => p.id === opponent.avatarId)?.imageUrl || null,
+                    photoURL: null,
+                    avatarPresetId: 'ember-scribe',
+                    avatarPosterUrl: opponent.avatarPosterUrl,
                     tiles: player2Tiles,
                     hintUsed: false,
                 }

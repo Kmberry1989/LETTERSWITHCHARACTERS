@@ -1,7 +1,7 @@
 import AppLayout from '@/components/app-layout';
 import AudioSettings from '@/components/profile/audio-settings';
+import AppearanceEditor from '@/components/profile/appearance-editor';
 import AvatarEditor from '@/components/profile/avatar-editor';
-import ThemeSelector from '@/components/profile/theme-selector';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
@@ -15,7 +15,7 @@ export default function ProfilePage() {
         <Tabs defaultValue="avatar">
           <TabsList>
             <TabsTrigger value="avatar">Avatar</TabsTrigger>
-            <TabsTrigger value="themes">Themes</TabsTrigger>
+            <TabsTrigger value="appearance">Appearance</TabsTrigger>
             <TabsTrigger value="audio">Audio</TabsTrigger>
           </TabsList>
           <TabsContent value="avatar">
@@ -25,10 +25,10 @@ export default function ProfilePage() {
               </CardContent>
             </Card>
           </TabsContent>
-          <TabsContent value="themes">
+          <TabsContent value="appearance">
             <Card>
               <CardContent className="p-4 sm:p-6">
-                <ThemeSelector />
+                <AppearanceEditor />
               </CardContent>
             </Card>
           </TabsContent>

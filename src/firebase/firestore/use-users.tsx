@@ -13,6 +13,11 @@ export interface UserProfile {
   providerId?: string;
   totalScore?: number;
   avatarId?: string;
+  avatarPresetId?: string | null;
+  avatarModelUrl?: string | null;
+  avatarPosterUrl?: string | null;
+  avatarConfiguredAt?: string | null;
+  onboardingCompletedAt?: string | null;
   tileSetId?: string;
   boardThemeId?: string;
   themeId?: string;

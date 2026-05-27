@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createSession, destroySession, getCurrentUser, makeUser, upsertUserProfile } from '@/lib/server/auth';
+import { createSession, destroySession, getCurrentUser, getUserByToken, makeUser, upsertUserProfile } from '@/lib/server/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -56,10 +56,11 @@ export async function POST(request: Request) {
 
   await upsertUserProfile(user);
   const token = await createSession(user);
+  const sessionUser = await getUserByToken(token);
 
   return NextResponse.json({
     user: {
-      ...user,
+      ...sessionUser,
       token,
     },
   });

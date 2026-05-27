@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import { useUser, useDoc, useMemoFirebase } from '@/firebase';
 import { Skeleton } from '@/components/ui/skeleton';
 import { doc, getDoc } from '@/lib/client/document-client';
@@ -16,12 +15,16 @@ import type { Tile } from '@/lib/game/types';
 import { ChatMessage } from '@/components/game/chat-window';
 import type { UserProfile } from '@/firebase/firestore/use-users';
 import { Swords } from 'lucide-react';
+import { resolveAvatarImage } from '@/lib/avatar-catalog';
+import { usePlayableGate } from '@/hooks/use-playable-gate';
 
 interface PlayerData {
   displayName: string;
   score: number;
   avatarId: string;
   photoURL?: string | null;
+  avatarPresetId?: string | null;
+  avatarPosterUrl?: string | null;
   tiles: (Tile | null)[];
   hintUsed: boolean;
 }
@@ -55,7 +58,7 @@ function GameCard({ game }: { game: Game }) {
     statusText = game.currentTurn === user.uid ? 'Your Turn' : "Opponent's Turn";
   }
 
-  const opponentAvatarImage = opponent.photoURL || PlaceHolderImages.find((p) => p.id === opponent.avatarId)?.imageUrl;
+  const opponentAvatarImage = resolveAvatarImage(opponent);
 
   return (
     <Card className="flex flex-col shadow-sm">
@@ -143,16 +146,9 @@ function useUserGames() {
 
 export default function DashboardPage() {
   const router = useRouter();
-  const { user, isUserLoading } = useUser();
+  const { user, isUserLoading, canPlay } = usePlayableGate();
   const { games, loading: gamesLoading } = useUserGames();
-
-  useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.replace('/');
-    }
-  }, [isUserLoading, router, user]);
-
-  const loading = isUserLoading || gamesLoading || !user;
+  const loading = isUserLoading || gamesLoading || !user || !canPlay;
 
   return (
     <AppLayout>

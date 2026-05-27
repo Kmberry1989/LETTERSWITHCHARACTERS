@@ -9,6 +9,11 @@ export type AppUser = {
   photoURL: string | null;
   isAnonymous?: boolean;
   providerId?: 'google.com' | 'password' | 'guest';
+  avatarPresetId?: string | null;
+  avatarModelUrl?: string | null;
+  avatarPosterUrl?: string | null;
+  avatarConfiguredAt?: string | null;
+  onboardingCompletedAt?: string | null;
   getIdToken?: () => Promise<string>;
 };
 
@@ -75,6 +80,11 @@ export async function getUserByToken(token?: string | null): Promise<AppUser | n
     photoURL: profile.photoURL || null,
     isAnonymous: profile.isAnonymous || false,
     providerId: profile.providerId || (profile.isAnonymous ? 'guest' : 'password'),
+    avatarPresetId: profile.avatarPresetId || null,
+    avatarModelUrl: profile.avatarModelUrl || null,
+    avatarPosterUrl: profile.avatarPosterUrl || null,
+    avatarConfiguredAt: profile.avatarConfiguredAt || null,
+    onboardingCompletedAt: profile.onboardingCompletedAt || null,
   };
 }
 
@@ -102,7 +112,12 @@ export async function upsertUserProfile(user: AppUser) {
       isAnonymous: Boolean(user.isAnonymous),
       providerId: user.providerId || (user.isAnonymous ? 'guest' : 'password'),
       totalScore: existing?.totalScore ?? 0,
-      avatarId: existing?.avatarId ?? 'user-1',
+      avatarId: existing?.avatarId ?? null,
+      avatarPresetId: existing?.avatarPresetId ?? null,
+      avatarModelUrl: existing?.avatarModelUrl ?? null,
+      avatarPosterUrl: existing?.avatarPosterUrl ?? null,
+      avatarConfiguredAt: existing?.avatarConfiguredAt ?? null,
+      onboardingCompletedAt: existing?.onboardingCompletedAt ?? null,
       tileSetId: existing?.tileSetId ?? 'tile-plastic',
       boardThemeId: existing?.boardThemeId ?? 'board-green',
       themeId: existing?.themeId ?? 'default',
@@ -121,5 +136,10 @@ export function makeUser(overrides: Partial<AppUser> & Pick<AppUser, 'uid'>): Ap
     photoURL: overrides.photoURL ?? null,
     isAnonymous: overrides.isAnonymous ?? false,
     providerId: overrides.providerId ?? (overrides.isAnonymous ? 'guest' : 'password'),
+    avatarPresetId: overrides.avatarPresetId ?? null,
+    avatarModelUrl: overrides.avatarModelUrl ?? null,
+    avatarPosterUrl: overrides.avatarPosterUrl ?? null,
+    avatarConfiguredAt: overrides.avatarConfiguredAt ?? null,
+    onboardingCompletedAt: overrides.onboardingCompletedAt ?? null,
   };
 }

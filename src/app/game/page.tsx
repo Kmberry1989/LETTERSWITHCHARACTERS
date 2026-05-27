@@ -25,19 +25,14 @@ import {
 import BlankTileDialog from '@/components/game/blank-tile-dialog';
 import ChatWindow from '@/components/game/chat-window';
 import { useGameState } from '@/hooks/use-game-state';
+import { usePlayableGate } from '@/hooks/use-playable-gate';
 
 function Game() {
   const botTurnRequestRef = useRef<string | null>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const gameId = searchParams.get('game');
-  const { user, isUserLoading } = useUser();
-
-  useEffect(() => {
-    if (!isUserLoading && !user) {
-      router.replace('/');
-    }
-  }, [isUserLoading, router, user]);
+  const { user, isUserLoading, canPlay } = usePlayableGate();
 
   const gameDocRef = useMemoFirebase(() => {
     return gameId ? doc(null, 'games', gameId) : null;
@@ -117,7 +112,7 @@ function Game() {
     void runBotTurn();
   }, [gameId, game, isBotGame]);
 
-  if (gameLoading || isUserLoading || !user) {
+  if (gameLoading || isUserLoading || !user || !canPlay) {
     return (
       <AppLayout>
         <div className="p-4 space-y-4">
@@ -148,8 +143,20 @@ function Game() {
           {userPlayerData && opponentPlayerData && (
             <Scoreboard
               players={[
-                { displayName: userPlayerData.displayName, score: userPlayerData.score, avatarId: userPlayerData.avatarId, photoURL: userPlayerData.photoURL },
-                { displayName: opponentPlayerData.displayName, score: opponentPlayerData.score, avatarId: opponentPlayerData.avatarId, photoURL: opponentPlayerData.photoURL },
+                {
+                  displayName: userPlayerData.displayName,
+                  score: userPlayerData.score,
+                  avatarId: userPlayerData.avatarId,
+                  photoURL: userPlayerData.photoURL,
+                  avatarPosterUrl: userPlayerData.avatarPosterUrl,
+                },
+                {
+                  displayName: opponentPlayerData.displayName,
+                  score: opponentPlayerData.score,
+                  avatarId: opponentPlayerData.avatarId,
+                  photoURL: opponentPlayerData.photoURL,
+                  avatarPosterUrl: opponentPlayerData.avatarPosterUrl,
+                },
               ]}
               isPlayerTurn={isPlayerTurn}
               currentPlayerName={userPlayerData.displayName}
