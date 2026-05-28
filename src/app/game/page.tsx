@@ -53,7 +53,6 @@ function Game() {
     pendingTiles,
     selectedTileIndex,
     isSubmitting,
-    isGettingHint,
     isExchanging,
     exchangeSelection,
     blankTileDialog,
@@ -70,14 +69,15 @@ function Game() {
     handlePlay,
     handlePass,
     handleExchange,
-    handleHint,
     handleSendMessage,
     handleBlankTileSelect,
     handleDragStart,
+    handleDragEnd,
     handleDrop,
     handleBoardDrop,
-    setIsExchanging
-  } = useGameState(gameId, user, game);
+    setIsExchanging,
+    shuffleTick,
+  } = useGameState(gameId, user, game, equippedTileSetId);
 
   const userPlayerData = user && game ? game.playerData[user.uid] : null;
   const opponentPlayerData = game && opponentUid ? game.playerData[opponentUid] : null;
@@ -228,20 +228,19 @@ function Game() {
             selectedTileIndex={selectedTileIndex}
             isPlayerTurn={isPlayerTurn}
             isSubmitting={isSubmitting}
-            isGettingHint={isGettingHint}
-            hintUsed={userPlayerData?.hintUsed || false}
             isExchanging={isExchanging}
             exchangeSelection={exchangeSelection}
             onTileSelect={handleTileSelect}
             onRecall={handleRecallAll}
             onShuffle={handleShuffle}
             onPlay={handlePlay}
-            onHint={handleHint}
             onChatClick={() => setIsChatOpen(true)}
             onToggleExchange={() => setIsExchanging(!isExchanging)}
             onDragStart={handleDragStart}
+            onDragEnd={handleDragEnd}
             onDrop={handleDrop}
             tileSetId={equippedTileSetId}
+            shuffleTick={shuffleTick}
           />
 
           <AlertDialog>

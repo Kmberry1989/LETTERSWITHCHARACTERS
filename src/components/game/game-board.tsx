@@ -92,10 +92,11 @@ function PlacedTileComponent({ tile, isPending, onClick, tileSetId }: { tile: Ti
       onClick={onClick}
     >
       <ThemedTileFace
-        tileSetId={tileSetId}
+        tileSetId={tile.tileSetId || tileSetId}
         letter={tile.letter}
         score={tile.score}
         isBlank={tile.isBlank}
+        showScore={isPending}
       />
     </motion.div>
   );

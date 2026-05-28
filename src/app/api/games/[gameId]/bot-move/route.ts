@@ -16,8 +16,8 @@ type GameDoc = {
         photoURL?: string | null;
         avatarPresetId?: string | null;
         avatarPosterUrl?: string | null;
+        equippedTileSetId?: string | null;
         tiles: Tile[];
-        hintUsed?: boolean;
     }>;
     board: Record<string, Tile>;
     tileBag: Tile[];
@@ -141,7 +141,9 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
                     score: tileInRack.letter === ' ' ? 0 : tileInRack.score, // Simple score lookup needed if we don't have it
                     row: currentRow,
                     col: currentCol,
-                    isBlank: tileInRack.letter === ' '
+                    isBlank: tileInRack.letter === ' ',
+                    tileSetId: botData.equippedTileSetId || 'tile-minimalist',
+                    ownerUid: botUid,
                 });
             }
         }
@@ -172,7 +174,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const newBoard: Record<string, Tile> = { ...gameData.board };
     for (const tile of pendingTiles) {
         const squareKey = `${tile.row}-${tile.col}`;
-        newBoard[squareKey] = { letter: tile.letter, score: tile.score, isBlank: tile.isBlank };
+        newBoard[squareKey] = {
+            letter: tile.letter,
+            score: tile.score,
+            isBlank: tile.isBlank,
+            tileSetId: tile.tileSetId,
+            ownerUid: botUid,
+        };
     }
 
     const tilesToDrawCount = pendingTiles.length;

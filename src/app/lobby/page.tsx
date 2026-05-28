@@ -15,6 +15,7 @@ import type { Tile } from '@/lib/game/types';
 import type { UserProfile } from '@/firebase/firestore/use-users';
 import { resolveAvatarImage } from '@/lib/avatar-catalog';
 import { usePlayableGate } from '@/hooks/use-playable-gate';
+import { normalizeUserCosmetics } from '@/lib/user-profile';
 
 type LocalTimestamp = Date | string | { toDate: () => Date };
 
@@ -39,8 +40,8 @@ type PlayerData = {
   photoURL?: string | null;
   avatarPresetId?: string | null;
   avatarPosterUrl?: string | null;
+  equippedTileSetId?: string | null;
   tiles: Tile[];
-  hintUsed: boolean;
 };
 
 function OpenChallenges({
@@ -142,6 +143,8 @@ export default function LobbyPage() {
   };
 
   const buildNewGame = (creatorUid: string, accepterUid: string, creatorProfile: UserProfile, accepterProfile: UserProfile) => {
+    const creatorCosmetics = normalizeUserCosmetics(creatorProfile);
+    const accepterCosmetics = normalizeUserCosmetics(accepterProfile);
     let tileBag = createTileBag();
     const [creatorTiles, tileBagAfterCreator] = drawTiles(tileBag, 7);
     const [accepterTiles, finalTileBag] = drawTiles(tileBagAfterCreator, 7);
@@ -155,8 +158,8 @@ export default function LobbyPage() {
         photoURL: creatorProfile.photoURL || null,
         avatarPresetId: creatorProfile.avatarPresetId || null,
         avatarPosterUrl: creatorProfile.avatarPosterUrl || null,
+        equippedTileSetId: creatorCosmetics.equippedTileSetId,
         tiles: creatorTiles,
-        hintUsed: false,
       },
       [accepterUid]: {
         displayName: accepterProfile.displayName || accepterProfile.email || 'Player Two',
@@ -165,8 +168,8 @@ export default function LobbyPage() {
         photoURL: accepterProfile.photoURL || null,
         avatarPresetId: accepterProfile.avatarPresetId || null,
         avatarPosterUrl: accepterProfile.avatarPosterUrl || null,
+        equippedTileSetId: accepterCosmetics.equippedTileSetId,
         tiles: accepterTiles,
-        hintUsed: false,
       },
     };
 

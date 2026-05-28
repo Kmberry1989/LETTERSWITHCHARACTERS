@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/server/auth';
 import { getDocument, updateDocument } from '@/lib/server/document-store';
 import { normalizeUserCosmetics } from '@/lib/user-profile';
-import { TILE_COSMETICS_BY_ID } from '@/lib/tile-cosmetics';
+import { canAccessTileTier, TILE_COSMETICS_BY_ID } from '@/lib/tile-cosmetics';
 
 export const dynamic = 'force-dynamic';
 
@@ -23,6 +23,10 @@ export async function POST(request: Request) {
   const profile = normalizeUserCosmetics(await getDocument<any>('users', user.uid));
   if (profile.ownedTileSetIds.includes(itemId)) {
     return NextResponse.json({ error: 'You already own this tile set.' }, { status: 409 });
+  }
+
+  if (!canAccessTileTier(profile.level || 1, itemId)) {
+    return NextResponse.json({ error: 'Your level is too low for this tile tier.' }, { status: 403 });
   }
 
   if ((profile.berries || 0) < item.price) {

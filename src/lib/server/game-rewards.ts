@@ -1,15 +1,19 @@
 import { getDocument, updateDocument } from '@/lib/server/document-store';
 import { normalizeUserCosmetics } from '@/lib/user-profile';
-import { WIN_BONUS_BERRIES } from '@/lib/tile-cosmetics';
+import { getLevelForExperience, WIN_BONUS_BERRIES, WIN_BONUS_EXPERIENCE } from '@/lib/tile-cosmetics';
 
-export async function awardBerries(userId: string, amount: number) {
-  if (!userId || amount <= 0) return null;
+export async function awardPlayerProgress(userId: string, rewards: { berries?: number; experience?: number }) {
+  if (!userId) return null;
 
   const profile = normalizeUserCosmetics(await getDocument<any>('users', userId));
-  const berries = (profile.berries || 0) + amount;
+  const berries = (profile.berries || 0) + (rewards.berries || 0);
+  const experience = (profile.experience || 0) + (rewards.experience || 0);
+  const level = getLevelForExperience(experience);
 
   return updateDocument('users', userId, {
     berries,
+    experience,
+    level,
     updatedAt: new Date().toISOString(),
   });
 }
@@ -19,6 +23,9 @@ export async function awardWinnerBonusIfNeeded(winner: string | undefined, alrea
     return 0;
   }
 
-  await awardBerries(winner, WIN_BONUS_BERRIES);
+  await awardPlayerProgress(winner, {
+    berries: WIN_BONUS_BERRIES,
+    experience: WIN_BONUS_EXPERIENCE,
+  });
   return WIN_BONUS_BERRIES;
 }

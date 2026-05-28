@@ -22,6 +22,8 @@ export interface UserProfile {
   equippedTileSetId?: string;
   ownedTileSetIds?: string[];
   berries?: number;
+  experience?: number;
+  level?: number;
   boardThemeId?: string;
   themeId?: string;
   gameIds?: string[];

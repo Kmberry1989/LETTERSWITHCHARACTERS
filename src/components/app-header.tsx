@@ -8,11 +8,12 @@ import { useBerries } from '@/hooks/use-berries';
 
 
 function BerryDisplay() {
-  const { berries } = useBerries();
+  const { berries, level } = useBerries();
   return (
     <Button variant="outline" className="flex items-center gap-2">
       <Cherry className="text-red-500" />
       <span className="font-bold">{berries.toLocaleString()}</span>
+      <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[0.7rem] font-black text-amber-900">Lv {level}</span>
       <span className="sr-only">Berries</span>
     </Button>
   );

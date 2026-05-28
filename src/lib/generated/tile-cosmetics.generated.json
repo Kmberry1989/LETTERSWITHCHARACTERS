@@ -1,0 +1,442 @@
+[
+  {
+    "id": "tile-minimalist",
+    "fileName": "minimalist_tile.png",
+    "name": "Minimalist",
+    "description": "Minimalist is your starter finish.",
+    "assetPath": "/tiles/minimalist_tile.png",
+    "rarity": "starter",
+    "requiredLevel": 1,
+    "price": 0
+  },
+  {
+    "id": "tile-aged-papyrus",
+    "fileName": "aged_papyrus_tile.png",
+    "name": "Aged Papyrus",
+    "description": "Aged Papyrus tile finish with a common unlock tier.",
+    "assetPath": "/tiles/aged_papyrus_tile.png",
+    "rarity": "common",
+    "requiredLevel": 1,
+    "price": 350
+  },
+  {
+    "id": "tile-ancient-rune",
+    "fileName": "ancient_rune_tile.png",
+    "name": "Ancient Rune",
+    "description": "Ancient Rune tile finish with a common unlock tier.",
+    "assetPath": "/tiles/ancient_rune_tile.png",
+    "rarity": "common",
+    "requiredLevel": 1,
+    "price": 420
+  },
+  {
+    "id": "tile-ancient-runes",
+    "fileName": "ancient_runes_tile.png",
+    "name": "Ancient Runes",
+    "description": "Ancient Runes tile finish with a common unlock tier.",
+    "assetPath": "/tiles/ancient_runes_tile.png",
+    "rarity": "common",
+    "requiredLevel": 1,
+    "price": 490
+  },
+  {
+    "id": "tile-arctic-ice",
+    "fileName": "arctic_ice_tile.png",
+    "name": "Arctic Ice",
+    "description": "Arctic Ice tile finish with a common unlock tier.",
+    "assetPath": "/tiles/arctic_ice_tile.png",
+    "rarity": "common",
+    "requiredLevel": 1,
+    "price": 560
+  },
+  {
+    "id": "tile-art-glass",
+    "fileName": "art_glass_tile.png",
+    "name": "Art Glass",
+    "description": "Art Glass tile finish with a common unlock tier.",
+    "assetPath": "/tiles/art_glass_tile.png",
+    "rarity": "common",
+    "requiredLevel": 1,
+    "price": 630
+  },
+  {
+    "id": "tile-autumn-leaves",
+    "fileName": "autumn_leaves_tile.png",
+    "name": "Autumn Leaves",
+    "description": "Autumn Leaves tile finish with a common unlock tier.",
+    "assetPath": "/tiles/autumn_leaves_tile.png",
+    "rarity": "common",
+    "requiredLevel": 1,
+    "price": 700
+  },
+  {
+    "id": "tile-basket-weave",
+    "fileName": "basket_weave_tile.png",
+    "name": "Basket Weave",
+    "description": "Basket Weave tile finish with a common unlock tier.",
+    "assetPath": "/tiles/basket_weave_tile.png",
+    "rarity": "common",
+    "requiredLevel": 1,
+    "price": 770
+  },
+  {
+    "id": "tile-blueprint-grid",
+    "fileName": "blueprint_grid_tile.png",
+    "name": "Blueprint Grid",
+    "description": "Blueprint Grid tile finish with a common unlock tier.",
+    "assetPath": "/tiles/blueprint_grid_tile.png",
+    "rarity": "common",
+    "requiredLevel": 1,
+    "price": 840
+  },
+  {
+    "id": "tile-candy-land",
+    "fileName": "candy_land_tile.png",
+    "name": "Candy Land",
+    "description": "Candy Land tile finish with a common unlock tier.",
+    "assetPath": "/tiles/candy_land_tile.png",
+    "rarity": "common",
+    "requiredLevel": 1,
+    "price": 910
+  },
+  {
+    "id": "tile-captains-desk",
+    "fileName": "captains_desk_tile.png",
+    "name": "Captains Desk",
+    "description": "Captains Desk tile finish with a common unlock tier.",
+    "assetPath": "/tiles/captains_desk_tile.png",
+    "rarity": "common",
+    "requiredLevel": 1,
+    "price": 980
+  },
+  {
+    "id": "tile-carbon-fiber",
+    "fileName": "carbon_fiber_tile.png",
+    "name": "Carbon Fiber",
+    "description": "Carbon Fiber tile finish with a common unlock tier.",
+    "assetPath": "/tiles/carbon_fiber_tile.png",
+    "rarity": "common",
+    "requiredLevel": 1,
+    "price": 1050
+  },
+  {
+    "id": "tile-cherry-blossom",
+    "fileName": "cherry_blossom_tile.png",
+    "name": "Cherry Blossom",
+    "description": "Cherry Blossom tile finish with a common unlock tier.",
+    "assetPath": "/tiles/cherry_blossom_tile.png",
+    "rarity": "common",
+    "requiredLevel": 1,
+    "price": 1120
+  },
+  {
+    "id": "tile-circuit-board",
+    "fileName": "circuit_board_tile.png",
+    "name": "Circuit Board",
+    "description": "Circuit Board tile finish with a common unlock tier.",
+    "assetPath": "/tiles/circuit_board_tile.png",
+    "rarity": "common",
+    "requiredLevel": 1,
+    "price": 1190
+  },
+  {
+    "id": "tile-compass-rose",
+    "fileName": "compass_rose_tile.png",
+    "name": "Compass Rose",
+    "description": "Compass Rose tile finish with a common unlock tier.",
+    "assetPath": "/tiles/compass_rose_tile.png",
+    "rarity": "common",
+    "requiredLevel": 1,
+    "price": 1260
+  },
+  {
+    "id": "tile-copper-circuit",
+    "fileName": "copper_circuit_tile.png",
+    "name": "Copper Circuit",
+    "description": "Copper Circuit tile finish with a common unlock tier.",
+    "assetPath": "/tiles/copper_circuit_tile.png",
+    "rarity": "common",
+    "requiredLevel": 1,
+    "price": 1330
+  },
+  {
+    "id": "tile-coral-reef",
+    "fileName": "coral_reef_tile.png",
+    "name": "Coral Reef",
+    "description": "Coral Reef tile finish with a common unlock tier.",
+    "assetPath": "/tiles/coral_reef_tile.png",
+    "rarity": "common",
+    "requiredLevel": 1,
+    "price": 1400
+  },
+  {
+    "id": "tile-cozy-library",
+    "fileName": "cozy_library_tile.png",
+    "name": "Cozy Library",
+    "description": "Cozy Library tile finish with a rare unlock tier.",
+    "assetPath": "/tiles/cozy_library_tile.png",
+    "rarity": "rare",
+    "requiredLevel": 3,
+    "price": 800
+  },
+  {
+    "id": "tile-cracked-lava",
+    "fileName": "cracked_lava_tile.png",
+    "name": "Cracked Lava",
+    "description": "Cracked Lava tile finish with a rare unlock tier.",
+    "assetPath": "/tiles/cracked_lava_tile.png",
+    "rarity": "rare",
+    "requiredLevel": 3,
+    "price": 910
+  },
+  {
+    "id": "tile-curtain-call",
+    "fileName": "curtain_call_tile.png",
+    "name": "Curtain Call",
+    "description": "Curtain Call tile finish with a rare unlock tier.",
+    "assetPath": "/tiles/curtain_call_tile.png",
+    "rarity": "rare",
+    "requiredLevel": 3,
+    "price": 1020
+  },
+  {
+    "id": "tile-deep-space",
+    "fileName": "deep_space_tile.png",
+    "name": "Deep Space",
+    "description": "Deep Space tile finish with a rare unlock tier.",
+    "assetPath": "/tiles/deep_space_tile.png",
+    "rarity": "rare",
+    "requiredLevel": 3,
+    "price": 1130
+  },
+  {
+    "id": "tile-fish-pond",
+    "fileName": "fish_pond_tile.png",
+    "name": "Fish Pond",
+    "description": "Fish Pond tile finish with a rare unlock tier.",
+    "assetPath": "/tiles/fish_pond_tile.png",
+    "rarity": "rare",
+    "requiredLevel": 3,
+    "price": 1240
+  },
+  {
+    "id": "tile-floral",
+    "fileName": "floral_tile.png",
+    "name": "Floral",
+    "description": "Floral tile finish with a rare unlock tier.",
+    "assetPath": "/tiles/floral_tile.png",
+    "rarity": "rare",
+    "requiredLevel": 3,
+    "price": 1350
+  },
+  {
+    "id": "tile-gilded-age",
+    "fileName": "gilded_age_tile.png",
+    "name": "Gilded Age",
+    "description": "Gilded Age tile finish with a rare unlock tier.",
+    "assetPath": "/tiles/gilded_age_tile.png",
+    "rarity": "rare",
+    "requiredLevel": 3,
+    "price": 1460
+  },
+  {
+    "id": "tile-gummy-candy",
+    "fileName": "gummy_candy_tile.png",
+    "name": "Gummy Candy",
+    "description": "Gummy Candy tile finish with a rare unlock tier.",
+    "assetPath": "/tiles/gummy_candy_tile.png",
+    "rarity": "rare",
+    "requiredLevel": 3,
+    "price": 1570
+  },
+  {
+    "id": "tile-holographic",
+    "fileName": "holographic_tile.png",
+    "name": "Holographic",
+    "description": "Holographic tile finish with a rare unlock tier.",
+    "assetPath": "/tiles/holographic_tile.png",
+    "rarity": "rare",
+    "requiredLevel": 3,
+    "price": 1680
+  },
+  {
+    "id": "tile-honeycomb",
+    "fileName": "honeycomb_tile.png",
+    "name": "Honeycomb",
+    "description": "Honeycomb tile finish with a rare unlock tier.",
+    "assetPath": "/tiles/honeycomb_tile.png",
+    "rarity": "rare",
+    "requiredLevel": 3,
+    "price": 1790
+  },
+  {
+    "id": "tile-jellyfish",
+    "fileName": "jellyfish_tile.png",
+    "name": "Jellyfish",
+    "description": "Jellyfish tile finish with a rare unlock tier.",
+    "assetPath": "/tiles/jellyfish_tile.png",
+    "rarity": "rare",
+    "requiredLevel": 3,
+    "price": 1900
+  },
+  {
+    "id": "tile-lollipop-guild",
+    "fileName": "lollipop_guild_tile.png",
+    "name": "Lollipop Guild",
+    "description": "Lollipop Guild tile finish with a rare unlock tier.",
+    "assetPath": "/tiles/lollipop_guild_tile.png",
+    "rarity": "rare",
+    "requiredLevel": 3,
+    "price": 2010
+  },
+  {
+    "id": "tile-lush-jungle",
+    "fileName": "lush_jungle_tile.png",
+    "name": "Lush Jungle",
+    "description": "Lush Jungle tile finish with a rare unlock tier.",
+    "assetPath": "/tiles/lush_jungle_tile.png",
+    "rarity": "rare",
+    "requiredLevel": 3,
+    "price": 2120
+  },
+  {
+    "id": "tile-moon-terrain",
+    "fileName": "moon_terrain_tile.png",
+    "name": "Moon Terrain",
+    "description": "Moon Terrain tile finish with a rare unlock tier.",
+    "assetPath": "/tiles/moon_terrain_tile.png",
+    "rarity": "rare",
+    "requiredLevel": 3,
+    "price": 2230
+  },
+  {
+    "id": "tile-neon-cityscape",
+    "fileName": "neon_cityscape_tile.png",
+    "name": "Neon Cityscape",
+    "description": "Neon Cityscape tile finish with a epic unlock tier.",
+    "assetPath": "/tiles/neon_cityscape_tile.png",
+    "rarity": "epic",
+    "requiredLevel": 6,
+    "price": 1450
+  },
+  {
+    "id": "tile-new-wave",
+    "fileName": "new_wave_tile.png",
+    "name": "New Wave",
+    "description": "New Wave tile finish with a epic unlock tier.",
+    "assetPath": "/tiles/new_wave_tile.png",
+    "rarity": "epic",
+    "requiredLevel": 6,
+    "price": 1600
+  },
+  {
+    "id": "tile-opal-shine",
+    "fileName": "opal_shine_tile.png",
+    "name": "Opal Shine",
+    "description": "Opal Shine tile finish with a epic unlock tier.",
+    "assetPath": "/tiles/opal_shine_tile.png",
+    "rarity": "epic",
+    "requiredLevel": 6,
+    "price": 1750
+  },
+  {
+    "id": "tile-opalescent-glass",
+    "fileName": "opalescent_glass_tile.png",
+    "name": "Opalescent Glass",
+    "description": "Opalescent Glass tile finish with a epic unlock tier.",
+    "assetPath": "/tiles/opalescent_glass_tile.png",
+    "rarity": "epic",
+    "requiredLevel": 6,
+    "price": 1900
+  },
+  {
+    "id": "tile-peacock-feather",
+    "fileName": "peacock_feather_tile.png",
+    "name": "Peacock Feather",
+    "description": "Peacock Feather tile finish with a epic unlock tier.",
+    "assetPath": "/tiles/peacock_feather_tile.png",
+    "rarity": "epic",
+    "requiredLevel": 6,
+    "price": 2050
+  },
+  {
+    "id": "tile-pirates-map",
+    "fileName": "pirates_map_tile.png",
+    "name": "Pirates Map",
+    "description": "Pirates Map tile finish with a epic unlock tier.",
+    "assetPath": "/tiles/pirates_map_tile.png",
+    "rarity": "epic",
+    "requiredLevel": 6,
+    "price": 2200
+  },
+  {
+    "id": "tile-polished-chrome",
+    "fileName": "polished_chrome_tile.png",
+    "name": "Polished Chrome",
+    "description": "Polished Chrome tile finish with a epic unlock tier.",
+    "assetPath": "/tiles/polished_chrome_tile.png",
+    "rarity": "epic",
+    "requiredLevel": 6,
+    "price": 2350
+  },
+  {
+    "id": "tile-purple-crystal",
+    "fileName": "purple_crystal_tile.png",
+    "name": "Purple Crystal",
+    "description": "Purple Crystal tile finish with a epic unlock tier.",
+    "assetPath": "/tiles/purple_crystal_tile.png",
+    "rarity": "epic",
+    "requiredLevel": 6,
+    "price": 2500
+  },
+  {
+    "id": "tile-snowed-in",
+    "fileName": "snowed_in_tile.png",
+    "name": "Snowed In",
+    "description": "Snowed In tile finish with a legendary unlock tier.",
+    "assetPath": "/tiles/snowed_in_tile.png",
+    "rarity": "legendary",
+    "requiredLevel": 10,
+    "price": 2300
+  },
+  {
+    "id": "tile-stained-glass",
+    "fileName": "stained_glass_tile.png",
+    "name": "Stained Glass",
+    "description": "Stained Glass tile finish with a legendary unlock tier.",
+    "assetPath": "/tiles/stained_glass_tile.png",
+    "rarity": "legendary",
+    "requiredLevel": 10,
+    "price": 2490
+  },
+  {
+    "id": "tile-stitched-felt",
+    "fileName": "stitched_felt_tile.png",
+    "name": "Stitched Felt",
+    "description": "Stitched Felt tile finish with a legendary unlock tier.",
+    "assetPath": "/tiles/stitched_felt_tile.png",
+    "rarity": "legendary",
+    "requiredLevel": 10,
+    "price": 2680
+  },
+  {
+    "id": "tile-winter-chill",
+    "fileName": "winter_chill_tile.png",
+    "name": "Winter Chill",
+    "description": "Winter Chill tile finish with a legendary unlock tier.",
+    "assetPath": "/tiles/winter_chill_tile.png",
+    "rarity": "legendary",
+    "requiredLevel": 10,
+    "price": 2870
+  },
+  {
+    "id": "tile-zen-garden",
+    "fileName": "zen_garden_tile.png",
+    "name": "Zen Garden",
+    "description": "Zen Garden tile finish with a legendary unlock tier.",
+    "assetPath": "/tiles/zen_garden_tile.png",
+    "rarity": "legendary",
+    "requiredLevel": 10,
+    "price": 3060
+  }
+]

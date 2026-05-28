@@ -6,7 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { Tile as TileType } from '@/lib/game/types';
-import { ArrowRightLeft, Loader, MessageCircle, RotateCcw, Shuffle, Sparkles, X } from 'lucide-react';
+import { ArrowRightLeft, Loader, MessageCircle, RotateCcw, Shuffle, X } from 'lucide-react';
 import { ThemedTileFace } from '@/components/game/themed-tile-face';
 
 function Tile({ 
@@ -14,6 +14,7 @@ function Tile({
   isSelected, 
   onClick,
   onDragStart,
+  onDragEnd,
   canDrag,
   isExchanging,
   isExchangeSelected,
@@ -23,6 +24,7 @@ function Tile({
   isSelected: boolean; 
   onClick: () => void;
   onDragStart: (e: React.DragEvent) => void;
+  onDragEnd: () => void;
   canDrag: boolean;
   isExchanging: boolean;
   isExchangeSelected: boolean;
@@ -33,6 +35,7 @@ function Tile({
     <div
       draggable={canDrag}
       onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
       onClick={onClick}
       className={cn(
         "relative flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 cursor-pointer select-none items-center justify-center rounded-md border-b-4 border-black/20 bg-[#f8e8c7] shadow-[0_8px_18px_rgba(0,0,0,0.14)] transition-all duration-150 ease-in-out",
@@ -52,6 +55,7 @@ function Tile({
           score={tile.score}
           isBlank={isBlank}
           interactive={canDrag}
+          showScore
         />
       </motion.div>
     </div>
@@ -72,23 +76,22 @@ type TileRackProps = {
   selectedTileIndex: number | null;
   isPlayerTurn: boolean;
   isSubmitting: boolean;
-  isGettingHint: boolean;
-  hintUsed: boolean;
   isExchanging: boolean;
   exchangeSelection: number[];
   onTileSelect: (index: number) => void;
   onRecall: () => void;
   onShuffle: () => void;
   onDragStart: (tile: TileType, index: number) => void;
+  onDragEnd: () => void;
   onDrop: (index: number) => void;
   onChatClick: () => void;
   onPlay: () => void;
-  onHint: () => void;
   onToggleExchange: () => void;
   tileSetId?: string | null;
+  shuffleTick: number;
 };
 
-export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSubmitting, isGettingHint, hintUsed, isExchanging, exchangeSelection, onTileSelect, onRecall, onShuffle, onDragStart, onDrop, onChatClick, onPlay, onHint, onToggleExchange, tileSetId }: TileRackProps) {
+export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSubmitting, isExchanging, exchangeSelection, onTileSelect, onRecall, onShuffle, onDragStart, onDragEnd, onDrop, onChatClick, onPlay, onToggleExchange, tileSetId, shuffleTick }: TileRackProps) {
   const canMoveTiles = isPlayerTurn && !isSubmitting && !isExchanging;
   
   const handleDragOver = (e: React.DragEvent) => {
@@ -110,7 +113,13 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
     <Card className="bg-[#c4a27a] border-2 border-[#a07e56] shadow-sm">
       <CardContent className="p-2 sm:p-4">
         <div className="flex flex-col items-center gap-2 sm:gap-4">
-            <div className="flex items-center justify-center gap-1 sm:gap-2">
+            <motion.div
+              key={shuffleTick}
+              initial={shuffleTick > 0 ? { opacity: 0.88, y: -8 } : false}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.35, ease: 'easeOut' }}
+              className="flex items-center justify-center gap-1 sm:gap-2"
+            >
               {tiles.map((tile, i) => (
                 <div 
                   key={i} 
@@ -132,6 +141,7 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
                         e.dataTransfer.setData('text/plain', String(i));
                         onDragStart(tile, i);
                       }}
+                      onDragEnd={onDragEnd}
                       canDrag={canMoveTiles}
                       isExchanging={isExchanging}
                       isExchangeSelected={exchangeSelection.includes(i)}
@@ -142,7 +152,7 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
                   )}
                 </div>
               ))}
-            </div>
+            </motion.div>
             {isExchanging ? (
                  <div className="flex gap-4">
                     <Button variant="secondary" size="sm" onClick={onToggleExchange} className="shadow-sm">
@@ -169,10 +179,6 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
                         <Button variant="secondary" size="sm" onClick={onRecall} className="shadow-sm">
                         <RotateCcw className="mr-1 h-4 w-4" />
                         Recall
-                        </Button>
-                        <Button variant="secondary" size="sm" onClick={onHint} disabled={!isPlayerTurn || isGettingHint || hintUsed} className="shadow-sm">
-                        {isGettingHint ? <Loader className="animate-spin mr-1 h-4 w-4" /> : <Sparkles className="mr-1 h-4 w-4" />}
-                        Hint
                         </Button>
                         <Button variant="secondary" size="sm" onClick={onChatClick} className="shadow-sm">
                         <MessageCircle className="mr-1 h-4 w-4" />

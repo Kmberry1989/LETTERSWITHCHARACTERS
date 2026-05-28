@@ -16,7 +16,9 @@ import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/e
 import type { UserProfile } from '@/firebase/firestore/use-users';
 import { Skeleton } from '../ui/skeleton';
 import { normalizeUserCosmetics } from '@/lib/user-profile';
-import { TILE_COSMETICS } from '@/lib/tile-cosmetics';
+import { canAccessTileTier, TILE_COSMETICS } from '@/lib/tile-cosmetics';
+import { Badge } from '@/components/ui/badge';
+import { Lock } from 'lucide-react';
 
 const boardThemes = [
   { id: 'board-green', name: 'Classic Green' },
@@ -67,12 +69,14 @@ export default function AppearanceEditor() {
   const [selectedTileSet, setSelectedTileSet] = useState<string>('tile-minimalist');
   const [selectedBoardTheme, setSelectedBoardTheme] = useState<string>('board-green');
   const [ownedTileSetIds, setOwnedTileSetIds] = useState<string[]>([]);
+  const [level, setLevel] = useState<number>(1);
 
   useEffect(() => {
     if (userProfile) {
       const normalized = normalizeUserCosmetics(userProfile);
       setSelectedTileSet(normalized.equippedTileSetId);
       setOwnedTileSetIds(normalized.ownedTileSetIds);
+      setLevel(normalized.level ?? 1);
       setSelectedBoardTheme(userProfile.boardThemeId || 'board-green');
     }
   }, [userProfile]);
@@ -179,22 +183,31 @@ export default function AppearanceEditor() {
           <TabsContent value="tiles">
             <ScrollArea className="h-96">
               <div className="grid grid-cols-2 gap-4 pr-4 sm:grid-cols-3">
-                {TILE_COSMETICS.filter((item) => ownedTileSetIds.includes(item.id)).map((item) => {
+                {TILE_COSMETICS.map((item) => {
+                  const isOwned = ownedTileSetIds.includes(item.id);
+                  const isUnlocked = canAccessTileTier(level, item.id);
                   return (
                     <Button
                       key={item.id}
                       variant={selectedTileSet === item.id ? 'default' : 'outline'}
-                      onClick={() => handleTileSelection(item.id)}
-                      className="h-auto flex-col gap-2 p-2"
+                      onClick={() => isOwned && handleTileSelection(item.id)}
+                      className="relative h-auto flex-col gap-2 p-2"
+                      disabled={!isOwned}
                     >
                       <div className="relative aspect-square w-20 overflow-hidden rounded-md border border-black/10">
                         <Image
                           src={item.assetPath}
                           alt={item.name}
                           fill
-                          className="object-cover"
+                          className={`object-cover ${!isUnlocked ? 'opacity-35 grayscale' : !isOwned ? 'opacity-55 saturate-75' : ''}`}
                         />
+                        {!isUnlocked && (
+                          <div className="absolute inset-0 flex items-center justify-center bg-slate-950/40">
+                            <Lock className="h-6 w-6 text-white" />
+                          </div>
+                        )}
                       </div>
+                      <Badge variant="secondary">Lv {item.requiredLevel}</Badge>
                       {item.name}
                     </Button>
                   );

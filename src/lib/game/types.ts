@@ -2,6 +2,8 @@ export interface Tile {
   letter: string;
   score: number;
   isBlank?: boolean;
+  tileSetId?: string;
+  ownerUid?: string;
 }
 
 export interface PlacedTile extends Tile {
@@ -16,8 +18,8 @@ export interface PlayerData {
   photoURL?: string | null;
   avatarPresetId?: string | null;
   avatarPosterUrl?: string | null;
+  equippedTileSetId?: string | null;
   tiles: Tile[];
-  hintUsed?: boolean;
 }
 
 export interface Game {

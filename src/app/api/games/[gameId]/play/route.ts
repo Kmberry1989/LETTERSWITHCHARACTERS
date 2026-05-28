@@ -4,8 +4,10 @@ import type { PlacedTile, Tile } from '@/lib/game/types';
 import { calculateScore, getWordsFromPlacedTiles } from '@/lib/scoring';
 import { drawTiles } from '@/lib/game-logic';
 import { validatePlayableWord } from '@/lib/server/word-validator';
-import { awardBerries, awardWinnerBonusIfNeeded } from '@/lib/server/game-rewards';
+import { awardPlayerProgress, awardWinnerBonusIfNeeded } from '@/lib/server/game-rewards';
 import { getBerryRewardForScore } from '@/lib/tile-cosmetics';
+import { getDocument } from '@/lib/server/document-store';
+import { normalizeUserCosmetics } from '@/lib/user-profile';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,8 +22,8 @@ type GameDoc = {
       photoURL?: string | null;
       avatarPresetId?: string | null;
       avatarPosterUrl?: string | null;
+      equippedTileSetId?: string | null;
       tiles: Tile[];
-      hintUsed?: boolean;
     }
   >;
   board: Record<string, Tile>;
@@ -292,6 +294,7 @@ export async function POST(
   }
 
   const playerData = gameData.playerData[uid];
+  const playerProfile = normalizeUserCosmetics(await getDocument<any>('users', uid));
 
   if (!playerData) {
     return NextResponse.json({ error: 'Player data missing.' }, { status: 400 });
@@ -310,6 +313,8 @@ export async function POST(
       letter: tile.letter,
       score: tile.score,
       isBlank: tile.isBlank,
+      tileSetId: playerProfile.equippedTileSetId,
+      ownerUid: uid,
     };
   }
 
@@ -326,6 +331,7 @@ export async function POST(
     tileBag: updatedTileBag,
     [`playerData.${uid}.score`]: updatedScore,
     [`playerData.${uid}.tiles`]: finalPlayerTiles,
+    [`playerData.${uid}.equippedTileSetId`]: playerProfile.equippedTileSetId,
     currentTurn: opponentUid,
     consecutivePasses: 0,
   };
@@ -336,7 +342,7 @@ export async function POST(
   }
 
   await gameRef.update(updatePayload);
-  await awardBerries(uid, berriesEarned);
+  await awardPlayerProgress(uid, { berries: berriesEarned, experience: score });
   const winnerBonus = await awardWinnerBonusIfNeeded(isGameFinished ? uid : undefined, false);
 
   return NextResponse.json({

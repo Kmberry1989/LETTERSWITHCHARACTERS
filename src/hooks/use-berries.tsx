@@ -9,6 +9,8 @@ import { STARTER_BERRIES } from '@/lib/tile-cosmetics';
 
 type BerriesContextType = {
   berries: number;
+  level: number;
+  experience: number;
   equippedTileSetId: string;
   ownedTileSetIds: string[];
   isLoading: boolean;
@@ -26,6 +28,8 @@ export function BerriesProvider({ children }: { children: ReactNode }) {
     const normalized = normalizeUserCosmetics(userProfile || undefined);
     return {
       berries: normalized.berries ?? STARTER_BERRIES,
+      level: normalized.level ?? 1,
+      experience: normalized.experience ?? 0,
       equippedTileSetId: normalized.equippedTileSetId,
       ownedTileSetIds: normalized.ownedTileSetIds,
       isLoading: isUserLoading || isProfileLoading,

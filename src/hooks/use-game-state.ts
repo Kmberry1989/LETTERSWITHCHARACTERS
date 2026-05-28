@@ -4,11 +4,10 @@ import { useState, useEffect, useMemo } from 'react';
 import { doc } from '@/lib/client/document-client';
 import { useToast } from '@/hooks/use-toast';
 import { useAudio } from '@/hooks/use-audio';
-import { suggestWord } from '@/ai/ai-suggest-word';
 import { Tile, PlacedTile } from '@/lib/game/types';
 import { ChatMessage } from '@/components/game/chat-window';
 
-export function useGameState(gameId: string | null, user: any, game: any) {
+export function useGameState(gameId: string | null, user: any, game: any, equippedTileSetId?: string | null) {
     const { toast } = useToast();
     const { playSfx } = useAudio();
 
@@ -20,19 +19,20 @@ export function useGameState(gameId: string | null, user: any, game: any) {
     const [pendingTiles, setPendingTiles] = useState<PlacedTile[]>([]);
     const [selectedTileIndex, setSelectedTileIndex] = useState<number | null>(null);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isGettingHint, setIsGettingHint] = useState(false);
     const [isExchanging, setIsExchanging] = useState(false);
     const [exchangeSelection, setExchangeSelection] = useState<number[]>([]);
     const [blankTileDialog, setBlankTileDialog] = useState<{ isOpen: boolean, pendingTileIndex: number | null }>({ isOpen: false, pendingTileIndex: null });
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [optimisticBoard, setOptimisticBoard] = useState<Record<string, Tile> | null>(null);
     const [draggedTileIndex, setDraggedTileIndex] = useState<number | null>(null);
+    const [shuffleTick, setShuffleTick] = useState(0);
 
     const isPlayerTurn = user && game ? game.currentTurn === user.uid : false;
     const opponentUid = useMemo(() => game?.players.find((p: string) => p !== user?.uid), [game, user]);
     const serverBoardSignature = useMemo(() => JSON.stringify(game?.board || {}), [game?.board]);
     const optimisticBoardSignature = useMemo(() => JSON.stringify(optimisticBoard || {}), [optimisticBoard]);
-    const localPlacementActive = pendingTiles.length > 0 || blankTileDialog.isOpen || draggedTileIndex !== null;
+    const localPlacementActive = pendingTiles.length > 0 || blankTileDialog.isOpen || draggedTileIndex !== null || selectedTileIndex !== null;
+    const activeTileSetId = equippedTileSetId || (user && game?.playerData?.[user.uid]?.equippedTileSetId ? game.playerData[user.uid].equippedTileSetId : undefined);
 
     useEffect(() => {
         if (!game || !user) {
@@ -85,7 +85,7 @@ export function useGameState(gameId: string | null, user: any, game: any) {
         }
 
         if (tile.letter === ' ') {
-            setPendingTiles((prev: PlacedTile[]) => [...prev, { ...tile, row, col, letter: '' }]);
+            setPendingTiles((prev: PlacedTile[]) => [...prev, { ...tile, row, col, letter: '', tileSetId: activeTileSetId, ownerUid: user?.uid }]);
             setPlayerTiles((prev: (Tile | null)[]) => {
                 const newTiles = [...prev];
                 newTiles[tileIndex] = null;
@@ -97,7 +97,7 @@ export function useGameState(gameId: string | null, user: any, game: any) {
             return;
         }
 
-        setPendingTiles((prev: PlacedTile[]) => [...prev, { ...tile, row, col }]);
+        setPendingTiles((prev: PlacedTile[]) => [...prev, { ...tile, row, col, tileSetId: activeTileSetId, ownerUid: user?.uid }]);
         setPlayerTiles((prev: (Tile | null)[]) => {
             const newTiles = [...prev];
             newTiles[tileIndex] = null;
@@ -157,8 +157,13 @@ export function useGameState(gameId: string | null, user: any, game: any) {
     const handleShuffle = () => {
         if (!isPlayerTurn) return;
         playSfx('click');
-        const shuffled = [...playerTiles].sort(() => Math.random() - 0.5);
+        const shuffled = [...playerTiles];
+        for (let i = shuffled.length - 1; i > 0; i -= 1) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
         setPlayerTiles(shuffled);
+        setShuffleTick((current) => current + 1);
     };
 
     const handlePlay = async () => {
@@ -282,41 +287,6 @@ export function useGameState(gameId: string | null, user: any, game: any) {
         }
     };
 
-    const handleHint = async () => {
-        if (!game || !user) return;
-        setIsGettingHint(true);
-        try {
-            const boardStateForAI = JSON.stringify(game.board);
-            const playerTilesForAI = playerTiles.map(t => t?.letter).join('');
-            const result = await suggestWord({ tiles: playerTilesForAI, boardState: boardStateForAI });
-
-            toast({
-                title: 'AI Word Suggestion',
-                description: `How about playing: ${result.suggestions[0] || 'Hmm, I am stumped...'}`
-            });
-            playSfx('click');
-
-            if (gameId) {
-                const token = await user.getIdToken();
-                const response = await fetch(`/api/games/${gameId}/hint`, {
-                    method: 'POST',
-                    headers: {
-                        Authorization: `Bearer ${token}`,
-                    },
-                });
-                if (!response.ok) {
-                    throw new Error('Failed to record hint usage.');
-                }
-            }
-
-        } catch (e) {
-            toast({ variant: 'destructive', title: 'Hint Error', description: 'Could not get a hint at this time.' });
-            playSfx('error');
-        } finally {
-            setIsGettingHint(false);
-        }
-    };
-
     const handleBlankTileSelect = (letter: string) => {
         if (blankTileDialog.pendingTileIndex !== null) {
             const tileToUpdateIndex = blankTileDialog.pendingTileIndex;
@@ -364,19 +334,16 @@ export function useGameState(gameId: string | null, user: any, game: any) {
         setDraggedTileIndex(index);
     };
 
+    const handleDragEnd = () => {
+        setDraggedTileIndex(null);
+    };
+
     const handleDrop = (targetIndex: number) => {
         if (draggedTileIndex !== null) {
             const newTiles = [...playerTiles];
-            const draggedTile = newTiles[draggedTileIndex];
-            newTiles[draggedTileIndex] = null;
-            const temp = newTiles[targetIndex];
-            newTiles[targetIndex] = draggedTile;
-            const originalEmptyIndex = newTiles.indexOf(null);
-            if (originalEmptyIndex !== -1) {
-                newTiles[originalEmptyIndex] = temp;
-            }
+            [newTiles[targetIndex], newTiles[draggedTileIndex]] = [newTiles[draggedTileIndex], newTiles[targetIndex]];
             setPlayerTiles(newTiles);
-            setSelectedTileIndex(null);
+            setSelectedTileIndex(targetIndex);
             setDraggedTileIndex(null);
         }
     };
@@ -395,7 +362,6 @@ export function useGameState(gameId: string | null, user: any, game: any) {
         selectedTileIndex,
         setSelectedTileIndex,
         isSubmitting,
-        isGettingHint,
         isExchanging,
         setIsExchanging,
         exchangeSelection,
@@ -414,11 +380,12 @@ export function useGameState(gameId: string | null, user: any, game: any) {
         handlePlay,
         handlePass,
         handleExchange,
-        handleHint,
         handleBlankTileSelect,
         handleSendMessage,
         handleDragStart,
+        handleDragEnd,
         handleDrop,
-        handleBoardDrop
+        handleBoardDrop,
+        shuffleTick,
     };
 }

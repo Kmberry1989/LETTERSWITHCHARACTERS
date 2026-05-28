@@ -9,15 +9,15 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useBerries } from '@/hooks/use-berries';
-import { Cherry, Check, Sparkles } from 'lucide-react';
-import { TILE_COSMETICS } from '@/lib/tile-cosmetics';
+import { Cherry, Check, Lock, Sparkles, Stars } from 'lucide-react';
+import { canAccessTileTier, TILE_COSMETICS } from '@/lib/tile-cosmetics';
 
 function rarityLabel(rarity: string) {
   return rarity.charAt(0).toUpperCase() + rarity.slice(1);
 }
 
 export default function ShopPage() {
-  const { berries, ownedTileSetIds, equippedTileSetId, isLoading } = useBerries();
+  const { berries, level, experience, ownedTileSetIds, equippedTileSetId, isLoading } = useBerries();
   const { toast } = useToast();
   const [pendingItemId, setPendingItemId] = useState<string | null>(null);
 
@@ -87,6 +87,10 @@ export default function ShopPage() {
               <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
                 Spend berries earned from real matches on tactile tile finishes, then equip them for live play.
               </p>
+              <div className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-white">
+                <Stars className="h-3.5 w-3.5" />
+                Level {level} • {experience} XP
+              </div>
             </div>
             <div className="inline-flex items-center gap-2 self-start rounded-full border bg-white/90 px-4 py-2 shadow-sm">
               <Cherry className="h-4 w-4 text-rose-500" />
@@ -103,11 +107,12 @@ export default function ShopPage() {
               const isEquipped = equippedTileSetId === item.id;
               const isPending = pendingItemId === item.id;
               const canAfford = berries >= item.price;
+              const isUnlocked = canAccessTileTier(level, item.id);
 
               return (
                 <Card
                   key={item.id}
-                  className="group overflow-hidden border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(250,247,241,0.98))] shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-xl"
+                  className="group relative overflow-hidden border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(250,247,241,0.98))] shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-xl"
                 >
                   <CardHeader className="space-y-3">
                     <div className="flex items-start justify-between gap-3">
@@ -124,12 +129,20 @@ export default function ShopPage() {
                         src={item.assetPath}
                         alt={item.name}
                         fill
-                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        className={`object-cover transition-transform duration-300 group-hover:scale-105 ${!isUnlocked ? 'opacity-35 grayscale' : ''}`}
                       />
                       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.30),transparent_48%)]" />
+                      {!isUnlocked && (
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-950/35 backdrop-blur-[1px]">
+                          <Lock className="h-8 w-8 text-white" />
+                          <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-slate-900">
+                            Unlock at level {item.requiredLevel}
+                          </span>
+                        </div>
+                      )}
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium text-muted-foreground">Price</span>
+                      <span className="font-medium text-muted-foreground">Price • Lv {item.requiredLevel}</span>
                       <span className="inline-flex items-center gap-1 font-black tabular-nums">
                         <Cherry className="h-4 w-4 text-rose-500" />
                         {item.price.toLocaleString()}
@@ -151,11 +164,11 @@ export default function ShopPage() {
                       <Button
                         className="w-full gap-2"
                         onClick={() => handlePurchase(item.id)}
-                        disabled={isPending || isLoading || !canAfford}
-                        variant={canAfford ? 'default' : 'secondary'}
+                        disabled={isPending || isLoading || !canAfford || !isUnlocked}
+                        variant={canAfford && isUnlocked ? 'default' : 'secondary'}
                       >
-                        <Cherry className="h-4 w-4" />
-                        {isPending ? 'Purchasing...' : canAfford ? 'Buy now' : 'Need more berries'}
+                        {!isUnlocked ? <Lock className="h-4 w-4" /> : <Cherry className="h-4 w-4" />}
+                        {isPending ? 'Purchasing...' : !isUnlocked ? `Reach level ${item.requiredLevel}` : canAfford ? 'Buy now' : 'Need more berries'}
                       </Button>
                     )}
                   </CardFooter>

@@ -27,6 +27,7 @@ import { createTileBag, drawTiles } from '@/lib/game-logic';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
 import type { UserProfile } from '@/firebase/firestore/use-users';
+import { normalizeUserCosmetics } from '@/lib/user-profile';
 
 interface BotGameDialogProps {
     disabled?: boolean;
@@ -87,6 +88,7 @@ export function BotGameDialog({ disabled, existingGames, children }: BotGameDial
             return;
         }
 
+        const userCosmetics = normalizeUserCosmetics(userProfile);
 
         let tileBag = createTileBag();
         const [player1Tiles, tileBagAfterP1] = drawTiles(tileBag, 7);
@@ -104,8 +106,8 @@ export function BotGameDialog({ disabled, existingGames, children }: BotGameDial
                     photoURL: userProfile.photoURL || null,
                     avatarPresetId: userProfile.avatarPresetId || null,
                     avatarPosterUrl: userProfile.avatarPosterUrl || null,
+                    equippedTileSetId: userCosmetics.equippedTileSetId,
                     tiles: player1Tiles,
-                    hintUsed: false,
                 },
                 [opponent.uid]: {
                     displayName: opponent.displayName,
@@ -114,8 +116,8 @@ export function BotGameDialog({ disabled, existingGames, children }: BotGameDial
                     photoURL: null,
                     avatarPresetId: 'ember-scribe',
                     avatarPosterUrl: opponent.avatarPosterUrl,
+                    equippedTileSetId: 'tile-minimalist',
                     tiles: player2Tiles,
-                    hintUsed: false,
                 }
             },
             board: {},

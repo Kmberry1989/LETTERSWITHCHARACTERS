@@ -1,3 +1,4 @@
+import { getLevelForExperience } from '@/lib/tile-cosmetics';
 import {
   normalizeOwnedTileSetIds,
   resolveEquippedTileSetId,
@@ -6,6 +7,8 @@ import {
 
 export type CosmeticUserProfile = {
   berries?: number;
+  experience?: number;
+  level?: number;
   ownedTileSetIds?: string[];
   equippedTileSetId?: string;
   tileSetId?: string;
@@ -18,10 +21,14 @@ export function normalizeUserCosmetics<T extends CosmeticUserProfile>(profile: T
     ...(safeProfile.ownedTileSetIds || []),
     safeProfile.tileSetId || equippedTileSetId,
   ]);
+  const experience = typeof safeProfile.experience === 'number' ? safeProfile.experience : 0;
+  const level = typeof safeProfile.level === 'number' ? safeProfile.level : getLevelForExperience(experience);
 
   return {
     ...safeProfile,
     berries: typeof safeProfile.berries === 'number' ? safeProfile.berries : STARTER_BERRIES,
+    experience,
+    level,
     ownedTileSetIds,
     equippedTileSetId: ownedTileSetIds.includes(equippedTileSetId)
       ? equippedTileSetId

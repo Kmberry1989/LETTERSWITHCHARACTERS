@@ -22,6 +22,8 @@ export type AppUser = {
   avatarConfiguredAt?: string | null;
   onboardingCompletedAt?: string | null;
   getIdToken?: () => Promise<string>;
+  experience?: number;
+  level?: number;
 };
 
 const SESSION_COOKIE = 'lwc_session';
@@ -102,6 +104,8 @@ export async function getUserByToken(token?: string | null): Promise<AppUser | n
     avatarConfiguredAt: profile.avatarConfiguredAt || null,
     onboardingCompletedAt: profile.onboardingCompletedAt || null,
     berries: typeof profile.berries === 'number' ? profile.berries : STARTER_BERRIES,
+    experience: typeof profile.experience === 'number' ? profile.experience : 0,
+    level: typeof profile.level === 'number' ? profile.level : 1,
   };
 }
 
@@ -147,6 +151,8 @@ export async function upsertUserProfile(user: AppUser) {
       equippedTileSetId,
       ownedTileSetIds,
       berries: typeof existing?.berries === 'number' ? existing.berries : STARTER_BERRIES,
+      experience: typeof existing?.experience === 'number' ? existing.experience : 0,
+      level: typeof existing?.level === 'number' ? existing.level : 1,
       boardThemeId: existing?.boardThemeId ?? 'board-green',
       themeId: existing?.themeId ?? 'default',
       gameIds: existing?.gameIds ?? [],
