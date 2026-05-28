@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { motion } from 'framer-motion';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -23,15 +24,15 @@ function Tile({
   canDrag: boolean;
   isExchanging: boolean;
   isExchangeSelected: boolean;
-}) {
+  }) {
   const isBlank = tile.letter === ' ';
   return (
-    <div 
+    <div
       draggable={canDrag}
       onDragStart={onDragStart}
       onClick={onClick}
       className={cn(
-        "relative flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 cursor-pointer select-none items-center justify-center rounded-md border-b-4 border-black/20 bg-[#f8e8c7] shadow-md transition-all duration-150 ease-in-out hover:scale-105",
+        "relative flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 cursor-pointer select-none items-center justify-center rounded-md border-b-4 border-black/20 bg-[#f8e8c7] shadow-[0_8px_18px_rgba(0,0,0,0.14)] transition-all duration-150 ease-in-out",
         isSelected && !isExchanging && "ring-2 ring-primary ring-offset-2 scale-105 shadow-lg",
         isExchangeSelected && "ring-2 ring-destructive ring-offset-2 scale-105 shadow-lg",
         isExchanging && !isExchangeSelected && "opacity-60",
@@ -39,8 +40,18 @@ function Tile({
         "active:scale-95"
       )}
     >
-      <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">{isBlank ? '?' : tile.letter}</span>
-      <span className="absolute bottom-0.5 right-1 text-[0.6rem] sm:text-xs font-semibold text-gray-800">{tile.score}</span>
+      <motion.div
+        layout
+        initial={{ scale: 0.94, opacity: 0, y: 4 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
+        whileHover={{ scale: canDrag ? 1.06 : 1 }}
+        whileTap={{ scale: canDrag ? 0.96 : 1 }}
+        className="relative flex h-full w-full items-center justify-center rounded-md"
+      >
+        <div className="pointer-events-none absolute inset-0 rounded-md bg-gradient-to-br from-white/45 via-transparent to-transparent" />
+        <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">{isBlank ? '?' : tile.letter}</span>
+        <span className="absolute bottom-0.5 right-1 text-[0.6rem] sm:text-xs font-semibold text-gray-800">{tile.score}</span>
+      </motion.div>
     </div>
   );
 }

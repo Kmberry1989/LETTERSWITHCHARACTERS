@@ -3,7 +3,7 @@ import { getAdminAuth, getAdminFirestore } from '@/firebase/admin';
 import type { PlacedTile, Tile } from '@/lib/game/types';
 import { calculateScore, getWordsFromPlacedTiles } from '@/lib/scoring';
 import { drawTiles } from '@/lib/game-logic';
-import { validateWord } from '@/ai/validate-word';
+import { validatePlayableWord } from '@/lib/server/word-validator';
 
 export const dynamic = 'force-dynamic';
 
@@ -211,30 +211,7 @@ async function verifyAuth(request: NextRequest) {
 }
 
 async function safelyValidateWord(word: string) {
-  if (!word || word.length < 2) {
-    return {
-      isValid: false,
-      reason: 'Words must be at least 2 letters long.',
-    };
-  }
-
-  if (!/^[A-Z]+$/.test(word)) {
-    return {
-      isValid: false,
-      reason: 'Words can only contain letters.',
-    };
-  }
-
-  try {
-    return await validateWord({ word });
-  } catch (error) {
-    console.warn(`Word validation service failed for "${word}". Allowing word as fallback.`, error);
-
-    return {
-      isValid: true,
-      reason: 'Word validation service was unavailable, so the move was allowed.',
-    };
-  }
+  return validatePlayableWord(word);
 }
 
 export async function POST(

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useEffect, useRef } from 'react';
+import React, { Suspense, useEffect, useRef, useState } from 'react';
 
 import { useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/app-layout';
@@ -11,6 +11,7 @@ import { useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from '@/lib/client/document-client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,11 +25,14 @@ import {
 } from '@/components/ui/alert-dialog';
 import BlankTileDialog from '@/components/game/blank-tile-dialog';
 import ChatWindow from '@/components/game/chat-window';
+import AudioSettings from '@/components/profile/audio-settings';
 import { useGameState } from '@/hooks/use-game-state';
 import { usePlayableGate } from '@/hooks/use-playable-gate';
+import { Pause } from 'lucide-react';
 
 function Game() {
   const botTurnRequestRef = useRef<string | null>(null);
+  const [isPauseOpen, setIsPauseOpen] = useState(false);
   const searchParams = useSearchParams();
   const gameId = searchParams.get('game');
   const { user, isUserLoading, canPlay } = usePlayableGate();
@@ -139,6 +143,37 @@ function Game() {
     <AppLayout>
       <div className="flex h-full flex-col items-center p-4">
         <div className="w-full max-w-4xl flex flex-col gap-4">
+          <div className="flex items-center justify-end">
+            <Dialog open={isPauseOpen} onOpenChange={setIsPauseOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="gap-2 shadow-sm">
+                  <Pause className="h-4 w-4" />
+                  Pause & Audio
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl">
+                <DialogHeader>
+                  <DialogTitle>Pause Menu</DialogTitle>
+                  <DialogDescription>
+                    Adjust audio, review the next systems coming online, or step away from the board.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="grid gap-6 md:grid-cols-[1.25fr_0.75fr]">
+                  <AudioSettings />
+                  <div className="rounded-xl border bg-muted/40 p-4">
+                    <h3 className="mb-3 font-semibold">Meta-board work in progress</h3>
+                    <ul className="space-y-2 text-sm text-muted-foreground">
+                      <li>• Wheel-of-fortune style bonus spaces after matches</li>
+                      <li>• Avatar tokens that move around a long-form board</li>
+                      <li>• Turn rewards from casual solo mini-games</li>
+                      <li>• Penalties, boosts, and event tiles for the overall meta loop</li>
+                    </ul>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
+
           {userPlayerData && opponentPlayerData && (
             <Scoreboard
               players={[

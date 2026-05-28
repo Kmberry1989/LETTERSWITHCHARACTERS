@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react';
 import { AppHeader } from '@/components/app-header';
 import { MainNav } from '@/components/main-nav';
+import MusicPlayer from '@/components/profile/music-player';
 import {
   Sidebar,
   SidebarContent,
@@ -30,6 +31,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
       </Sidebar>
       <SidebarInset>
         <AppHeader />
+        <MusicPlayer />
         <main>{children}</main>
       </SidebarInset>
     </SidebarProvider>

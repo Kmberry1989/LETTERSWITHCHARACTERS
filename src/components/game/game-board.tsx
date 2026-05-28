@@ -3,6 +3,7 @@
 import { cn } from '@/lib/utils';
 import { Star } from 'lucide-react';
 import React from 'react';
+import { motion } from 'framer-motion';
 import type { Tile, PlacedTile } from '@/lib/game/types';
 import { BOARD_LAYOUT } from '@/lib/game/constants';
 
@@ -75,11 +76,16 @@ function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; c
 function PlacedTileComponent({ tile, isPending, onClick }: { tile: Tile, isPending: boolean, onClick?: () => void }) {
   const canRecall = !!onClick;
   return (
-    <div 
+    <motion.div 
+      layout
+      initial={{ scale: 0.85, opacity: 0, rotate: -4 }}
+      animate={{ scale: 1, opacity: 1, rotate: 0 }}
+      whileHover={{ scale: canRecall ? 1.03 : 1 }}
       className={cn(
-        "relative flex h-full w-full items-center justify-center rounded-sm border-b-2 border-black/20 bg-[#f8e8c7] shadow-sm",
+        "relative flex h-full w-full items-center justify-center rounded-sm border-b-2 border-black/20 bg-[#f8e8c7] shadow-[0_10px_18px_rgba(0,0,0,0.16)]",
         isPending && canRecall && "cursor-pointer ring-2 ring-yellow-400 ring-offset-1",
-        isPending && !canRecall && "ring-2 ring-yellow-400/50 ring-offset-1"
+        isPending && !canRecall && "ring-2 ring-yellow-400/50 ring-offset-1",
+        "before:absolute before:inset-0 before:rounded-sm before:bg-gradient-to-br before:from-white/55 before:via-transparent before:to-transparent"
       )}
       onClick={onClick}
     >
@@ -88,7 +94,7 @@ function PlacedTileComponent({ tile, isPending, onClick }: { tile: Tile, isPendi
           tile.isBlank && "text-red-600"
       )}>{tile.letter}</span>
       <span className="absolute bottom-0 right-0.5 text-[0.5rem] sm:text-xs font-semibold text-gray-800">{tile.score}</span>
-    </div>
+    </motion.div>
   );
 }
 

@@ -3,12 +3,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import { doc } from '@/lib/client/document-client';
 import { useToast } from '@/hooks/use-toast';
+import { useAudio } from '@/hooks/use-audio';
 import { suggestWord } from '@/ai/ai-suggest-word';
 import { Tile, PlacedTile } from '@/lib/game/types';
 import { ChatMessage } from '@/components/game/chat-window';
 
 export function useGameState(gameId: string | null, user: any, game: any) {
     const { toast } = useToast();
+    const { playSfx } = useAudio();
 
     const gameDocRef = useMemo(() => {
         return gameId ? doc(null, 'games', gameId) : null;
@@ -76,6 +78,8 @@ export function useGameState(gameId: string | null, user: any, game: any) {
         const tile = playerTiles[tileIndex];
         if (!tile) return;
 
+        playSfx('click');
+
         if (pendingTiles.some((pendingTile) => pendingTile.row === row && pendingTile.col === col)) {
             return;
         }
@@ -126,6 +130,7 @@ export function useGameState(gameId: string | null, user: any, game: any) {
         if (!isPlayerTurn) return;
         const firstEmptyIndex = playerTiles.findIndex(t => t === null);
         if (firstEmptyIndex !== -1) {
+            playSfx('swoosh');
             setPlayerTiles((prev: (Tile | null)[]) => {
                 const newTiles = [...prev];
                 newTiles[firstEmptyIndex] = tileToRecall.isBlank ? { letter: ' ', score: 0 } : { letter: tileToRecall.letter, score: tileToRecall.score };
@@ -137,6 +142,7 @@ export function useGameState(gameId: string | null, user: any, game: any) {
 
     const handleRecallAll = () => {
         if (!isPlayerTurn) return;
+        playSfx('swoosh');
         let newPlayerTiles = [...playerTiles];
         for (const tile of pendingTiles) {
             const firstEmptyIndex = newPlayerTiles.findIndex(t => t === null);
@@ -150,6 +156,7 @@ export function useGameState(gameId: string | null, user: any, game: any) {
 
     const handleShuffle = () => {
         if (!isPlayerTurn) return;
+        playSfx('click');
         const shuffled = [...playerTiles].sort(() => Math.random() - 0.5);
         setPlayerTiles(shuffled);
     };
@@ -186,6 +193,7 @@ export function useGameState(gameId: string | null, user: any, game: any) {
 
             const result = await response.json();
             const scoredPoints = typeof result?.score === 'number' ? result.score : null;
+            playSfx(scoredPoints !== null && scoredPoints > 0 ? 'success' : 'place');
 
             toast({
                 title: 'Word Played!',
@@ -194,6 +202,7 @@ export function useGameState(gameId: string | null, user: any, game: any) {
 
         } catch (e: any) {
             toast({ variant: 'destructive', title: 'Error', description: e.message || 'Could not process your move.' });
+            playSfx('error');
             setOptimisticBoard(null);
             setPendingTiles(tilesToSubmit);
             setPlayerTiles(previousPlayerTiles);
@@ -220,9 +229,11 @@ export function useGameState(gameId: string | null, user: any, game: any) {
             }
 
             toast({ title: 'Turn Passed', description: "It's now your opponent's turn." });
+            playSfx('swoosh');
 
         } catch (e: any) {
             toast({ variant: 'destructive', title: 'Error', description: e.message || 'Could not pass turn.' });
+            playSfx('error');
         } finally {
             setIsSubmitting(false);
         }
@@ -257,10 +268,12 @@ export function useGameState(gameId: string | null, user: any, game: any) {
             }
 
             toast({ title: 'Tiles Exchanged', description: `You exchanged ${tilesToExchange.length} tiles. It's now your opponent's turn.` });
+            playSfx('swoosh');
             setExchangeSelection([]);
             setIsExchanging(false);
         } catch (e: any) {
             toast({ variant: 'destructive', title: 'Error', description: e.message || 'Could not exchange tiles.' });
+            playSfx('error');
         } finally {
             setIsSubmitting(false);
         }
@@ -278,6 +291,7 @@ export function useGameState(gameId: string | null, user: any, game: any) {
                 title: 'AI Word Suggestion',
                 description: `How about playing: ${result.suggestions[0] || 'Hmm, I am stumped...'}`
             });
+            playSfx('click');
 
             if (gameId) {
                 const token = await user.getIdToken();
@@ -294,6 +308,7 @@ export function useGameState(gameId: string | null, user: any, game: any) {
 
         } catch (e) {
             toast({ variant: 'destructive', title: 'Hint Error', description: 'Could not get a hint at this time.' });
+            playSfx('error');
         } finally {
             setIsGettingHint(false);
         }
@@ -311,6 +326,7 @@ export function useGameState(gameId: string | null, user: any, game: any) {
                 return newTiles;
             });
         }
+        playSfx('click');
         setBlankTileDialog({ isOpen: false, pendingTileIndex: null });
     };
 
@@ -332,8 +348,10 @@ export function useGameState(gameId: string | null, user: any, game: any) {
                 const errorData = await response.json().catch(() => null);
                 throw new Error(errorData?.error || 'Could not send message.');
             }
+            playSfx('click');
         } catch (e: any) {
             toast({ variant: 'destructive', title: 'Send Error', description: e.message || 'Could not send message.' });
+            playSfx('error');
         }
     };
 
