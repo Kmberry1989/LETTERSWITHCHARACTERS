@@ -29,7 +29,7 @@ export default function LoginPage() {
   const handleAuthSuccess = (signedInUser: AppUser) => {
     toast({
       title: 'Welcome!',
-      description: 'You are signed in. Finish avatar setup to start playing.',
+      description: 'You are signed in and ready to play.',
     });
     router.push(getPostLoginRoute(signedInUser));
     setIsLoading(false);
@@ -83,7 +83,7 @@ export default function LoginPage() {
           </div>
           <CardTitle className="text-2xl font-headline">Letters with Characters</CardTitle>
           <CardDescription>
-            Sign in or create an account, then choose your playable 3D character before entering the lobby.
+            Sign in or create an account, then jump straight into the lobby. You can add a profile picture from settings any time.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -146,7 +146,7 @@ export default function LoginPage() {
               </Button>
             </div>
             <div className="rounded-xl border bg-muted/40 p-4 text-sm text-muted-foreground">
-              Usernames use lowercase letters, numbers, and underscores. New accounts continue into avatar setup before gameplay. Guest mode is available for quick local play.
+              Usernames use lowercase letters, numbers, and underscores. Google sign-in uses your account picture automatically when available. Guest mode is available for quick local play.
             </div>
           </form>
         </CardContent>

@@ -16,6 +16,7 @@ import type { UserProfile } from '@/firebase/firestore/use-users';
 import { Swords } from 'lucide-react';
 import { resolveAvatarImage } from '@/lib/avatar-catalog';
 import { usePlayableGate } from '@/hooks/use-playable-gate';
+import { useTurnNotifications } from '@/hooks/use-turn-notifications';
 
 interface PlayerData {
   displayName: string;
@@ -147,6 +148,16 @@ export default function DashboardPage() {
   const { user, isUserLoading, canPlay } = usePlayableGate();
   const { games, loading: gamesLoading } = useUserGames();
   const loading = isUserLoading || gamesLoading || !user || !canPlay;
+  const usersTurnGame = user
+    ? games.find((game) => game.status === 'active' && game.currentTurn === user.uid)
+    : null;
+
+  useTurnNotifications({
+    enabled: Boolean(user && !loading),
+    isUsersTurn: Boolean(usersTurnGame),
+    title: 'Your turn is ready',
+    body: usersTurnGame ? `A game against ${usersTurnGame.players.find((playerId) => playerId !== user?.uid) || 'your opponent'} is waiting.` : 'One of your games is ready for your move.',
+  });
 
   return (
     <AppLayout>

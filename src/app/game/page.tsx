@@ -31,6 +31,7 @@ import { usePlayableGate } from '@/hooks/use-playable-gate';
 import { Pause } from 'lucide-react';
 import { useBerries } from '@/hooks/use-berries';
 import { useToast } from '@/hooks/use-toast';
+import { useTurnNotifications } from '@/hooks/use-turn-notifications';
 
 function Game() {
   const botTurnRequestRef = useRef<string | null>(null);
@@ -82,6 +83,22 @@ function Game() {
   const userPlayerData = user && game ? game.playerData[user.uid] : null;
   const opponentPlayerData = game && opponentUid ? game.playerData[opponentUid] : null;
   const isBotGame = Boolean(game?.players.includes('bitty-botty-001'));
+  const opponentName = opponentPlayerData?.displayName || 'your opponent';
+
+  useTurnNotifications({
+    enabled: Boolean(user && game),
+    isUsersTurn: Boolean(isPlayerTurn && game?.status === 'active'),
+    title: 'Your turn',
+    body: `It’s your move against ${opponentName}.`,
+  });
+  const ownerTileSetIds = game?.playerData
+    ? Object.fromEntries(
+        Object.entries(game.playerData).map(([uid, playerData]: [string, any]) => [
+          uid,
+          playerData?.equippedTileSetId || null,
+        ])
+      )
+    : {};
 
   useEffect(() => {
     if (!gameId || !game || !isBotGame || game.status !== 'active') {
@@ -220,6 +237,7 @@ function Game() {
               onRecallTile={handleRecallTile}
               onDrop={handleBoardDrop}
               tileSetId={equippedTileSetId}
+              ownerTileSetIds={ownerTileSetIds}
             />
           </div>
 

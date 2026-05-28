@@ -3,7 +3,6 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@/firebase';
-import { hasCompletedAvatarOnboarding } from '@/lib/avatar-catalog';
 
 export function usePlayableGate() {
   const router = useRouter();
@@ -14,17 +13,12 @@ export function usePlayableGate() {
 
     if (!user) {
       router.replace('/');
-      return;
-    }
-
-    if (!hasCompletedAvatarOnboarding(user)) {
-      router.replace('/onboarding/avatar');
     }
   }, [isUserLoading, router, user]);
 
   return {
     user,
     isUserLoading,
-    canPlay: Boolean(user && hasCompletedAvatarOnboarding(user)),
+    canPlay: Boolean(user),
   };
 }

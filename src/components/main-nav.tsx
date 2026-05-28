@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname } from 'next/navigation';
-import { Gamepad2, Puzzle, Trophy, UserCircle, Store, Swords } from 'lucide-react';
+import { Gamepad2, Trophy, UserCircle, Store, Swords } from 'lucide-react';
 import { SidebarMenu, SidebarMenuItem, SidebarMenuButton } from '@/components/ui/sidebar';
 import Link from 'next/link';
 
@@ -14,7 +14,6 @@ export function MainNav() {
     { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
     { href: '/shop', label: 'Shop', icon: Store },
     { href: '/profile', label: 'Profile', icon: UserCircle },
-    { href: '/minigames', label: 'Minigames', icon: Puzzle },
   ];
 
   return (

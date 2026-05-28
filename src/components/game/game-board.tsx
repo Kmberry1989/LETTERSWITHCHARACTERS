@@ -17,6 +17,7 @@ type GameBoardProps = {
   onDrop?: (row: number, col: number) => void;
   onRecallTile?: (tile: PlacedTile) => void;
   tileSetId?: string | null;
+  ownerTileSetIds?: Record<string, string | null | undefined>;
 };
 
 function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; children?: React.ReactNode; onClick?: () => void, onDrop?: (e: React.DragEvent) => void, onDragOver?: (e: React.DragEvent) => void }) {
@@ -75,8 +76,21 @@ function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; c
   );
 }
 
-function PlacedTileComponent({ tile, isPending, onClick, tileSetId }: { tile: Tile, isPending: boolean, onClick?: () => void, tileSetId?: string | null }) {
+function PlacedTileComponent({
+  tile,
+  isPending,
+  onClick,
+  tileSetId,
+  ownerTileSetIds,
+}: {
+  tile: Tile,
+  isPending: boolean,
+  onClick?: () => void,
+  tileSetId?: string | null,
+  ownerTileSetIds?: Record<string, string | null | undefined>,
+}) {
   const canRecall = !!onClick;
+  const resolvedTileSetId = tile.tileSetId || (tile.ownerUid ? ownerTileSetIds?.[tile.ownerUid] : undefined) || tileSetId;
   return (
     <motion.div 
       layout
@@ -92,7 +106,7 @@ function PlacedTileComponent({ tile, isPending, onClick, tileSetId }: { tile: Ti
       onClick={onClick}
     >
       <ThemedTileFace
-        tileSetId={tile.tileSetId || tileSetId}
+        tileSetId={resolvedTileSetId}
         letter={tile.letter}
         score={tile.score}
         isBlank={tile.isBlank}
@@ -109,6 +123,7 @@ const GameBoard = ({
   onDrop,
   onRecallTile,
   tileSetId,
+  ownerTileSetIds,
 }: GameBoardProps) => {
   const allTiles = { ...placedTiles };
   const pendingKeys = new Set();
@@ -151,6 +166,7 @@ const GameBoard = ({
                     tile={tile} 
                     isPending={isPending}
                     tileSetId={tileSetId}
+                    ownerTileSetIds={ownerTileSetIds}
                     onClick={isPending && onRecallTile ? () => onRecallTile({ ...tile, row: rowIndex, col: colIndex }) : undefined}
                   />
                 )}
