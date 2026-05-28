@@ -1,7 +1,19 @@
 import { NextResponse } from 'next/server';
 import { getDocument, setDocument, updateDocument } from '@/lib/server/document-store';
+import { getCurrentUser } from '@/lib/server/auth';
 
 export const dynamic = 'force-dynamic';
+
+async function ensureMutationAccess(collection: string, documentId: string) {
+  if (collection !== 'users') return null;
+
+  const user = await getCurrentUser();
+  if (!user || user.uid !== documentId) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+  }
+
+  return null;
+}
 
 export async function GET(
   _request: Request,
@@ -22,6 +34,8 @@ export async function PUT(
   { params }: { params: Promise<{ collection: string; documentId: string }> }
 ) {
   const { collection, documentId } = await params;
+  const accessError = await ensureMutationAccess(decodeURIComponent(collection), decodeURIComponent(documentId));
+  if (accessError) return accessError;
   const body = await request.json().catch(() => null);
   const document = await setDocument(
     decodeURIComponent(collection),
@@ -38,6 +52,8 @@ export async function PATCH(
   { params }: { params: Promise<{ collection: string; documentId: string }> }
 ) {
   const { collection, documentId } = await params;
+  const accessError = await ensureMutationAccess(decodeURIComponent(collection), decodeURIComponent(documentId));
+  if (accessError) return accessError;
   const body = await request.json().catch(() => null);
 
   try {

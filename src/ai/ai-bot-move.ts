@@ -1,41 +1,34 @@
 'use server';
 
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
+import { generateGeminiJson, hasGeminiApiKey } from '@/ai/gemini-client';
 
 const BotMoveInputSchema = z.object({
-    tiles: z.string().describe('The current tiles of the bot.'),
-    boardState: z.string().describe('The current state of the board as a JSON string.'),
-    difficulty: z.enum(['Easy', 'Medium', 'Hard']).describe('The difficulty level of the bot.'),
+  tiles: z.string().describe('The current tiles of the bot.'),
+  boardState: z.string().describe('The current state of the board as a JSON string.'),
+  difficulty: z.enum(['Easy', 'Medium', 'Hard']).describe('The difficulty level of the bot.'),
 });
 export type BotMoveInput = z.infer<typeof BotMoveInputSchema>;
 
 const BotMoveOutputSchema = z.object({
-    word: z.string().describe('The word to play.'),
-    startRow: z.number().describe('The starting row index (0-based).'),
-    startCol: z.number().describe('The starting column index (0-based).'),
-    direction: z.enum(['horizontal', 'vertical']).describe('The direction of the word.'),
+  word: z.string().describe('The word to play.'),
+  startRow: z.number().describe('The starting row index (0-based).'),
+  startCol: z.number().describe('The starting column index (0-based).'),
+  direction: z.enum(['horizontal', 'vertical']).describe('The direction of the word.'),
 });
 export type BotMoveOutput = z.infer<typeof BotMoveOutputSchema>;
 
 export async function generateBotMove(input: BotMoveInput): Promise<BotMoveOutput | null> {
-    try {
-        return await botMoveFlow(input);
-    } catch (e) {
-        console.error("Error generating bot move:", e);
-        return null;
-    }
-}
+  if (!hasGeminiApiKey()) {
+    return null;
+  }
 
-const prompt = ai.definePrompt({
-    name: 'botMovePrompt',
-    input: { schema: BotMoveInputSchema },
-    output: { schema: BotMoveOutputSchema },
-    prompt: `You are an expert Scrabble/Word game bot. Your goal is to find the best valid move given your tiles and the current board state.
+  try {
+    const prompt = `You are an expert Scrabble/Word game bot. Your goal is to find the best valid move given your tiles and the current board state.
 
-Current tiles: {{{tiles}}}
-Current board state (JSON): {{{boardState}}}
-Difficulty: {{{difficulty}}}
+Current tiles: ${input.tiles}
+Current board state (JSON): ${input.boardState}
+Difficulty: ${input.difficulty}
 
 Rules:
 1. You must form a valid English word.
@@ -48,17 +41,15 @@ Strategy based on difficulty:
 - Medium: Play a decent word. Don't spend too much time optimizing.
 - Hard: Find the highest scoring move possible. Use bonus squares if available.
 
-If no valid move is possible, return a JSON object with empty strings/zeros, but try your hardest to find a move.`,
-});
+If no valid move is possible, return a JSON object with empty strings/zeros, but try your hardest to find a move.
 
-const botMoveFlow = ai.defineFlow(
-    {
-        name: 'botMoveFlow',
-        inputSchema: BotMoveInputSchema,
-        outputSchema: BotMoveOutputSchema,
-    },
-    async input => {
-        const { output } = await prompt(input);
-        return output!;
-    }
-);
+Return JSON using this exact shape:
+{"word":"WORD","startRow":0,"startCol":0,"direction":"horizontal"}
+`;
+
+    return BotMoveOutputSchema.parse(await generateGeminiJson<BotMoveOutput>(prompt));
+  } catch (e) {
+    console.error('Error generating bot move:', e);
+    return null;
+  }
+}

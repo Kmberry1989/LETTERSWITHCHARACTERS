@@ -1,11 +1,7 @@
-// This is an AI assistant to suggest words that a player can play given the current state of the game.
-// It takes in the current tiles of the player and the current state of the board.
-// It returns a list of suggested words.
-
 'use server';
 
-import {ai} from '@/ai/genkit';
-import {z} from 'genkit';
+import { z } from 'zod';
+import { generateGeminiJson, hasGeminiApiKey } from '@/ai/gemini-client';
 
 const SuggestWordInputSchema = z.object({
   tiles: z.string().describe('The current tiles of the player.'),
@@ -19,29 +15,23 @@ const SuggestWordOutputSchema = z.object({
 export type SuggestWordOutput = z.infer<typeof SuggestWordOutputSchema>;
 
 export async function suggestWord(input: SuggestWordInput): Promise<SuggestWordOutput> {
-  return suggestWordFlow(input);
-}
+  if (!hasGeminiApiKey()) {
+    throw new Error('AI hints are unavailable until a Gemini API key is configured.');
+  }
 
-const prompt = ai.definePrompt({
-  name: 'suggestWordPrompt',
-  input: {schema: SuggestWordInputSchema},
-  output: {schema: SuggestWordOutputSchema},
-  prompt: `You are a Scrabble assistant. Given the current tiles of the player and the current state of the board, suggest valid words that the player can play.
+  const prompt = `You are a Scrabble assistant. Given the current tiles of the player and the current state of the board, suggest up to 3 valid words that the player can play.
 
 Current tiles: {{{tiles}}}
 Current board state: {{{boardState}}}
 
-Suggestions:`,
-});
+Respond with JSON using this shape exactly:
+{"suggestions":["WORD1","WORD2","WORD3"]}
 
-const suggestWordFlow = ai.defineFlow(
-  {
-    name: 'suggestWordFlow',
-    inputSchema: SuggestWordInputSchema,
-    outputSchema: SuggestWordOutputSchema,
-  },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
-  }
-);
+Current tiles: ${input.tiles}
+Current board state: ${input.boardState}`;
+
+  const result = SuggestWordOutputSchema.parse(await generateGeminiJson<SuggestWordOutput>(prompt));
+  return {
+    suggestions: result.suggestions.map((word) => word.toUpperCase()),
+  };
+}

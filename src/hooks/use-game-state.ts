@@ -193,11 +193,14 @@ export function useGameState(gameId: string | null, user: any, game: any) {
 
             const result = await response.json();
             const scoredPoints = typeof result?.score === 'number' ? result.score : null;
+            const berriesEarned = typeof result?.berriesEarned === 'number' ? result.berriesEarned : null;
             playSfx(scoredPoints !== null && scoredPoints > 0 ? 'success' : 'place');
 
             toast({
                 title: 'Word Played!',
-                description: scoredPoints !== null ? `You scored ${scoredPoints} points!` : 'Move submitted successfully.',
+                description: scoredPoints !== null
+                  ? `${berriesEarned ? `+${berriesEarned} berries, ` : ''}you scored ${scoredPoints} points!`
+                  : 'Move submitted successfully.',
             });
 
         } catch (e: any) {

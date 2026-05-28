@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import { PlaceHolderImages } from '@/lib/placeholder-images';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
@@ -14,23 +15,8 @@ import { errorEmitter } from '@/firebase/error-emitter';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import type { UserProfile } from '@/firebase/firestore/use-users';
 import { Skeleton } from '../ui/skeleton';
-
-const tileSets = [
-  { id: 'tile-plastic', name: 'Classic' },
-  { id: 'tile-wood', name: 'Wooden' },
-  { id: 'tile-gummy', name: 'Gummy' },
-  { id: 'tile-runes', name: 'Runes' },
-  { id: 'tile-circuit', name: 'Circuit' },
-  { id: 'tile-felt', name: 'Felt' },
-  { id: 'tile-chrome', name: 'Chrome' },
-  { id: 'tile-holographic', name: 'Holographic' },
-  { id: 'tile-lava', name: 'Lava' },
-  { id: 'tile-papyrus', name: 'Papyrus' },
-  { id: 'tile-gilded', name: 'Gilded' },
-  { id: 'tile-jellyfish', name: 'Jellyfish' },
-  { id: 'tile-carbon', name: 'Carbon Fiber' },
-  { id: 'tile-minimalist', name: 'Minimalist' },
-];
+import { normalizeUserCosmetics } from '@/lib/user-profile';
+import { TILE_COSMETICS } from '@/lib/tile-cosmetics';
 
 const boardThemes = [
   { id: 'board-green', name: 'Classic Green' },
@@ -78,25 +64,23 @@ export default function AppearanceEditor() {
 
   const { data: userProfile, isLoading } = useDoc<UserProfile>(userDocRef);
 
-  const [selectedTileSet, setSelectedTileSet] = useState<string>('tile-plastic');
+  const [selectedTileSet, setSelectedTileSet] = useState<string>('tile-minimalist');
   const [selectedBoardTheme, setSelectedBoardTheme] = useState<string>('board-green');
+  const [ownedTileSetIds, setOwnedTileSetIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (userProfile) {
-      setSelectedTileSet(userProfile.tileSetId || 'tile-plastic');
+      const normalized = normalizeUserCosmetics(userProfile);
+      setSelectedTileSet(normalized.equippedTileSetId);
+      setOwnedTileSetIds(normalized.ownedTileSetIds);
       setSelectedBoardTheme(userProfile.boardThemeId || 'board-green');
     }
   }, [userProfile]);
 
-  const handleSelection = (type: 'tileSetId' | 'boardThemeId', id: string) => {
+  const handleBoardSelection = (id: string) => {
     if (!user || !userDocRef) return;
-    if (type === 'tileSetId') {
-      setSelectedTileSet(id);
-    } else {
-      setSelectedBoardTheme(id);
-    }
-
-    const updatePayload = { [type]: id };
+    setSelectedBoardTheme(id);
+    const updatePayload = { boardThemeId: id };
 
     updateDoc(userDocRef, updatePayload)
       .then(() => {
@@ -121,7 +105,32 @@ export default function AppearanceEditor() {
       });
   };
 
-  const tileImage = PlaceHolderImages.find((p) => p.id === selectedTileSet);
+  const handleTileSelection = async (id: string) => {
+    try {
+      const response = await fetch('/api/shop/equip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemId: id }),
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(result?.error || 'Could not equip tile set.');
+      }
+      setSelectedTileSet(id);
+      toast({
+        title: 'Tile set equipped',
+        description: 'Your new tile style will appear in gameplay.',
+      });
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Could not equip tile set',
+        description: error.message || 'Please try again.',
+      });
+    }
+  };
+
+  const tileImage = TILE_COSMETICS.find((p) => p.id === selectedTileSet);
   const boardImage = PlaceHolderImages.find((p) => p.id === selectedBoardTheme);
 
   if (isLoading || !userProfile) {
@@ -146,13 +155,12 @@ export default function AppearanceEditor() {
               )}
               {tileImage && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="relative aspect-square w-1/2">
+                  <div className="relative aspect-square w-1/2 overflow-hidden rounded-2xl border border-black/10 shadow-2xl">
                     <Image
-                      src={tileImage.imageUrl}
+                      src={tileImage.assetPath}
                       alt={tileImage.description}
                       fill
-                      data-ai-hint={tileImage.imageHint}
-                      className="object-contain drop-shadow-lg"
+                      className="object-cover"
                     />
                   </div>
                 </div>
@@ -171,28 +179,31 @@ export default function AppearanceEditor() {
           <TabsContent value="tiles">
             <ScrollArea className="h-96">
               <div className="grid grid-cols-2 gap-4 pr-4 sm:grid-cols-3">
-                {tileSets.map((item) => {
-                  const image = PlaceHolderImages.find((p) => p.id === item.id);
+                {TILE_COSMETICS.filter((item) => ownedTileSetIds.includes(item.id)).map((item) => {
                   return (
                     <Button
                       key={item.id}
                       variant={selectedTileSet === item.id ? 'default' : 'outline'}
-                      onClick={() => handleSelection('tileSetId', item.id)}
+                      onClick={() => handleTileSelection(item.id)}
                       className="h-auto flex-col gap-2 p-2"
                     >
-                      {image && (
+                      <div className="relative aspect-square w-20 overflow-hidden rounded-md border border-black/10">
                         <Image
-                          src={image.imageUrl}
+                          src={item.assetPath}
                           alt={item.name}
-                          width={80}
-                          height={80}
-                          className="aspect-square rounded-md object-cover"
+                          fill
+                          className="object-cover"
                         />
-                      )}
+                      </div>
                       {item.name}
                     </Button>
                   );
                 })}
+              </div>
+              <div className="mt-4 pr-4">
+                <Button asChild variant="secondary" className="w-full">
+                  <Link href="/shop">Browse more tile sets in the shop</Link>
+                </Button>
               </div>
             </ScrollArea>
           </TabsContent>
@@ -205,7 +216,7 @@ export default function AppearanceEditor() {
                     <Button
                       key={item.id}
                       variant={selectedBoardTheme === item.id ? 'default' : 'outline'}
-                      onClick={() => handleSelection('boardThemeId', item.id)}
+                      onClick={() => handleBoardSelection(item.id)}
                       className="h-auto flex-col gap-2 p-2"
                     >
                       {image && (

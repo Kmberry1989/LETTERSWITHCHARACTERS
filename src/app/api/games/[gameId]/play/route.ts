@@ -4,6 +4,8 @@ import type { PlacedTile, Tile } from '@/lib/game/types';
 import { calculateScore, getWordsFromPlacedTiles } from '@/lib/scoring';
 import { drawTiles } from '@/lib/game-logic';
 import { validatePlayableWord } from '@/lib/server/word-validator';
+import { awardBerries, awardWinnerBonusIfNeeded } from '@/lib/server/game-rewards';
+import { getBerryRewardForScore } from '@/lib/tile-cosmetics';
 
 export const dynamic = 'force-dynamic';
 
@@ -317,15 +319,31 @@ export async function POST(
 
   const score = calculateScore(pendingTiles, gameData.board || {});
   const updatedScore = (playerData.score || 0) + score;
-
-  await gameRef.update({
+  const berriesEarned = getBerryRewardForScore(score);
+  const isGameFinished = finalPlayerTiles.length === 0 && updatedTileBag.length === 0;
+  const updatePayload: Record<string, unknown> = {
     board: newBoard,
     tileBag: updatedTileBag,
     [`playerData.${uid}.score`]: updatedScore,
     [`playerData.${uid}.tiles`]: finalPlayerTiles,
     currentTurn: opponentUid,
     consecutivePasses: 0,
-  });
+  };
 
-  return NextResponse.json({ score });
+  if (isGameFinished) {
+    updatePayload.status = 'finished';
+    updatePayload.winner = uid;
+  }
+
+  await gameRef.update(updatePayload);
+  await awardBerries(uid, berriesEarned);
+  const winnerBonus = await awardWinnerBonusIfNeeded(isGameFinished ? uid : undefined, false);
+
+  return NextResponse.json({
+    score,
+    berriesEarned,
+    winnerBonus,
+    status: updatePayload.status,
+    winner: updatePayload.winner,
+  });
 }

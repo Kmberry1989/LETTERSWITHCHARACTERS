@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { Tile as TileType } from '@/lib/game/types';
 import { ArrowRightLeft, Loader, MessageCircle, RotateCcw, Shuffle, Sparkles, X } from 'lucide-react';
+import { ThemedTileFace } from '@/components/game/themed-tile-face';
 
 function Tile({ 
   tile, 
@@ -16,6 +17,7 @@ function Tile({
   canDrag,
   isExchanging,
   isExchangeSelected,
+  tileSetId,
 }: { 
   tile: TileType; 
   isSelected: boolean; 
@@ -24,6 +26,7 @@ function Tile({
   canDrag: boolean;
   isExchanging: boolean;
   isExchangeSelected: boolean;
+  tileSetId?: string | null;
   }) {
   const isBlank = tile.letter === ' ';
   return (
@@ -41,16 +44,15 @@ function Tile({
       )}
     >
       <motion.div
-        layout
-        initial={{ scale: 0.94, opacity: 0, y: 4 }}
-        animate={{ scale: 1, opacity: 1, y: 0 }}
-        whileHover={{ scale: canDrag ? 1.06 : 1 }}
-        whileTap={{ scale: canDrag ? 0.96 : 1 }}
         className="relative flex h-full w-full items-center justify-center rounded-md"
       >
-        <div className="pointer-events-none absolute inset-0 rounded-md bg-gradient-to-br from-white/45 via-transparent to-transparent" />
-        <span className="text-xl sm:text-2xl md:text-3xl font-bold text-gray-800">{isBlank ? '?' : tile.letter}</span>
-        <span className="absolute bottom-0.5 right-1 text-[0.6rem] sm:text-xs font-semibold text-gray-800">{tile.score}</span>
+        <ThemedTileFace
+          tileSetId={tileSetId}
+          letter={tile.letter}
+          score={tile.score}
+          isBlank={isBlank}
+          interactive={canDrag}
+        />
       </motion.div>
     </div>
   );
@@ -83,9 +85,10 @@ type TileRackProps = {
   onPlay: () => void;
   onHint: () => void;
   onToggleExchange: () => void;
+  tileSetId?: string | null;
 };
 
-export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSubmitting, isGettingHint, hintUsed, isExchanging, exchangeSelection, onTileSelect, onRecall, onShuffle, onDragStart, onDrop, onChatClick, onPlay, onHint, onToggleExchange }: TileRackProps) {
+export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSubmitting, isGettingHint, hintUsed, isExchanging, exchangeSelection, onTileSelect, onRecall, onShuffle, onDragStart, onDrop, onChatClick, onPlay, onHint, onToggleExchange, tileSetId }: TileRackProps) {
   const canMoveTiles = isPlayerTurn && !isSubmitting && !isExchanging;
   
   const handleDragOver = (e: React.DragEvent) => {
@@ -132,6 +135,7 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
                       canDrag={canMoveTiles}
                       isExchanging={isExchanging}
                       isExchangeSelected={exchangeSelection.includes(i)}
+                      tileSetId={tileSetId}
                     />
                   ) : (
                     <EmptySlot onDrop={(e) => { e.preventDefault(); onDrop(i); }} onDragOver={handleDragOver} />

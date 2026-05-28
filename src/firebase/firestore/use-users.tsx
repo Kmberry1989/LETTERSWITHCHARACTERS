@@ -19,6 +19,9 @@ export interface UserProfile {
   avatarConfiguredAt?: string | null;
   onboardingCompletedAt?: string | null;
   tileSetId?: string;
+  equippedTileSetId?: string;
+  ownedTileSetIds?: string[];
+  berries?: number;
   boardThemeId?: string;
   themeId?: string;
   gameIds?: string[];

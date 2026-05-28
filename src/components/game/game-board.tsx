@@ -6,6 +6,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import type { Tile, PlacedTile } from '@/lib/game/types';
 import { BOARD_LAYOUT } from '@/lib/game/constants';
+import { ThemedTileFace } from '@/components/game/themed-tile-face';
 
 export const boardLayout = BOARD_LAYOUT;
 
@@ -15,6 +16,7 @@ type GameBoardProps = {
   onCellClick?: (row: number, col: number) => void;
   onDrop?: (row: number, col: number) => void;
   onRecallTile?: (tile: PlacedTile) => void;
+  tileSetId?: string | null;
 };
 
 function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; children?: React.ReactNode; onClick?: () => void, onDrop?: (e: React.DragEvent) => void, onDragOver?: (e: React.DragEvent) => void }) {
@@ -73,7 +75,7 @@ function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; c
   );
 }
 
-function PlacedTileComponent({ tile, isPending, onClick }: { tile: Tile, isPending: boolean, onClick?: () => void }) {
+function PlacedTileComponent({ tile, isPending, onClick, tileSetId }: { tile: Tile, isPending: boolean, onClick?: () => void, tileSetId?: string | null }) {
   const canRecall = !!onClick;
   return (
     <motion.div 
@@ -89,11 +91,12 @@ function PlacedTileComponent({ tile, isPending, onClick }: { tile: Tile, isPendi
       )}
       onClick={onClick}
     >
-      <span className={cn(
-          "text-lg sm:text-2xl font-bold text-gray-800",
-          tile.isBlank && "text-red-600"
-      )}>{tile.letter}</span>
-      <span className="absolute bottom-0 right-0.5 text-[0.5rem] sm:text-xs font-semibold text-gray-800">{tile.score}</span>
+      <ThemedTileFace
+        tileSetId={tileSetId}
+        letter={tile.letter}
+        score={tile.score}
+        isBlank={tile.isBlank}
+      />
     </motion.div>
   );
 }
@@ -103,7 +106,8 @@ const GameBoard = ({
   pendingTiles = [],
   onCellClick,
   onDrop,
-  onRecallTile
+  onRecallTile,
+  tileSetId,
 }: GameBoardProps) => {
   const allTiles = { ...placedTiles };
   const pendingKeys = new Set();
@@ -145,6 +149,7 @@ const GameBoard = ({
                   <PlacedTileComponent 
                     tile={tile} 
                     isPending={isPending}
+                    tileSetId={tileSetId}
                     onClick={isPending && onRecallTile ? () => onRecallTile({ ...tile, row: rowIndex, col: colIndex }) : undefined}
                   />
                 )}

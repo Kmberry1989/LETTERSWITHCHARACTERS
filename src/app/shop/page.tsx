@@ -1,117 +1,167 @@
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import AppLayout from '@/components/app-layout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
-import { Cherry } from 'lucide-react';
-import { useState } from 'react';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useBerries } from '@/hooks/use-berries';
-import { ScrollArea } from '@/components/ui/scroll-area';
+import { Cherry, Check, Sparkles } from 'lucide-react';
+import { TILE_COSMETICS } from '@/lib/tile-cosmetics';
 
-const shopItems = [
-  { id: 'tile-wood', name: 'Wooden Tiles', description: 'A classic, rustic look.', price: 500, imageId: 'tile-wood' },
-  { id: 'tile-gummy', name: 'Gummy Tiles', description: 'A sweet and chewy design.', price: 750, imageId: 'tile-gummy' },
-  { id: 'tile-runes', name: 'Runic Tiles', description: 'Mystical and ancient.', price: 1000, imageId: 'tile-runes' },
-  { id: 'tile-circuit', name: 'Circuit Tiles', description: 'A high-tech look.', price: 1200, imageId: 'tile-circuit' },
-  { id: 'tile-felt', name: 'Felt Tiles', description: 'A soft, crafty feel.', price: 600, imageId: 'tile-felt' },
-  { id: 'tile-chrome', name: 'Chrome Tiles', description: 'Sleek and reflective.', price: 1500, imageId: 'tile-chrome' },
-  { id: 'tile-holographic', name: 'Holographic Tiles', description: 'Shimmering and futuristic.', price: 2000, imageId: 'tile-holographic' },
-  { id: 'tile-lava', name: 'Lava Tiles', description: 'Hot and dangerous.', price: 1750, imageId: 'tile-lava' },
-  { id: 'tile-papyrus', name: 'Papyrus Tiles', description: 'Ancient and papery.', price: 800, imageId: 'tile-papyrus' },
-  { id: 'tile-gilded', name: 'Gilded Tiles', description: 'Ornate and luxurious.', price: 2500, imageId: 'tile-gilded' },
-  { id: 'tile-jellyfish', name: 'Jellyfish Tiles', description: 'Bioluminescent and deep.', price: 1800, imageId: 'tile-jellyfish' },
-  { id: 'tile-carbon', name: 'Carbon Fiber Tiles', description: 'Strong and lightweight.', price: 2200, imageId: 'tile-carbon' },
-  { id: 'tile-minimalist', name: 'Minimalist Tiles', description: 'Clean and simple.', price: 500, imageId: 'tile-minimalist' },
-  { id: 'board-wood', name: 'Dark Wood Board', description: 'A rich, dark wood theme.', price: 1200, imageId: 'board-wood' },
-  { id: 'board-zen', name: 'Zen Garden Board', description: 'Peaceful and serene.', price: 1500, imageId: 'board-zen' },
-  { id: 'board-desk', name: 'Captain\'s Desk Board', description: 'Nautical and adventurous.', price: 1600, imageId: 'board-desk' },
-  { id: 'board-blossom', name: 'Cherry Blossom Board', description: 'Beautiful and floral.', price: 1800, imageId: 'board-blossom' },
-  { id: 'board-neon', name: 'Neon City Board', description: 'Cyberpunk and vibrant.', price: 2000, imageId: 'board-neon' },
-  { id: 'board-blueprint', name: 'Blueprint Board', description: 'Architectural and precise.', price: 1400, imageId: 'board-blueprint' },
-  { id: 'board-jungle', name: 'Jungle Board', description: 'Lush and wild.', price: 1700, imageId: 'board-jungle' },
-  { id: 'board-library', name: 'Library Board', description: 'Cozy and studious.', price: 1600, imageId: 'board-library' },
-  { id: 'board-ice', name: 'Arctic Ice Board', description: 'Cold and crystalline.', price: 1800, imageId: 'board-ice' },
-  { id: 'board-candy', name: 'Candy Land Board', description: 'Sweet and delightful.', price: 2200, imageId: 'board-candy' },
-  { id: 'board-pirate', name: 'Pirate Map Board', description: 'An adventurous journey.', price: 1900, imageId: 'board-pirate' },
-  { id: 'board-stained-glass', name: 'Stained Glass Board', description: 'Artistic and colorful.', price: 2500, imageId: 'board-stained-glass' },
-  { id: 'board-deep-space', name: 'Deep Space Board', description: 'Vast and mysterious.', price: 2800, imageId: 'board-deep-space' },
-];
-
-
-function ShopItemCard({ item, onPurchase, disabled }: { item: typeof shopItems[0], onPurchase: (price: number) => void, disabled: boolean }) {
-  const image = PlaceHolderImages.find((p) => p.id === item.imageId);
-  return (
-    <Card className="flex flex-col">
-      <CardHeader>
-        <CardTitle>{item.name}</CardTitle>
-        <CardDescription>{item.description}</CardDescription>
-      </CardHeader>
-      <CardContent className="flex-grow flex items-center justify-center">
-        {image && (
-          <Image
-            src={image.imageUrl}
-            alt={item.name}
-            width={200}
-            height={200}
-            data-ai-hint={image.imageHint}
-            className="rounded-lg object-cover aspect-square"
-          />
-        )}
-      </CardContent>
-      <CardFooter>
-        <Button className="w-full" onClick={() => onPurchase(item.price)} disabled={disabled}>
-          <Cherry className="mr-2 h-4 w-4 text-red-400" />
-          {item.price.toLocaleString()}
-        </Button>
-      </CardFooter>
-    </Card>
-  );
+function rarityLabel(rarity: string) {
+  return rarity.charAt(0).toUpperCase() + rarity.slice(1);
 }
 
 export default function ShopPage() {
-  const { berries, setBerries } = useBerries();
+  const { berries, ownedTileSetIds, equippedTileSetId, isLoading } = useBerries();
   const { toast } = useToast();
-  const [purchasedItems, setPurchasedItems] = useState<string[]>([]);
+  const [pendingItemId, setPendingItemId] = useState<string | null>(null);
 
-  const handlePurchase = (itemId: string, price: number) => {
-    if (berries >= price) {
-      setBerries(berries - price);
-      setPurchasedItems([...purchasedItems, itemId]);
-      toast({
-        title: 'Purchase Successful!',
-        description: `You bought a new item!`,
+  const handlePurchase = async (itemId: string) => {
+    setPendingItemId(itemId);
+    try {
+      const response = await fetch('/api/shop/purchase', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemId }),
       });
-    } else {
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(result?.error || 'Could not complete purchase.');
+      }
+
+      toast({
+        title: 'Purchase successful',
+        description: 'Tile set added to your collection.',
+      });
+    } catch (error: any) {
       toast({
         variant: 'destructive',
-        title: 'Not Enough Berries',
-        description: "You don't have enough berries to purchase this item.",
+        title: 'Purchase failed',
+        description: error.message || 'Please try again.',
       });
+    } finally {
+      setPendingItemId(null);
+    }
+  };
+
+  const handleEquip = async (itemId: string) => {
+    setPendingItemId(itemId);
+    try {
+      const response = await fetch('/api/shop/equip', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ itemId }),
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(result?.error || 'Could not equip tile set.');
+      }
+
+      toast({
+        title: 'Equipped',
+        description: 'Your tiles will use this finish in gameplay.',
+      });
+    } catch (error: any) {
+      toast({
+        variant: 'destructive',
+        title: 'Equip failed',
+        description: error.message || 'Please try again.',
+      });
+    } finally {
+      setPendingItemId(null);
     }
   };
 
   return (
     <AppLayout>
-      <div className="flex-1 space-y-4 p-4 sm:p-8">
-        <div className="flex items-center justify-between space-y-2">
-          <h1 className="text-3xl font-bold tracking-tight font-headline">Berry Shop</h1>
+      <div className="flex-1 space-y-6 p-4 sm:p-8">
+        <div className="rounded-3xl border bg-[radial-gradient(circle_at_top_left,rgba(255,238,201,0.95),rgba(255,255,255,0.92)_42%,rgba(255,236,231,0.95)_100%)] p-6 shadow-sm">
+          <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <div className="space-y-2">
+              <h1 className="text-3xl font-bold tracking-tight font-headline">Berry Shop</h1>
+              <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
+                Spend berries earned from real matches on tactile tile finishes, then equip them for live play.
+              </p>
+            </div>
+            <div className="inline-flex items-center gap-2 self-start rounded-full border bg-white/90 px-4 py-2 shadow-sm">
+              <Cherry className="h-4 w-4 text-rose-500" />
+              <span className="text-sm font-semibold">Balance</span>
+              <span className="text-lg font-black tabular-nums">{berries.toLocaleString()}</span>
+            </div>
+          </div>
         </div>
-        <p className="text-muted-foreground">
-          Spend your hard-earned berries on new items for your avatar or custom game pieces.
-        </p>
-        <ScrollArea className="h-[calc(100vh-12rem)]">
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 pr-4">
-            {shopItems.map((item) => (
-              <ShopItemCard 
-                key={item.id} 
-                item={item} 
-                onPurchase={() => handlePurchase(item.id, item.price)}
-                disabled={purchasedItems.includes(item.id) || berries < item.price}
-              />
-            ))}
+
+        <ScrollArea className="h-[calc(100vh-16rem)]">
+          <div className="grid gap-4 pr-4 md:grid-cols-2 xl:grid-cols-3">
+            {TILE_COSMETICS.map((item) => {
+              const isOwned = ownedTileSetIds.includes(item.id);
+              const isEquipped = equippedTileSetId === item.id;
+              const isPending = pendingItemId === item.id;
+              const canAfford = berries >= item.price;
+
+              return (
+                <Card
+                  key={item.id}
+                  className="group overflow-hidden border-slate-200 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(250,247,241,0.98))] shadow-sm transition-transform duration-200 hover:-translate-y-1 hover:shadow-xl"
+                >
+                  <CardHeader className="space-y-3">
+                    <div className="flex items-start justify-between gap-3">
+                      <div>
+                        <CardTitle>{item.name}</CardTitle>
+                        <CardDescription>{item.description}</CardDescription>
+                      </div>
+                      <Badge variant="secondary">{rarityLabel(item.rarity)}</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="relative aspect-[1.25] overflow-hidden rounded-2xl border border-black/10 bg-slate-100">
+                      <Image
+                        src={item.assetPath}
+                        alt={item.name}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                      />
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.30),transparent_48%)]" />
+                    </div>
+                    <div className="flex items-center justify-between text-sm">
+                      <span className="font-medium text-muted-foreground">Price</span>
+                      <span className="inline-flex items-center gap-1 font-black tabular-nums">
+                        <Cherry className="h-4 w-4 text-rose-500" />
+                        {item.price.toLocaleString()}
+                      </span>
+                    </div>
+                  </CardContent>
+                  <CardFooter className="flex gap-2">
+                    {isEquipped ? (
+                      <Button className="w-full gap-2" disabled>
+                        <Sparkles className="h-4 w-4" />
+                        Equipped
+                      </Button>
+                    ) : isOwned ? (
+                      <Button className="w-full gap-2" onClick={() => handleEquip(item.id)} disabled={isPending || isLoading}>
+                        <Check className="h-4 w-4" />
+                        {isPending ? 'Equipping...' : 'Equip'}
+                      </Button>
+                    ) : (
+                      <Button
+                        className="w-full gap-2"
+                        onClick={() => handlePurchase(item.id)}
+                        disabled={isPending || isLoading || !canAfford}
+                        variant={canAfford ? 'default' : 'secondary'}
+                      >
+                        <Cherry className="h-4 w-4" />
+                        {isPending ? 'Purchasing...' : canAfford ? 'Buy now' : 'Need more berries'}
+                      </Button>
+                    )}
+                  </CardFooter>
+                </Card>
+              );
+            })}
           </div>
         </ScrollArea>
       </div>

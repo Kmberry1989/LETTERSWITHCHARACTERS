@@ -29,6 +29,8 @@ import AudioSettings from '@/components/profile/audio-settings';
 import { useGameState } from '@/hooks/use-game-state';
 import { usePlayableGate } from '@/hooks/use-playable-gate';
 import { Pause } from 'lucide-react';
+import { useBerries } from '@/hooks/use-berries';
+import { useToast } from '@/hooks/use-toast';
 
 function Game() {
   const botTurnRequestRef = useRef<string | null>(null);
@@ -36,6 +38,8 @@ function Game() {
   const searchParams = useSearchParams();
   const gameId = searchParams.get('game');
   const { user, isUserLoading, canPlay } = usePlayableGate();
+  const { equippedTileSetId } = useBerries();
+  const { toast } = useToast();
 
   const gameDocRef = useMemoFirebase(() => {
     return gameId ? doc(null, 'games', gameId) : null;
@@ -105,15 +109,25 @@ function Game() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({ difficulty: game.difficulty || 'Medium' }),
+        }).then(async (response) => {
+          if (!response.ok) {
+            const result = await response.json().catch(() => null);
+            throw new Error(result?.error || 'Bot move is unavailable right now.');
+          }
         });
       } catch (error) {
         console.error('Failed to trigger bot move:', error);
+        toast({
+          variant: 'destructive',
+          title: 'Bot unavailable',
+          description: error instanceof Error ? error.message : 'Bot play is unavailable right now.',
+        });
         botTurnRequestRef.current = null;
       }
     };
 
     void runBotTurn();
-  }, [gameId, game, isBotGame]);
+  }, [gameId, game, isBotGame, toast]);
 
   if (gameLoading || isUserLoading || !user || !canPlay) {
     return (
@@ -205,6 +219,7 @@ function Game() {
               onCellClick={handleCellClick}
               onRecallTile={handleRecallTile}
               onDrop={handleBoardDrop}
+              tileSetId={equippedTileSetId}
             />
           </div>
 
@@ -226,6 +241,7 @@ function Game() {
             onToggleExchange={() => setIsExchanging(!isExchanging)}
             onDragStart={handleDragStart}
             onDrop={handleDrop}
+            tileSetId={equippedTileSetId}
           />
 
           <AlertDialog>

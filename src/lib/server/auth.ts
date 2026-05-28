@@ -1,12 +1,19 @@
 import { cookies } from 'next/headers';
 import { prisma } from '@/lib/prisma';
 import { getDocument, setDocument } from '@/lib/server/document-store';
+import {
+  normalizeOwnedTileSetIds,
+  resolveEquippedTileSetId,
+  STARTER_BERRIES,
+  STARTER_TILE_SET_ID,
+} from '@/lib/tile-cosmetics';
 
 export type AppUser = {
   uid: string;
   email: string | null;
   displayName: string | null;
   photoURL: string | null;
+  berries?: number;
   isAnonymous?: boolean;
   providerId?: 'google.com' | 'password' | 'guest';
   avatarPresetId?: string | null;
@@ -94,6 +101,7 @@ export async function getUserByToken(token?: string | null): Promise<AppUser | n
     avatarPosterUrl: profile.avatarPosterUrl || null,
     avatarConfiguredAt: profile.avatarConfiguredAt || null,
     onboardingCompletedAt: profile.onboardingCompletedAt || null,
+    berries: typeof profile.berries === 'number' ? profile.berries : STARTER_BERRIES,
   };
 }
 
@@ -116,6 +124,8 @@ export async function verifyBearerToken(request: Request) {
 export async function upsertUserProfile(user: AppUser) {
   assertDatabaseConfigured();
   const existing = await getDocument<any>('users', user.uid);
+  const equippedTileSetId = resolveEquippedTileSetId(existing?.tileSetId, existing?.equippedTileSetId);
+  const ownedTileSetIds = normalizeOwnedTileSetIds(existing?.ownedTileSetIds || [existing?.tileSetId || STARTER_TILE_SET_ID]);
   return setDocument(
     'users',
     user.uid,
@@ -133,7 +143,10 @@ export async function upsertUserProfile(user: AppUser) {
       avatarPosterUrl: existing?.avatarPosterUrl ?? null,
       avatarConfiguredAt: existing?.avatarConfiguredAt ?? null,
       onboardingCompletedAt: existing?.onboardingCompletedAt ?? null,
-      tileSetId: existing?.tileSetId ?? 'tile-plastic',
+      tileSetId: equippedTileSetId,
+      equippedTileSetId,
+      ownedTileSetIds,
+      berries: typeof existing?.berries === 'number' ? existing.berries : STARTER_BERRIES,
       boardThemeId: existing?.boardThemeId ?? 'board-green',
       themeId: existing?.themeId ?? 'default',
       gameIds: existing?.gameIds ?? [],

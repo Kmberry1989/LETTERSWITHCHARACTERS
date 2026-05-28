@@ -17,6 +17,11 @@
     "isolatedModules": true,
     "jsx": "preserve",
     "incremental": false,
+    "types": [
+      "node",
+      "react",
+      "react-dom"
+    ],
     "plugins": [
       {
         "name": "next"

@@ -1,7 +1,7 @@
 'use server';
 
-import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
+import { generateGeminiJson, hasGeminiApiKey } from '@/ai/gemini-client';
 
 const ValidateWordInputSchema = z.object({
   word: z.string().describe('The word to validate.'),
@@ -15,31 +15,22 @@ const ValidateWordOutputSchema = z.object({
 export type ValidateWordOutput = z.infer<typeof ValidateWordOutputSchema>;
 
 export async function validateWord(input: ValidateWordInput): Promise<ValidateWordOutput> {
-  return validateWordFlow(input);
-}
+  if (!input.word || input.word.length < 2) {
+    return { isValid: false, reason: 'Words must be at least 2 letters long.' };
+  }
 
-const prompt = ai.definePrompt({
-  name: 'validateWordPrompt',
-  input: { schema: ValidateWordInputSchema },
-  output: { schema: ValidateWordOutputSchema },
-  prompt: `You are a Scrabble dictionary expert. Determine if the following word is a valid English word according to standard Scrabble rules. Do not allow proper nouns, abbreviations, or words with punctuation.
+  if (!hasGeminiApiKey()) {
+    return { isValid: false, reason: 'AI word validation is unavailable until a Gemini API key is configured.' };
+  }
+
+  const prompt = `You are a Scrabble dictionary expert. Determine if the following word is a valid English word according to standard Scrabble rules. Do not allow proper nouns, abbreviations, or words with punctuation.
 
 Word: {{{word}}}
 
-Respond with whether it is valid and a brief reason.`,
-});
+Respond with JSON using this exact shape:
+{"isValid":true,"reason":"brief explanation"}
 
-const validateWordFlow = ai.defineFlow(
-  {
-    name: 'validateWordFlow',
-    inputSchema: ValidateWordInputSchema,
-    outputSchema: ValidateWordOutputSchema,
-  },
-  async (input) => {
-    if (!input.word || input.word.length < 2) {
-        return { isValid: false, reason: "Words must be at least 2 letters long." };
-    }
-    const { output } = await prompt(input);
-    return output!;
-  }
-);
+Word: ${input.word}`;
+
+  return ValidateWordOutputSchema.parse(await generateGeminiJson<ValidateWordOutput>(prompt));
+}
