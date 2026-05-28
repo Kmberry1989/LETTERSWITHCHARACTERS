@@ -1,12 +1,20 @@
 import { NextResponse } from 'next/server';
-import { createSession, destroySession, getCurrentUser, getUserByToken, makeUser, upsertUserProfile } from '@/lib/server/auth';
+import { createSession, destroySession, getCurrentSessionToken, getCurrentUser, getUserByToken, makeUser, upsertUserProfile } from '@/lib/server/auth';
 import { signInWithPassword, signUpWithPassword } from '@/lib/server/password-auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET() {
   const user = await getCurrentUser();
-  return NextResponse.json({ user });
+  const token = await getCurrentSessionToken();
+  return NextResponse.json({
+    user: user
+      ? {
+          ...user,
+          token,
+        }
+      : null,
+  });
 }
 
 export async function POST(request: Request) {

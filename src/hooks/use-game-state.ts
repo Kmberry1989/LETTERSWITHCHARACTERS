@@ -28,20 +28,47 @@ export function useGameState(gameId: string | null, user: any, game: any) {
 
     const isPlayerTurn = user && game ? game.currentTurn === user.uid : false;
     const opponentUid = useMemo(() => game?.players.find((p: string) => p !== user?.uid), [game, user]);
+    const serverBoardSignature = useMemo(() => JSON.stringify(game?.board || {}), [game?.board]);
+    const optimisticBoardSignature = useMemo(() => JSON.stringify(optimisticBoard || {}), [optimisticBoard]);
+    const localPlacementActive = pendingTiles.length > 0 || blankTileDialog.isOpen || draggedTileIndex !== null;
 
     useEffect(() => {
-        if (game && user) {
-            const userPlayerData = game.playerData[user.uid];
-            if (userPlayerData) {
-                setPlayerTiles(userPlayerData.tiles.slice(0, 7));
-            }
-            setOptimisticBoard(null);
+        if (!game || !user) {
+            return;
+        }
+
+        const userPlayerData = game.playerData[user.uid];
+        if (!userPlayerData) {
+            return;
+        }
+
+        const serverTiles = userPlayerData.tiles.slice(0, 7);
+        const optimisticSettled = !optimisticBoard || optimisticBoardSignature === serverBoardSignature;
+
+        if (!localPlacementActive && optimisticSettled) {
+            setPlayerTiles(serverTiles);
             setPendingTiles([]);
             setSelectedTileIndex(null);
             setDraggedTileIndex(null);
+            setOptimisticBoard(null);
+            return;
         }
 
-    }, [game, user, gameId]);
+        if (!localPlacementActive && optimisticBoard && optimisticSettled) {
+            setOptimisticBoard(null);
+        }
+
+    }, [
+        game,
+        user,
+        gameId,
+        localPlacementActive,
+        optimisticBoard,
+        optimisticBoardSignature,
+        serverBoardSignature,
+        blankTileDialog.isOpen,
+        draggedTileIndex,
+    ]);
 
     const placeTileAt = (tileIndex: number, row: number, col: number) => {
         if (!isPlayerTurn) return;

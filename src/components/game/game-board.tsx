@@ -25,31 +25,49 @@ function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; c
     '★': 'board-cell-start',
   };
 
-  const textMap: { [key: string]: string } = {
-    'DL': 'Double Letter',
-    'TL': 'Triple Letter',
-    'DW': 'Double Word',
-    'TW': 'Triple Word',
+  const labelMap: { [key: string]: { primary: string; secondary: string } } = {
+    'DL': { primary: 'DL', secondary: 'Letter' },
+    'TL': { primary: 'TL', secondary: 'Letter' },
+    'DW': { primary: 'DW', secondary: 'Word' },
+    'TW': { primary: 'TW', secondary: 'Word' },
   };
   
   const canInteract = !!(onClick || onDrop);
+  const isMultiplier = type === 'DL' || type === 'TL' || type === 'DW' || type === 'TW';
 
   return (
     <div
       className={cn(
-        'flex aspect-square select-none items-center justify-center rounded-sm text-xs font-semibold uppercase tracking-tighter text-center leading-none',
-        'bg-[#d8cebc] border border-[#d1c6b4]',
-        'transition-colors duration-150',
-        'text-white/30',
+        'relative flex aspect-square select-none items-center justify-center overflow-hidden rounded-sm text-center leading-none',
+        'border border-[#d1c6b4] bg-[#d8cebc] text-white/30',
+        'transition-transform duration-150',
         classMap[type],
-        canInteract && !children && 'hover:bg-yellow-300/50 cursor-pointer',
+        canInteract && !children && 'cursor-pointer hover:scale-[1.02]',
         !canInteract && 'cursor-not-allowed',
       )}
       onClick={canInteract ? onClick : undefined}
       onDrop={canInteract ? onDrop : undefined}
       onDragOver={canInteract ? onDragOver : undefined}
     >
-      {children || (type === '★' ? <Star className="h-3 w-3 sm:h-4 sm:w-4" /> : <span className="hidden sm:inline">{textMap[type]}</span>)}
+      {children || (
+        type === '★' ? (
+          <div className="flex flex-col items-center justify-center gap-0.5">
+            <Star className="h-5 w-5 fill-current text-amber-100 drop-shadow-[0_0_6px_rgba(255,255,255,0.55)] sm:h-6 sm:w-6" />
+            <span className="text-[0.55rem] font-black uppercase tracking-[0.2em] text-amber-50/95 drop-shadow-sm">
+              Start
+            </span>
+          </div>
+        ) : isMultiplier ? (
+          <div className="flex flex-col items-center justify-center">
+            <span className="text-[0.7rem] font-black tracking-[0.22em] sm:text-sm">
+              {labelMap[type].primary}
+            </span>
+            <span className="text-[0.45rem] font-bold uppercase tracking-[0.28em] text-current/80 sm:text-[0.55rem]">
+              {labelMap[type].secondary}
+            </span>
+          </div>
+        ) : null
+      )}
     </div>
   );
 }

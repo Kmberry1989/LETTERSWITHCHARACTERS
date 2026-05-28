@@ -90,9 +90,19 @@ body {
 }
 
 @layer components {
-  .board-cell-dl { @apply bg-[#a3d4e6] text-[#2c5a71]/20 hover:text-[#2c5a71]/40; }
-  .board-cell-tl { @apply bg-[#82c499] text-[#2d5f3d]/20 hover:text-[#2d5f3d]/40; }
-  .board-cell-dw { @apply bg-[#f4b6c3] text-[#7d3a4b]/20 hover:text-[#7d3a4b]/40; }
-  .board-cell-tw { @apply bg-[#e67c73] text-white/20 hover:text-white/40; }
-  .board-cell-start { @apply bg-primary/70 text-primary-foreground/80; }
+  .board-cell-dl {
+    @apply bg-gradient-to-br from-sky-200 via-cyan-300 to-sky-500 text-sky-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_2px_8px_rgba(15,23,42,0.12)] ring-1 ring-sky-700/35;
+  }
+  .board-cell-tl {
+    @apply bg-gradient-to-br from-emerald-200 via-green-300 to-emerald-500 text-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_2px_8px_rgba(15,23,42,0.12)] ring-1 ring-emerald-800/35;
+  }
+  .board-cell-dw {
+    @apply bg-gradient-to-br from-rose-200 via-pink-300 to-rose-500 text-rose-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_2px_8px_rgba(15,23,42,0.14)] ring-1 ring-rose-800/35;
+  }
+  .board-cell-tw {
+    @apply bg-gradient-to-br from-orange-300 via-red-400 to-rose-600 text-rose-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.55),0_2px_10px_rgba(15,23,42,0.18)] ring-2 ring-orange-950/25;
+  }
+  .board-cell-start {
+    @apply bg-gradient-to-br from-amber-300 via-yellow-400 to-orange-500 text-amber-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.75),0_2px_10px_rgba(15,23,42,0.18)] ring-2 ring-amber-950/35;
+  }
 }

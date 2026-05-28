@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import type { AppUser } from '@/firebase';
 import { Avatar, AvatarFallback, AvatarImage } from '../ui/avatar';
 import { Skeleton } from '../ui/skeleton';
+import { normalizeTimestamp } from '@/lib/normalize-timestamp';
 
 export type LobbyMessage = {
   id: string;
@@ -17,7 +18,7 @@ export type LobbyMessage = {
   senderName: string;
   senderPhotoURL?: string | null;
   text: string;
-  timestamp: Date | { toDate: () => Date }; // Support Firestore Timestamps
+  timestamp: Date | string | number | { toDate: () => Date };
 };
 
 type LobbyChatProps = {
@@ -54,7 +55,7 @@ export default function LobbyChat({ messages, onSendMessage, currentUser, isLoad
   const processedMessages = useMemo(() => {
     return messages.map(msg => ({
       ...msg,
-      timestamp: msg.timestamp && 'toDate' in msg.timestamp ? msg.timestamp.toDate() : msg.timestamp as Date,
+      timestamp: normalizeTimestamp(msg.timestamp),
     }));
   }, [messages]);
   

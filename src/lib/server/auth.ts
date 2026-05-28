@@ -93,6 +93,11 @@ export async function getCurrentUser() {
   return getUserByToken(cookieStore.get(SESSION_COOKIE)?.value);
 }
 
+export async function getCurrentSessionToken() {
+  const cookieStore = await cookies();
+  return cookieStore.get(SESSION_COOKIE)?.value || null;
+}
+
 export async function verifyBearerToken(request: Request) {
   const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
   if (!authHeader?.startsWith('Bearer ')) return null;

@@ -9,12 +9,13 @@ import { ScrollArea, ScrollBar } from '../ui/scroll-area';
 import { Send, X } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { AppUser } from '@/firebase';
+import { normalizeTimestamp } from '@/lib/normalize-timestamp';
 
 export type ChatMessage = {
   senderId: string;
   senderName: string;
   text: string;
-  timestamp: Date | { toDate: () => Date }; // Support Firestore Timestamps
+  timestamp: Date | string | number | { toDate: () => Date };
 };
 
 type ChatWindowProps = {
@@ -45,8 +46,7 @@ export default function ChatWindow({ isOpen, onClose, messages, onSendMessage, c
   
   const sortedMessages = messages.map(msg => ({
     ...msg,
-    // Convert Firestore Timestamp to Date if necessary
-    timestamp: msg.timestamp && 'toDate' in msg.timestamp ? msg.timestamp.toDate() : msg.timestamp as Date,
+    timestamp: normalizeTimestamp(msg.timestamp),
   })).sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
 
   return (
