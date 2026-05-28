@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { PenSquare, UserRound } from 'lucide-react';
+import { PenSquare, UserPlus, UserRound } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -61,6 +61,19 @@ export default function LoginPage() {
     }
   };
 
+  const handleGuestAuth = async () => {
+    setIsLoading(true);
+    try {
+      const signedInUser = await auth.signIn({
+        mode: 'guest',
+        displayName: username.trim() || 'Guest Player',
+      });
+      handleAuthSuccess(signedInUser);
+    } catch (error) {
+      handleAuthError(error);
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,rgba(14,165,233,0.12),transparent_30%),linear-gradient(180deg,#f8fafc_0%,#e2e8f0_100%)] p-4">
       <Card className="w-full max-w-md border-slate-200/80 shadow-2xl">
@@ -89,6 +102,9 @@ export default function LoginPage() {
                 onChange={(event) => setUsername(event.target.value)}
                 placeholder="wordplayer"
                 autoComplete="username"
+                minLength={3}
+                maxLength={24}
+                pattern="[a-z0-9_]+"
                 required
               />
             </div>
@@ -115,11 +131,22 @@ export default function LoginPage() {
                 className="w-full"
                 onClick={() => void handlePasswordAuth('signup')}
               >
-                Create Account
+                <UserPlus className="mr-2 h-4 w-4" /> Create Account
+              </Button>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                disabled={isLoading}
+                className="w-full"
+                onClick={() => void handleGuestAuth()}
+              >
+                Continue as Guest
               </Button>
             </div>
             <div className="rounded-xl border bg-muted/40 p-4 text-sm text-muted-foreground">
-              Usernames use lowercase letters, numbers, and underscores. New accounts continue into avatar setup before gameplay.
+              Usernames use lowercase letters, numbers, and underscores. New accounts continue into avatar setup before gameplay. Guest mode is available for quick local play.
             </div>
           </form>
         </CardContent>

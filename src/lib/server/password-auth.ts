@@ -6,6 +6,14 @@ import { makeUser, upsertUserProfile, type AppUser } from '@/lib/server/auth';
 const scrypt = promisify(scryptCallback);
 const KEY_LENGTH = 64;
 
+function assertDatabaseConfigured() {
+  if (!process.env.DATABASE_URL?.trim()) {
+    throw new Error(
+      'Username/password auth is unavailable until DATABASE_URL is configured and the dev server is restarted.'
+    );
+  }
+}
+
 function normalizeUsername(rawUsername: string) {
   return rawUsername.trim().toLowerCase();
 }
@@ -52,6 +60,7 @@ export async function signUpWithPassword(input: {
   password: string;
   displayName?: string;
 }): Promise<AppUser> {
+  assertDatabaseConfigured();
   const username = validateUsername(input.username);
   validatePassword(input.password);
 
@@ -92,6 +101,7 @@ export async function signInWithPassword(input: {
   username: string;
   password: string;
 }): Promise<AppUser> {
+  assertDatabaseConfigured();
   const username = validateUsername(input.username);
   validatePassword(input.password);
 

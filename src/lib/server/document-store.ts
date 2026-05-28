@@ -2,6 +2,12 @@ import { prisma } from '@/lib/prisma';
 
 export type JsonRecord = Record<string, any>;
 
+function assertDatabaseConfigured() {
+  if (!process.env.DATABASE_URL?.trim()) {
+    throw new Error('Document storage requires DATABASE_URL to be configured and the dev server restarted.');
+  }
+}
+
 export function newDocumentId() {
   return crypto.randomUUID();
 }
@@ -11,6 +17,7 @@ export function serializeForJson<T>(value: T): T {
 }
 
 export async function getDocument<T = JsonRecord>(collection: string, documentId: string) {
+  assertDatabaseConfigured();
   const doc = await prisma.appDocument.findUnique({
     where: {
       collection_documentId: {
@@ -25,6 +32,7 @@ export async function getDocument<T = JsonRecord>(collection: string, documentId
 }
 
 export async function setDocument(collection: string, documentId: string, data: JsonRecord, merge = false) {
+  assertDatabaseConfigured();
   const existing = merge ? await getDocument(collection, documentId) : null;
   const nextData = serializeForJson({ ...(merge && existing ? existing : {}), ...data });
   delete nextData.id;
@@ -50,6 +58,7 @@ export async function setDocument(collection: string, documentId: string, data: 
 }
 
 export async function updateDocument(collection: string, documentId: string, patch: JsonRecord) {
+  assertDatabaseConfigured();
   const existing = await getDocument(collection, documentId);
   if (!existing) {
     throw new Error(`${collection}/${documentId} does not exist.`);
@@ -79,6 +88,7 @@ export async function addDocument(collection: string, data: JsonRecord) {
 }
 
 export async function listDocuments<T = JsonRecord>(collection: string, options?: { limit?: number; orderBy?: string; direction?: 'asc' | 'desc' }) {
+  assertDatabaseConfigured();
   const docs = await prisma.appDocument.findMany({
     where: { collection },
     orderBy: { updatedAt: options?.direction || 'desc' },

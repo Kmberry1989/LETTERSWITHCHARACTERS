@@ -20,6 +20,12 @@ export type AppUser = {
 const SESSION_COOKIE = 'lwc_session';
 const SESSION_DAYS = 30;
 
+function assertDatabaseConfigured() {
+  if (!process.env.DATABASE_URL?.trim()) {
+    throw new Error('Authentication storage requires DATABASE_URL to be configured and the dev server restarted.');
+  }
+}
+
 function sessionExpiry() {
   const expiresAt = new Date();
   expiresAt.setDate(expiresAt.getDate() + SESSION_DAYS);
@@ -27,6 +33,7 @@ function sessionExpiry() {
 }
 
 export async function createSession(user: AppUser) {
+  assertDatabaseConfigured();
   const token = crypto.randomUUID();
   const expiresAt = sessionExpiry();
 
@@ -51,6 +58,7 @@ export async function createSession(user: AppUser) {
 }
 
 export async function destroySession(token?: string | null) {
+  assertDatabaseConfigured();
   const cookieStore = await cookies();
   const activeToken = token || cookieStore.get(SESSION_COOKIE)?.value;
 
@@ -62,6 +70,7 @@ export async function destroySession(token?: string | null) {
 }
 
 export async function getUserByToken(token?: string | null): Promise<AppUser | null> {
+  assertDatabaseConfigured();
   if (!token) return null;
 
   const session = await prisma.appSession.findUnique({ where: { token } });
@@ -105,6 +114,7 @@ export async function verifyBearerToken(request: Request) {
 }
 
 export async function upsertUserProfile(user: AppUser) {
+  assertDatabaseConfigured();
   const existing = await getDocument<any>('users', user.uid);
   return setDocument(
     'users',
