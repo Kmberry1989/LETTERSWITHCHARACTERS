@@ -99,12 +99,13 @@ export default function LoginPage() {
               <Input
                 id="username"
                 value={username}
-                onChange={(event) => setUsername(event.target.value)}
+                onChange={(event) => setUsername(event.target.value.toLowerCase())}
                 placeholder="wordplayer"
                 autoComplete="username"
                 minLength={3}
                 maxLength={24}
-                pattern="[a-z0-9_]+"
+                autoCapitalize="none"
+                autoCorrect="off"
                 required
               />
             </div>

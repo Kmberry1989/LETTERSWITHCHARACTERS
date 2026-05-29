@@ -124,14 +124,19 @@ export default function ShopPage() {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    <div className="relative aspect-[1.25] overflow-hidden rounded-2xl border border-black/10 bg-slate-100">
-                      <Image
-                        src={item.assetPath}
-                        alt={item.name}
-                        fill
-                        className={`object-cover transition-transform duration-300 group-hover:scale-105 ${!isUnlocked ? 'opacity-35 grayscale' : ''}`}
-                      />
-                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.30),transparent_48%)]" />
+                    <div className="relative aspect-[1.25] overflow-hidden rounded-2xl border border-black/10 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.92),_rgba(226,232,240,0.96)_55%,_rgba(203,213,225,0.98))]">
+                      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(255,255,255,0.34),transparent_48%)]" />
+                      <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(255,255,255,0.2),transparent_58%)]" />
+                      <div className="absolute inset-0 flex items-center justify-center p-4 sm:p-5">
+                        <div className="relative h-24 w-24 transition-transform duration-300 group-hover:scale-105 sm:h-28 sm:w-28">
+                          <Image
+                            src={item.assetPath}
+                            alt={item.name}
+                            fill
+                            className={`object-contain ${!isUnlocked ? 'opacity-35 grayscale' : ''}`}
+                          />
+                        </div>
+                      </div>
                       {!isUnlocked && (
                         <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-950/35 backdrop-blur-[1px]">
                           <Lock className="h-8 w-8 text-white" />
