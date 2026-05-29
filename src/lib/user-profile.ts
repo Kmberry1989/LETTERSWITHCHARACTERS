@@ -22,7 +22,7 @@ export function normalizeUserCosmetics<T extends CosmeticUserProfile>(profile: T
     safeProfile.tileSetId || equippedTileSetId,
   ]);
   const experience = typeof safeProfile.experience === 'number' ? safeProfile.experience : 0;
-  const level = typeof safeProfile.level === 'number' ? safeProfile.level : getLevelForExperience(experience);
+  const level = getLevelForExperience(experience);
 
   return {
     ...safeProfile,

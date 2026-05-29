@@ -4,6 +4,7 @@ import { getDocument, setDocument } from '@/lib/server/document-store';
 import {
   normalizeOwnedTileSetIds,
   resolveEquippedTileSetId,
+  getLevelForExperience,
   STARTER_BERRIES,
   STARTER_TILE_SET_ID,
 } from '@/lib/tile-cosmetics';
@@ -15,7 +16,7 @@ export type AppUser = {
   photoURL: string | null;
   berries?: number;
   isAnonymous?: boolean;
-  providerId?: 'google.com' | 'password' | 'guest';
+  providerId?: 'google.com' | 'apple.com' | 'password' | 'guest';
   avatarPresetId?: string | null;
   avatarModelUrl?: string | null;
   avatarPosterUrl?: string | null;
@@ -105,7 +106,7 @@ export async function getUserByToken(token?: string | null): Promise<AppUser | n
     onboardingCompletedAt: profile.onboardingCompletedAt || null,
     berries: typeof profile.berries === 'number' ? profile.berries : STARTER_BERRIES,
     experience: typeof profile.experience === 'number' ? profile.experience : 0,
-    level: typeof profile.level === 'number' ? profile.level : 1,
+    level: getLevelForExperience(typeof profile.experience === 'number' ? profile.experience : 0),
   };
 }
 
@@ -152,7 +153,7 @@ export async function upsertUserProfile(user: AppUser) {
       ownedTileSetIds,
       berries: typeof existing?.berries === 'number' ? existing.berries : STARTER_BERRIES,
       experience: typeof existing?.experience === 'number' ? existing.experience : 0,
-      level: typeof existing?.level === 'number' ? existing.level : 1,
+      level: getLevelForExperience(typeof existing?.experience === 'number' ? existing.experience : 0),
       boardThemeId: existing?.boardThemeId ?? 'board-green',
       themeId: existing?.themeId ?? 'default',
       gameIds: existing?.gameIds ?? [],

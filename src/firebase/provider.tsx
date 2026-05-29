@@ -11,7 +11,7 @@ export type AppUser = {
   displayName: string | null;
   photoURL: string | null;
   isAnonymous?: boolean;
-  providerId?: 'google.com' | 'password' | 'guest';
+  providerId?: 'google.com' | 'apple.com' | 'password' | 'guest';
   avatarPresetId?: string | null;
   avatarModelUrl?: string | null;
   avatarPosterUrl?: string | null;
@@ -22,7 +22,7 @@ export type AppUser = {
 };
 
 type SignInPayload = {
-  mode?: 'email' | 'guest' | 'google';
+  mode?: 'email' | 'guest' | 'google' | 'apple';
   action?: 'signin' | 'signup';
   email?: string;
   username?: string;
@@ -98,6 +98,46 @@ function withTokenGetter(user: any): AppUser | null {
   };
 }
 
+async function signInWithSocialProvider(mode: 'google' | 'apple') {
+  const [{ initializeApp, getApp }, { getAuth, GoogleAuthProvider, OAuthProvider, signInWithPopup }] = await Promise.all([
+    import('firebase/app'),
+    import('firebase/auth'),
+  ]);
+
+  if (!firebaseConfig.apiKey || !firebaseConfig.appId || !firebaseConfig.authDomain) {
+    throw new Error('Firebase web configuration is incomplete.');
+  }
+
+  let app;
+  try {
+    app = getApp(FIREBASE_CLIENT_APP_NAME);
+  } catch {
+    app = initializeApp(firebaseConfig, FIREBASE_CLIENT_APP_NAME);
+  }
+
+  const provider =
+    mode === 'google'
+      ? new GoogleAuthProvider()
+      : new OAuthProvider('apple.com');
+
+  if (mode === 'google') {
+    provider.setCustomParameters({ prompt: 'select_account' });
+  } else {
+    provider.addScope('email');
+    provider.addScope('name');
+  }
+
+  const credential = await signInWithPopup(getAuth(app), provider);
+
+  return {
+    mode,
+    uid: credential.user.uid,
+    email: credential.user.email,
+    displayName: credential.user.displayName,
+    photoURL: credential.user.photoURL,
+  };
+}
+
 export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) => {
   const [userAuthState, setUserAuthState] = useState<UserAuthState>({
     user: null,
@@ -124,43 +164,18 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
     signIn: async (payload: SignInPayload) => {
       let sessionPayload: Record<string, unknown> = payload ? { ...payload } : {};
 
-      if (payload?.mode === 'google') {
+      if (payload?.mode === 'google' || payload?.mode === 'apple') {
         try {
-          const [{ initializeApp, getApp }, { getAuth, GoogleAuthProvider, signInWithPopup }] = await Promise.all([
-            import('firebase/app'),
-            import('firebase/auth'),
-          ]);
-
-          if (!firebaseConfig.apiKey || !firebaseConfig.appId || !firebaseConfig.authDomain) {
-            throw new Error('Firebase web configuration is incomplete.');
-          }
-
-          let app;
-          try {
-            app = getApp(FIREBASE_CLIENT_APP_NAME);
-          } catch {
-            app = initializeApp(firebaseConfig, FIREBASE_CLIENT_APP_NAME);
-          }
-
-          const provider = new GoogleAuthProvider();
-          provider.setCustomParameters({ prompt: 'select_account' });
-          const credential = await signInWithPopup(getAuth(app), provider);
-
-          sessionPayload = {
-            mode: 'google',
-            uid: credential.user.uid,
-            email: credential.user.email,
-            displayName: credential.user.displayName,
-            photoURL: credential.user.photoURL,
-          };
+          sessionPayload = await signInWithSocialProvider(payload.mode);
         } catch (error: any) {
+          const providerLabel = payload.mode === 'apple' ? 'Apple' : 'Google';
           if (error?.code === 'auth/popup-closed-by-user') {
-            throw new Error('Google sign-in was canceled.');
+            throw new Error(`${providerLabel} sign-in was canceled.`);
           }
           if (error?.code === 'auth/popup-blocked') {
-            throw new Error('Google sign-in popup was blocked by the browser.');
+            throw new Error(`${providerLabel} sign-in popup was blocked by the browser.`);
           }
-          throw new Error(error?.message || 'Google sign-in failed.');
+          throw new Error(error?.message || `${providerLabel} sign-in failed.`);
         }
       }
 

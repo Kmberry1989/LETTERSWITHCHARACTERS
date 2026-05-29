@@ -202,8 +202,10 @@ export default function AppearanceEditor() {
                           className={`object-cover ${!isUnlocked ? 'opacity-35 grayscale' : !isOwned ? 'opacity-55 saturate-75' : ''}`}
                         />
                         {!isUnlocked && (
-                          <div className="absolute inset-0 flex items-center justify-center bg-slate-950/40">
-                            <Lock className="h-6 w-6 text-white" />
+                          <div className="absolute inset-0 flex items-center justify-center bg-slate-950/18 backdrop-blur-[1px]">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/25 bg-white/10">
+                              <Lock className="h-5 w-5 text-white" />
+                            </div>
                           </div>
                         )}
                       </div>

@@ -30,10 +30,10 @@ function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; c
   };
 
   const labelMap: { [key: string]: { primary: string; secondary: string } } = {
-    'DL': { primary: 'DL', secondary: 'Letter' },
-    'TL': { primary: 'TL', secondary: 'Letter' },
-    'DW': { primary: 'DW', secondary: 'Word' },
-    'TW': { primary: 'TW', secondary: 'Word' },
+    'DL': { primary: '2L', secondary: 'Double Letter' },
+    'TL': { primary: '3L', secondary: 'Triple Letter' },
+    'DW': { primary: '2W', secondary: 'Double Word' },
+    'TW': { primary: '3W', secondary: 'Triple Word' },
   };
   
   const canInteract = !!(onClick || onDrop);

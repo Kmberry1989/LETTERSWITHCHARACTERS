@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { PenSquare, UserPlus, UserRound } from 'lucide-react';
+import { Apple, Chrome, PenSquare, UserPlus, UserRound } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -74,6 +74,16 @@ export default function LoginPage() {
     }
   };
 
+  const handleSocialAuth = async (mode: 'google' | 'apple') => {
+    setIsLoading(true);
+    try {
+      const signedInUser = await auth.signIn({ mode });
+      handleAuthSuccess(signedInUser);
+    } catch (error) {
+      handleAuthError(error);
+    }
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,rgba(14,165,233,0.12),transparent_30%),linear-gradient(180deg,#f8fafc_0%,#e2e8f0_100%)] p-4">
       <Card className="w-full max-w-md border-slate-200/80 shadow-2xl">
@@ -135,6 +145,33 @@ export default function LoginPage() {
                 <UserPlus className="mr-2 h-4 w-4" /> Create Account
               </Button>
             </div>
+            <div className="space-y-2">
+              <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                Or continue with
+              </p>
+              <div className="grid gap-2 sm:grid-cols-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isLoading}
+                  className="w-full gap-2 border-slate-300 bg-white/90"
+                  onClick={() => void handleSocialAuth('google')}
+                >
+                  <Chrome className="h-4 w-4 text-emerald-600" />
+                  Google
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={isLoading}
+                  className="w-full gap-2 border-slate-950 bg-slate-950 text-white hover:bg-slate-800 hover:text-white"
+                  onClick={() => void handleSocialAuth('apple')}
+                >
+                  <Apple className="h-4 w-4" />
+                  Apple
+                </Button>
+              </div>
+            </div>
             <div className="flex gap-2">
               <Button
                 type="button"
@@ -147,7 +184,7 @@ export default function LoginPage() {
               </Button>
             </div>
             <div className="rounded-xl border bg-muted/40 p-4 text-sm text-muted-foreground">
-              Usernames use lowercase letters, numbers, and underscores. Google sign-in uses your account picture automatically when available. Guest mode is available for quick local play.
+              Usernames use lowercase letters, numbers, and underscores. Google and Apple sign-in will use the connected provider profile when available. Guest mode is available for quick local play.
             </div>
           </form>
         </CardContent>

@@ -34,20 +34,23 @@ export async function POST(request: Request) {
       isAnonymous: true,
       providerId: 'guest',
     });
-  } else if (mode === 'google') {
+  } else if (mode === 'google' || mode === 'apple') {
     const uid = String(body?.uid || '').trim();
     const email = String(body?.email || '').trim().toLowerCase();
 
     if (!uid || !email) {
-      return NextResponse.json({ error: 'Google sign-in did not return a valid user profile.' }, { status: 400 });
+      return NextResponse.json(
+        { error: `${mode === 'apple' ? 'Apple' : 'Google'} sign-in did not return a valid user profile.` },
+        { status: 400 }
+      );
     }
 
     user = makeUser({
       uid,
       email,
-      displayName: body?.displayName || email.split('@')[0] || 'Google Player',
+      displayName: body?.displayName || email.split('@')[0] || (mode === 'apple' ? 'Apple Player' : 'Google Player'),
       photoURL: body?.photoURL || null,
-      providerId: 'google.com',
+      providerId: mode === 'apple' ? 'apple.com' : 'google.com',
     });
   } else {
     const username = String(body?.username || '').trim();

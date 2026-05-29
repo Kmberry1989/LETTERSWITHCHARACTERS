@@ -9,8 +9,9 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useBerries } from '@/hooks/use-berries';
-import { Cherry, Check, Lock, Sparkles, Stars } from 'lucide-react';
+import { Cherry, Check, Lock, Sparkles } from 'lucide-react';
 import { canAccessTileTier, TILE_COSMETICS } from '@/lib/tile-cosmetics';
+import ExperienceMeter from '@/components/profile/experience-meter';
 
 function rarityLabel(rarity: string) {
   return rarity.charAt(0).toUpperCase() + rarity.slice(1);
@@ -87,9 +88,8 @@ export default function ShopPage() {
               <p className="max-w-2xl text-sm text-muted-foreground sm:text-base">
                 Spend berries earned from real matches on tactile tile finishes, then equip them for live play.
               </p>
-              <div className="inline-flex items-center gap-2 rounded-full bg-slate-900 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-white">
-                <Stars className="h-3.5 w-3.5" />
-                Level {level} • {experience} XP
+              <div className="max-w-2xl pt-2">
+                <ExperienceMeter experience={experience} level={level} className="w-full" />
               </div>
             </div>
             <div className="inline-flex items-center gap-2 self-start rounded-full border bg-white/90 px-4 py-2 shadow-sm">
@@ -138,9 +138,11 @@ export default function ShopPage() {
                         </div>
                       </div>
                       {!isUnlocked && (
-                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-950/35 backdrop-blur-[1px]">
-                          <Lock className="h-8 w-8 text-white" />
-                          <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-slate-900">
+                        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-950/18 backdrop-blur-[1px]">
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full border border-white/30 bg-white/12 shadow-lg">
+                            <Lock className="h-6 w-6 text-white drop-shadow" />
+                          </div>
+                          <span className="rounded-full bg-white/88 px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-slate-900 shadow-sm">
                             Unlock at level {item.requiredLevel}
                           </span>
                         </div>

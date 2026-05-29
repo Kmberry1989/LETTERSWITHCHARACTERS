@@ -17,7 +17,9 @@ export const STARTER_TILE_SET_ID = 'tile-minimalist';
 export const STARTER_BERRIES = 1250;
 export const WIN_BONUS_BERRIES = 75;
 export const WIN_BONUS_EXPERIENCE = 75;
-export const EXPERIENCE_PER_LEVEL = 150;
+export const XP_TO_NEXT_LEVEL_BASE = 180;
+export const XP_TO_NEXT_LEVEL_GROWTH = 40;
+export const XP_TO_NEXT_LEVEL_ACCELERATION = 5;
 
 export const TILE_COSMETICS = generatedTileCosmetics as TileCosmetic[];
 
@@ -78,8 +80,61 @@ export function getBerryRewardForScore(score: number) {
   return Math.max(1, Math.floor(score / 2));
 }
 
+export function getExperienceRequiredForNextLevel(level: number) {
+  const normalizedLevel = Math.max(1, Math.floor(level));
+  const growthStep = normalizedLevel - 1;
+
+  return (
+    XP_TO_NEXT_LEVEL_BASE +
+    growthStep * XP_TO_NEXT_LEVEL_GROWTH +
+    growthStep * growthStep * XP_TO_NEXT_LEVEL_ACCELERATION
+  );
+}
+
+export function getExperienceForLevel(level: number) {
+  const normalizedLevel = Math.max(1, Math.floor(level));
+
+  if (normalizedLevel === 1) {
+    return 0;
+  }
+
+  let totalExperience = 0;
+
+  for (let currentLevel = 1; currentLevel < normalizedLevel; currentLevel += 1) {
+    totalExperience += getExperienceRequiredForNextLevel(currentLevel);
+  }
+
+  return totalExperience;
+}
+
 export function getLevelForExperience(experience: number) {
-  return Math.max(1, Math.floor(Math.max(0, experience) / EXPERIENCE_PER_LEVEL) + 1);
+  let level = 1;
+  let remainingExperience = Math.max(0, Math.floor(experience));
+
+  while (remainingExperience >= getExperienceRequiredForNextLevel(level)) {
+    remainingExperience -= getExperienceRequiredForNextLevel(level);
+    level += 1;
+  }
+
+  return level;
+}
+
+export function getExperienceProgress(experience: number) {
+  const level = getLevelForExperience(experience);
+  const currentLevelExperience = getExperienceForLevel(level);
+  const nextLevelExperience = getExperienceForLevel(level + 1);
+  const experienceIntoLevel = Math.max(0, Math.floor(experience) - currentLevelExperience);
+  const experienceNeeded = Math.max(1, nextLevelExperience - currentLevelExperience);
+  const progress = Math.min(1, experienceIntoLevel / experienceNeeded);
+
+  return {
+    level,
+    currentLevelExperience,
+    nextLevelExperience,
+    experienceIntoLevel,
+    experienceNeeded,
+    progress,
+  };
 }
 
 export function canAccessTileTier(level: number, tileSetId: string) {

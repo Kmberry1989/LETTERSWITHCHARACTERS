@@ -9,11 +9,11 @@ const outputFile = join(outputDir, 'tile-cosmetics.generated.json');
 const STARTER_FILE = 'minimalist_tile.png';
 
 const tierConfig = {
-  starter: { requiredLevel: 1, basePrice: 0, step: 0 },
-  common: { requiredLevel: 1, basePrice: 350, step: 70 },
-  rare: { requiredLevel: 3, basePrice: 800, step: 110 },
-  epic: { requiredLevel: 6, basePrice: 1450, step: 150 },
-  legendary: { requiredLevel: 10, basePrice: 2300, step: 190 },
+  starter: { minLevel: 1, maxLevel: 1, basePrice: 0, step: 0 },
+  common: { minLevel: 2, maxLevel: 6, basePrice: 350, step: 70 },
+  rare: { minLevel: 7, maxLevel: 10, basePrice: 800, step: 110 },
+  epic: { minLevel: 11, maxLevel: 14, basePrice: 1450, step: 150 },
+  legendary: { minLevel: 15, maxLevel: 20, basePrice: 2300, step: 190 },
 };
 
 function titleCase(slug) {
@@ -50,10 +50,42 @@ const tierCounts = {
   legendary: 0,
 };
 
-const manifest = files.map((file, index) => {
-  const tier = tierForIndex(index, files.length);
+const classifiedFiles = files.map((file, index) => ({
+  file,
+  tier: tierForIndex(index, files.length),
+}));
+
+for (const item of classifiedFiles) {
+  tierCounts[item.tier] += 1;
+}
+
+const tierIndices = {
+  starter: 0,
+  common: 0,
+  rare: 0,
+  epic: 0,
+  legendary: 0,
+};
+
+function getRequiredLevel(tier, tierIndex, tierCount) {
   const tierMeta = tierConfig[tier];
-  const tierIndex = tierCounts[tier]++;
+
+  if (tier === 'starter') {
+    return tierMeta.minLevel;
+  }
+
+  if (tierCount <= 1) {
+    return tierMeta.minLevel;
+  }
+
+  const ratio = tierIndex / Math.max(tierCount - 1, 1);
+  return Math.round(tierMeta.minLevel + ratio * (tierMeta.maxLevel - tierMeta.minLevel));
+}
+
+const manifest = classifiedFiles.map(({ file, tier }) => {
+  const tierMeta = tierConfig[tier];
+  const tierIndex = tierIndices[tier]++;
+  const requiredLevel = getRequiredLevel(tier, tierIndex, tierCounts[tier]);
   const filename = file.replace(/\.png$/i, '');
   const normalized = filename.replace(/_tile$/i, '');
   const id = `tile-${normalized.replace(/_/g, '-')}`;
@@ -69,7 +101,7 @@ const manifest = files.map((file, index) => {
         : `${name} tile finish with a ${tier} unlock tier.`,
     assetPath: `/tiles/${file}`,
     rarity: tier,
-    requiredLevel: tierMeta.requiredLevel,
+    requiredLevel,
     price: tierMeta.basePrice + tierMeta.step * tierIndex,
   };
 });
