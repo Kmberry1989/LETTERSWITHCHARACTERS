@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo } from 'react';
-import { addDoc, collection, doc, getDoc, limit, orderBy, query, runTransaction, serverTimestamp } from '@/lib/client/document-client';
+import { addDoc, collection, doc, getDoc, limit, orderBy, query, serverTimestamp } from '@/lib/client/document-client';
 import AppLayout from '@/components/app-layout';
 import LobbyChat, { type LobbyMessage } from '@/components/lobby/lobby-chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -10,12 +10,9 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useCollection, useMemoFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { createTileBag, drawTiles } from '@/lib/game-logic';
-import type { Tile } from '@/lib/game/types';
 import type { UserProfile } from '@/firebase/firestore/use-users';
 import { resolveAvatarImage } from '@/lib/avatar-catalog';
 import { usePlayableGate } from '@/hooks/use-playable-gate';
-import { normalizeUserCosmetics } from '@/lib/user-profile';
 
 type LocalTimestamp = Date | string | { toDate: () => Date };
 
@@ -31,17 +28,6 @@ type Challenge = {
   acceptedAt?: LocalTimestamp;
   acceptedByUid?: string;
   gameId?: string;
-};
-
-type PlayerData = {
-  displayName: string;
-  score: number;
-  avatarId: string;
-  photoURL?: string | null;
-  avatarPresetId?: string | null;
-  avatarPosterUrl?: string | null;
-  equippedTileSetId?: string | null;
-  tiles: Tile[];
 };
 
 function OpenChallenges({
@@ -142,49 +128,6 @@ export default function LobbyPage() {
     }
   };
 
-  const buildNewGame = (creatorUid: string, accepterUid: string, creatorProfile: UserProfile, accepterProfile: UserProfile) => {
-    const creatorCosmetics = normalizeUserCosmetics(creatorProfile);
-    const accepterCosmetics = normalizeUserCosmetics(accepterProfile);
-    let tileBag = createTileBag();
-    const [creatorTiles, tileBagAfterCreator] = drawTiles(tileBag, 7);
-    const [accepterTiles, finalTileBag] = drawTiles(tileBagAfterCreator, 7);
-    tileBag = finalTileBag;
-
-    const playerData: Record<string, PlayerData> = {
-      [creatorUid]: {
-        displayName: creatorProfile.displayName || creatorProfile.email || 'Player One',
-        score: 0,
-        avatarId: creatorProfile.avatarId || 'user-1',
-        photoURL: creatorProfile.photoURL || null,
-        avatarPresetId: creatorProfile.avatarPresetId || null,
-        avatarPosterUrl: creatorProfile.avatarPosterUrl || null,
-        equippedTileSetId: creatorCosmetics.equippedTileSetId,
-        tiles: creatorTiles,
-      },
-      [accepterUid]: {
-        displayName: accepterProfile.displayName || accepterProfile.email || 'Player Two',
-        score: 0,
-        avatarId: accepterProfile.avatarId || 'user-1',
-        photoURL: accepterProfile.photoURL || null,
-        avatarPresetId: accepterProfile.avatarPresetId || null,
-        avatarPosterUrl: accepterProfile.avatarPosterUrl || null,
-        equippedTileSetId: accepterCosmetics.equippedTileSetId,
-        tiles: accepterTiles,
-      },
-    };
-
-    return {
-      players: [creatorUid, accepterUid],
-      playerData,
-      board: {},
-      tileBag,
-      currentTurn: creatorUid,
-      status: 'active' as const,
-      consecutivePasses: 0,
-      messages: [],
-    };
-  };
-
   const handleCreateChallenge = async () => {
     if (!user) return;
     if (!canPlay) return;
@@ -232,52 +175,14 @@ export default function LobbyPage() {
     if (!user) return;
 
     try {
-      const gameId = await runTransaction(null, async (transaction) => {
-        const challengeRef = doc(null, 'lobbyChallenges', challengeId);
-        const challengeSnap = await transaction.get(challengeRef);
-
-        if (!challengeSnap.exists()) {
-          throw new Error('This challenge no longer exists.');
-        }
-
-        const challenge = { id: challengeSnap.id, ...challengeSnap.data() } as Challenge;
-        if (challenge.status !== 'open') {
-          throw new Error('This challenge has already been accepted.');
-        }
-        if (challenge.creatorUid === user.uid) {
-          throw new Error('You cannot accept your own challenge.');
-        }
-
-        const creatorUserRef = doc(null, 'users', challenge.creatorUid);
-        const accepterUserRef = doc(null, 'users', user.uid);
-        const creatorUserSnap = await transaction.get(creatorUserRef);
-        const accepterUserSnap = await transaction.get(accepterUserRef);
-
-        if (!creatorUserSnap.exists() || !accepterUserSnap.exists()) {
-          throw new Error('One of the player profiles is missing.');
-        }
-
-        const creatorProfile = creatorUserSnap.data() as UserProfile;
-        const accepterProfile = accepterUserSnap.data() as UserProfile;
-        const gameRef = doc(collection(null, 'games'));
-        const gameData = buildNewGame(challenge.creatorUid, user.uid, creatorProfile, accepterProfile);
-
-        await transaction.set(gameRef, gameData);
-        await transaction.update(creatorUserRef, {
-          gameIds: [...new Set([...(creatorProfile.gameIds || []), gameRef.id])],
-        });
-        await transaction.update(accepterUserRef, {
-          gameIds: [...new Set([...(accepterProfile.gameIds || []), gameRef.id])],
-        });
-        await transaction.update(challengeRef, {
-          status: 'accepted',
-          acceptedAt: serverTimestamp(),
-          acceptedByUid: user.uid,
-          gameId: gameRef.id,
-        });
-
-        return gameRef.id;
+      const response = await fetch(`/api/lobby/challenges/${encodeURIComponent(challengeId)}/accept`, {
+        method: 'POST',
       });
+      const result = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(result?.error || 'Could not accept this challenge.');
+      }
+      const gameId = result?.gameId as string;
 
       toast({ title: 'Challenge Accepted', description: 'Opening your new game.' });
       window.location.href = `/game?game=${gameId}`;
