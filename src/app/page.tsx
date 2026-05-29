@@ -36,6 +36,14 @@ export default function LoginPage() {
   };
 
   const handleAuthError = (error: any) => {
+    if (error?.message?.startsWith('Redirecting to')) {
+      toast({
+        title: 'Redirecting',
+        description: error.message,
+      });
+      return;
+    }
+
     console.error('Authentication Error', error);
     toast({
       variant: 'destructive',
@@ -152,23 +160,25 @@ export default function LoginPage() {
               <div className="grid gap-2 sm:grid-cols-2">
                 <Button
                   type="button"
-                  variant="outline"
                   disabled={isLoading}
-                  className="w-full gap-2 border-slate-300 bg-white/90"
+                  className="h-12 w-full justify-center gap-3 rounded-xl border border-slate-200 bg-white text-slate-900 shadow-[0_10px_24px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:bg-white hover:text-slate-900 hover:shadow-[0_16px_30px_rgba(15,23,42,0.12)]"
                   onClick={() => void handleSocialAuth('google')}
                 >
-                  <Chrome className="h-4 w-4 text-emerald-600" />
-                  Google
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm">
+                    <Chrome className="h-4 w-4 text-emerald-600" />
+                  </span>
+                  <span className="font-medium">Continue with Google</span>
                 </Button>
                 <Button
                   type="button"
-                  variant="outline"
                   disabled={isLoading}
-                  className="w-full gap-2 border-slate-950 bg-slate-950 text-white hover:bg-slate-800 hover:text-white"
+                  className="h-12 w-full justify-center gap-3 rounded-xl border border-slate-950 bg-slate-950 text-white shadow-[0_14px_28px_rgba(15,23,42,0.22)] transition hover:-translate-y-0.5 hover:bg-black hover:text-white hover:shadow-[0_18px_34px_rgba(15,23,42,0.28)]"
                   onClick={() => void handleSocialAuth('apple')}
                 >
-                  <Apple className="h-4 w-4" />
-                  Apple
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15">
+                    <Apple className="h-4 w-4" />
+                  </span>
+                  <span className="font-medium">Continue with Apple</span>
                 </Button>
               </div>
             </div>
@@ -184,7 +194,7 @@ export default function LoginPage() {
               </Button>
             </div>
             <div className="rounded-xl border bg-muted/40 p-4 text-sm text-muted-foreground">
-              Usernames use lowercase letters, numbers, and underscores. Google and Apple sign-in will use the connected provider profile when available. Guest mode is available for quick local play.
+              Usernames use lowercase letters, numbers, and underscores. Google and Apple sign-in use the connected provider profile when available, and will fall back to a full-page redirect if your browser blocks popups. Guest mode is available for quick local play.
             </div>
           </form>
         </CardContent>

@@ -99,7 +99,7 @@ function withTokenGetter(user: any): AppUser | null {
 }
 
 async function signInWithSocialProvider(mode: 'google' | 'apple') {
-  const [{ initializeApp, getApp }, { getAuth, GoogleAuthProvider, OAuthProvider, signInWithPopup }] = await Promise.all([
+  const [{ initializeApp, getApp }, { getAuth, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithRedirect }] = await Promise.all([
     import('firebase/app'),
     import('firebase/auth'),
   ]);
@@ -115,10 +115,7 @@ async function signInWithSocialProvider(mode: 'google' | 'apple') {
     app = initializeApp(firebaseConfig, FIREBASE_CLIENT_APP_NAME);
   }
 
-  const provider =
-    mode === 'google'
-      ? new GoogleAuthProvider()
-      : new OAuthProvider('apple.com');
+  const provider = mode === 'google' ? new GoogleAuthProvider() : new OAuthProvider('apple.com');
 
   if (mode === 'google') {
     provider.setCustomParameters({ prompt: 'select_account' });
@@ -127,15 +124,24 @@ async function signInWithSocialProvider(mode: 'google' | 'apple') {
     provider.addScope('name');
   }
 
-  const credential = await signInWithPopup(getAuth(app), provider);
+  try {
+    const credential = await signInWithPopup(getAuth(app), provider);
 
-  return {
-    mode,
-    uid: credential.user.uid,
-    email: credential.user.email,
-    displayName: credential.user.displayName,
-    photoURL: credential.user.photoURL,
-  };
+    return {
+      mode,
+      uid: credential.user.uid,
+      email: credential.user.email,
+      displayName: credential.user.displayName,
+      photoURL: credential.user.photoURL,
+    };
+  } catch (error: any) {
+    if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/web-storage-unsupported') {
+      await signInWithRedirect(getAuth(app), provider);
+      throw new Error(`Redirecting to ${mode === 'apple' ? 'Apple' : 'Google'} sign-in...`);
+    }
+
+    throw error;
+  }
 }
 
 export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) => {
@@ -159,6 +165,63 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
     void refresh();
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    const completeRedirectSignIn = async () => {
+      try {
+        const [{ initializeApp, getApp }, { getAuth, getRedirectResult }] = await Promise.all([
+          import('firebase/app'),
+          import('firebase/auth'),
+        ]);
+
+        if (!firebaseConfig.apiKey || !firebaseConfig.appId || !firebaseConfig.authDomain) {
+          return;
+        }
+
+        let app;
+        try {
+          app = getApp(FIREBASE_CLIENT_APP_NAME);
+        } catch {
+          app = initializeApp(firebaseConfig, FIREBASE_CLIENT_APP_NAME);
+        }
+
+        const credential = await getRedirectResult(getAuth(app));
+        if (!credential || !isMounted) return;
+
+        const providerId = credential.providerId === 'apple.com' ? 'apple' : 'google';
+        const response = await fetch('/api/auth/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mode: providerId,
+            uid: credential.user.uid,
+            email: credential.user.email,
+            displayName: credential.user.displayName,
+            photoURL: credential.user.photoURL,
+          }),
+        });
+
+        const data = await response.json().catch(() => null);
+        if (!response.ok) {
+          throw new Error(data?.error || 'Could not complete sign in.');
+        }
+
+        setUserAuthState({ user: withTokenGetter(data.user), isUserLoading: false, userError: null });
+      } catch (error: any) {
+        if (!isMounted) return;
+        if (error?.code === 'auth/no-auth-event') return;
+        setUserAuthState((state) => ({ ...state, userError: error, isUserLoading: false }));
+      }
+    };
+
+    void completeRedirectSignIn();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const auth = useMemo<LocalAuth>(() => ({
     currentUser: userAuthState.user,
     signIn: async (payload: SignInPayload) => {
@@ -174,6 +237,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
           }
           if (error?.code === 'auth/popup-blocked') {
             throw new Error(`${providerLabel} sign-in popup was blocked by the browser.`);
+          }
+          if (error?.message?.startsWith('Redirecting to')) {
+            throw error;
           }
           throw new Error(error?.message || `${providerLabel} sign-in failed.`);
         }
