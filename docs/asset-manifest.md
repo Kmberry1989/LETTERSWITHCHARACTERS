@@ -29,6 +29,8 @@ Create these files to improve the visual and sound experience. PNG dimensions ar
 
 ## Board Visuals
 
+Runtime note: the game now supports these as in-engine board layers. In the first pass it falls back to authored gradient layers when a PNG is not present. If you create these files with the listed names, the board renderer can consume them directly.
+
 | File | Purpose | Expected Size |
 | --- | --- | --- |
 | `public/interface/board/board-frame.png` | Outer board frame / bevel | `2048x2048` |
@@ -58,6 +60,8 @@ Create these files to improve the visual and sound experience. PNG dimensions ar
 ## Notes
 
 - Prefer transparent-background PNGs for ornaments, tile effects, and badges.
+- For board runtime layers, author frame and shadow as transparent PNG overlays; cloth can be transparent or full-bleed.
+- The board renderer currently treats `board-frame.png`, `board-shadow.png`, and `board-cloth.png` as compositing layers and expects them to align to the board square.
 - Keep `.ogg` files trimmed tightly to remove silence.
 - For UI SFX, target `<= 1.0s` duration.
 - For decorative background PNGs, export at 2x detail if they include illustrated edges or texture.

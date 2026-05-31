@@ -27,6 +27,7 @@ export interface UserProfile {
   experience?: number;
   level?: number;
   boardThemeId?: string;
+  boardTintId?: string;
   themeId?: string;
   gameIds?: string[];
 }

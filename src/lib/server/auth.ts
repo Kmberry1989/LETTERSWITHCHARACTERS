@@ -23,6 +23,8 @@ export type AppUser = {
   avatarPosterUrl?: string | null;
   avatarConfiguredAt?: string | null;
   onboardingCompletedAt?: string | null;
+  boardThemeId?: string | null;
+  boardTintId?: string | null;
   getIdToken?: () => Promise<string>;
   experience?: number;
   level?: number;
@@ -105,6 +107,8 @@ export async function getUserByToken(token?: string | null): Promise<AppUser | n
     avatarPosterUrl: profile.avatarPosterUrl || null,
     avatarConfiguredAt: profile.avatarConfiguredAt || null,
     onboardingCompletedAt: profile.onboardingCompletedAt || null,
+    boardThemeId: profile.boardThemeId || 'board-green',
+    boardTintId: profile.boardTintId || getDefaultBoardTintId(profile.boardThemeId || 'board-green'),
     berries: typeof profile.berries === 'number' ? profile.berries : STARTER_BERRIES,
     experience: typeof profile.experience === 'number' ? profile.experience : 0,
     level: getLevelForExperience(typeof profile.experience === 'number' ? profile.experience : 0),
@@ -157,6 +161,7 @@ export async function upsertUserProfile(user: AppUser) {
       experience: typeof existing?.experience === 'number' ? existing.experience : 0,
       level: getLevelForExperience(typeof existing?.experience === 'number' ? existing.experience : 0),
       boardThemeId: existing?.boardThemeId ?? 'board-green',
+      boardTintId: existing?.boardTintId ?? getDefaultBoardTintId(existing?.boardThemeId ?? 'board-green'),
       themeId: existing?.themeId ?? 'default',
       gameIds: existing?.gameIds ?? [],
       updatedAt: new Date().toISOString(),
@@ -180,3 +185,4 @@ export function makeUser(overrides: Partial<AppUser> & Pick<AppUser, 'uid'>): Ap
     onboardingCompletedAt: overrides.onboardingCompletedAt ?? null,
   };
 }
+import { getDefaultBoardTintId } from '@/lib/board-skins';

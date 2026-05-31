@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
-import { PlaceHolderImages } from '@/lib/placeholder-images';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -19,23 +18,9 @@ import { normalizeUserCosmetics } from '@/lib/user-profile';
 import { canAccessTileTier, TILE_COSMETICS } from '@/lib/tile-cosmetics';
 import { Badge } from '@/components/ui/badge';
 import { Lock } from 'lucide-react';
-
-const boardThemes = [
-  { id: 'board-green', name: 'Classic Green' },
-  { id: 'board-wood', name: 'Dark Wood' },
-  { id: 'board-zen', name: 'Zen Garden' },
-  { id: 'board-desk', name: "Captain's Desk" },
-  { id: 'board-blossom', name: 'Cherry Blossom' },
-  { id: 'board-neon', name: 'Neon City' },
-  { id: 'board-blueprint', name: 'Blueprint' },
-  { id: 'board-jungle', name: 'Jungle' },
-  { id: 'board-library', name: 'Library' },
-  { id: 'board-ice', name: 'Arctic Ice' },
-  { id: 'board-candy', name: 'Candy Land' },
-  { id: 'board-pirate', name: 'Pirate Map' },
-  { id: 'board-stained-glass', name: 'Stained Glass' },
-  { id: 'board-deep-space', name: 'Deep Space' },
-];
+import BoardChrome from '@/components/game/board-chrome';
+import GameBoard from '@/components/game/game-board';
+import { BOARD_SKINS, BOARD_TINT_PRESETS, getBoardSkin, getDefaultBoardTintId } from '@/lib/board-skins';
 
 function AppearanceEditorSkeleton() {
   return (
@@ -68,6 +53,7 @@ export default function AppearanceEditor() {
 
   const [selectedTileSet, setSelectedTileSet] = useState<string>('tile-minimalist');
   const [selectedBoardTheme, setSelectedBoardTheme] = useState<string>('board-green');
+  const [selectedBoardTint, setSelectedBoardTint] = useState<string>(getDefaultBoardTintId('board-green'));
   const [ownedTileSetIds, setOwnedTileSetIds] = useState<string[]>([]);
   const [level, setLevel] = useState<number>(1);
 
@@ -78,13 +64,15 @@ export default function AppearanceEditor() {
       setOwnedTileSetIds(normalized.ownedTileSetIds);
       setLevel(normalized.level ?? 1);
       setSelectedBoardTheme(userProfile.boardThemeId || 'board-green');
+      setSelectedBoardTint(userProfile.boardTintId || getDefaultBoardTintId(userProfile.boardThemeId || 'board-green'));
     }
   }, [userProfile]);
 
   const handleBoardSelection = (id: string) => {
     if (!user || !userDocRef) return;
     setSelectedBoardTheme(id);
-    const updatePayload = { boardThemeId: id };
+    const currentTint = selectedBoardTint || getDefaultBoardTintId(id);
+    const updatePayload = { boardThemeId: id, boardTintId: currentTint };
 
     updateDoc(userDocRef, updatePayload)
       .then(() => {
@@ -105,6 +93,34 @@ export default function AppearanceEditor() {
           variant: 'destructive',
           title: 'Error saving appearance',
           description: 'Could not save your board customization.',
+        });
+      });
+  };
+
+  const handleBoardTintSelection = (id: string) => {
+    if (!user || !userDocRef) return;
+    setSelectedBoardTint(id);
+    const updatePayload = { boardTintId: id };
+
+    updateDoc(userDocRef, updatePayload)
+      .then(() => {
+        toast({
+          title: 'Appearance saved',
+          description: 'Your board tint has been updated.',
+        });
+      })
+      .catch(() => {
+        const permissionError = new FirestorePermissionError({
+          path: userDocRef.path,
+          operation: 'update',
+          requestResourceData: updatePayload,
+          user,
+        } satisfies SecurityRuleContext);
+        errorEmitter.emit('permission-error', permissionError);
+        toast({
+          variant: 'destructive',
+          title: 'Error saving appearance',
+          description: 'Could not save your board tint.',
         });
       });
   };
@@ -135,7 +151,7 @@ export default function AppearanceEditor() {
   };
 
   const tileImage = TILE_COSMETICS.find((p) => p.id === selectedTileSet);
-  const boardImage = PlaceHolderImages.find((p) => p.id === selectedBoardTheme);
+  const boardSkin = getBoardSkin(selectedBoardTheme);
 
   if (isLoading || !userProfile) {
     return <AppearanceEditorSkeleton />;
@@ -147,19 +163,11 @@ export default function AppearanceEditor() {
         <h2 className="mb-4 font-headline text-xl font-bold">Board Preview</h2>
         <Card>
           <CardContent className="p-4">
-            <div className="relative aspect-square w-full overflow-hidden rounded-md">
-              {boardImage && (
-                <Image
-                  src={boardImage.imageUrl}
-                  alt="Board background"
-                  fill
-                  data-ai-hint={boardImage.imageHint}
-                  className="object-cover"
-                />
-              )}
+            <BoardChrome boardThemeId={selectedBoardTheme} boardTintId={selectedBoardTint}>
+              <GameBoard />
               {tileImage && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="relative aspect-square w-1/2 overflow-hidden rounded-2xl border border-black/10 shadow-2xl">
+                <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
+                  <div className="relative aspect-square w-[18%] overflow-hidden rounded-2xl border border-black/10 shadow-2xl">
                     <Image
                       src={tileImage.assetPath}
                       alt={tileImage.description}
@@ -169,7 +177,7 @@ export default function AppearanceEditor() {
                   </div>
                 </div>
               )}
-            </div>
+            </BoardChrome>
           </CardContent>
         </Card>
       </div>
@@ -179,6 +187,7 @@ export default function AppearanceEditor() {
           <TabsList>
             <TabsTrigger value="tiles">Tile Sets</TabsTrigger>
             <TabsTrigger value="boards">Board Themes</TabsTrigger>
+            <TabsTrigger value="tints">Board Tints</TabsTrigger>
           </TabsList>
           <TabsContent value="tiles">
             <ScrollArea className="h-96">
@@ -225,8 +234,7 @@ export default function AppearanceEditor() {
           <TabsContent value="boards">
             <ScrollArea className="h-96">
               <div className="grid grid-cols-2 gap-4 pr-4 sm:grid-cols-3">
-                {boardThemes.map((item) => {
-                  const image = PlaceHolderImages.find((p) => p.id === item.id);
+                {BOARD_SKINS.map((item) => {
                   return (
                     <Button
                       key={item.id}
@@ -234,19 +242,31 @@ export default function AppearanceEditor() {
                       onClick={() => handleBoardSelection(item.id)}
                       className="h-auto flex-col gap-2 p-2"
                     >
-                      {image && (
-                        <Image
-                          src={image.imageUrl}
-                          alt={item.name}
-                          width={80}
-                          height={80}
-                          className="aspect-square rounded-md object-cover"
-                        />
-                      )}
+                      <div className="h-20 w-20 rounded-md border border-black/10" style={{ background: item.previewColor }} />
                       {item.name}
                     </Button>
                   );
                 })}
+              </div>
+            </ScrollArea>
+          </TabsContent>
+          <TabsContent value="tints">
+            <ScrollArea className="h-96">
+              <div className="grid grid-cols-2 gap-4 pr-4 sm:grid-cols-3">
+                {BOARD_TINT_PRESETS.map((item) => (
+                  <Button
+                    key={item.id}
+                    variant={selectedBoardTint === item.id ? 'default' : 'outline'}
+                    onClick={() => handleBoardTintSelection(item.id)}
+                    className="h-auto flex-col gap-2 p-2"
+                  >
+                    <div className="h-20 w-20 rounded-md border border-black/10 shadow-inner" style={{ background: item.overlay }} />
+                    {item.name}
+                  </Button>
+                ))}
+              </div>
+              <div className="mt-4 text-sm text-muted-foreground">
+                {boardSkin.name} defaults to <span className="font-semibold">{BOARD_TINT_PRESETS.find((item) => item.id === boardSkin.defaultTintId)?.name}</span>, but you can override it here.
               </div>
             </ScrollArea>
           </TabsContent>

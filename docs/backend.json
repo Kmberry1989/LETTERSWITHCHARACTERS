@@ -33,6 +33,10 @@
           "type": "string",
           "description": "The ID of the user's selected board theme."
         },
+        "boardTintId": {
+          "type": "string",
+          "description": "The ID of the user's selected board tint overlay preset."
+        },
         "gameIds": {
             "type": "array",
             "items": { "type": "string" },

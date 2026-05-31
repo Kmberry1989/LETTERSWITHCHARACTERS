@@ -138,7 +138,7 @@ const GameBoard = ({
 
   return (
     <div className="w-full aspect-square max-w-full">
-      <div className="grid grid-cols-15 gap-0.5 sm:gap-1 p-1 sm:p-2 bg-[#b8a68b] rounded-md shadow-inner">
+      <div className="grid grid-cols-15 gap-0.5 rounded-[0.9rem] bg-[#b8a68b]/75 p-1 shadow-inner sm:gap-1 sm:p-2">
         {boardLayout.map((row, rowIndex) =>
           row.map((cellType, colIndex) => {
             const tileKey = `${rowIndex}-${colIndex}`;

@@ -6,6 +6,7 @@ import { useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/app-layout';
 import GameBoard from '@/components/game/game-board';
 import BoardStage from '@/components/game/board-stage';
+import BoardChrome from '@/components/game/board-chrome';
 import TileRack from '@/components/game/tile-rack';
 import Scoreboard from '@/components/game/scoreboard';
 import { useDoc, useMemoFirebase } from '@/firebase';
@@ -101,6 +102,8 @@ function Game() {
         ])
       )
     : {};
+  const selectedBoardThemeId = user?.boardThemeId || 'board-green';
+  const selectedBoardTintId = user?.boardTintId || null;
 
   useEffect(() => {
     if (!gameId || !game || !isBotGame || game.status !== 'active') {
@@ -233,15 +236,17 @@ function Game() {
 
           <div className="w-full max-w-[760px] self-center">
             <BoardStage>
-              <GameBoard
-                placedTiles={board}
-                pendingTiles={pendingTiles}
-                onCellClick={handleCellClick}
-                onRecallTile={handleRecallTile}
-                onDrop={handleBoardDrop}
-                tileSetId={equippedTileSetId}
-                ownerTileSetIds={ownerTileSetIds}
-              />
+              <BoardChrome boardThemeId={selectedBoardThemeId} boardTintId={selectedBoardTintId}>
+                <GameBoard
+                  placedTiles={board}
+                  pendingTiles={pendingTiles}
+                  onCellClick={handleCellClick}
+                  onRecallTile={handleRecallTile}
+                  onDrop={handleBoardDrop}
+                  tileSetId={equippedTileSetId}
+                  ownerTileSetIds={ownerTileSetIds}
+                />
+              </BoardChrome>
             </BoardStage>
           </div>
 

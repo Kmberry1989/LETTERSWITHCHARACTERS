@@ -17,6 +17,8 @@ export type AppUser = {
   avatarPosterUrl?: string | null;
   avatarConfiguredAt?: string | null;
   onboardingCompletedAt?: string | null;
+  boardThemeId?: string | null;
+  boardTintId?: string | null;
   token?: string;
   getIdToken: () => Promise<string>;
 };
@@ -88,6 +90,8 @@ function withTokenGetter(user: any): AppUser | null {
     avatarPosterUrl: user.avatarPosterUrl ?? null,
     avatarConfiguredAt: user.avatarConfiguredAt ?? null,
     onboardingCompletedAt: user.onboardingCompletedAt ?? null,
+    boardThemeId: user.boardThemeId ?? 'board-green',
+    boardTintId: user.boardTintId ?? null,
     token: user.token,
     getIdToken: async () => {
       if (user.token) return user.token;
