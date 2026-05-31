@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode, useCallback } from 'react';
+import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
 
 type SfxType = 'click' | 'place' | 'swoosh' | 'success' | 'error';
 
@@ -18,6 +18,15 @@ type AudioContextType = {
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
 let sharedAudioContext: AudioContext | null = null;
+const sfxPlayers = new Map<string, HTMLAudioElement>();
+const sfxStatus = new Map<string, 'loading' | 'ready' | 'error'>();
+const SFX_FILE_MAP: Record<SfxType, string> = {
+  click: '/audio/sfx/ui-click.ogg',
+  place: '/audio/sfx/tile-place.ogg',
+  swoosh: '/audio/sfx/rack-shuffle.ogg',
+  success: '/audio/sfx/word-success.ogg',
+  error: '/audio/sfx/error-buzz.ogg',
+};
 
 function getAudioContext() {
   if (typeof window === 'undefined') {
@@ -166,22 +175,72 @@ function playError(context: AudioContext, volume: number) {
   });
 }
 
+function playAudioFile(src: string, volume: number) {
+  if (typeof window === 'undefined') {
+    return false;
+  }
+
+  let audio = sfxPlayers.get(src);
+  if (!audio) {
+    audio = new Audio(src);
+    audio.preload = 'auto';
+    sfxPlayers.set(src, audio);
+  }
+
+  const player = audio.cloneNode() as HTMLAudioElement;
+  player.volume = Math.min(1, Math.max(0, volume));
+  void player.play().catch(() => {});
+  return true;
+}
+
+function primeAudioFile(src: string) {
+  if (typeof window === 'undefined' || sfxStatus.has(src)) {
+    return;
+  }
+
+  const audio = new Audio(src);
+  audio.preload = 'auto';
+  sfxStatus.set(src, 'loading');
+  audio.addEventListener('canplaythrough', () => {
+    sfxStatus.set(src, 'ready');
+    sfxPlayers.set(src, audio);
+  }, { once: true });
+  audio.addEventListener('error', () => {
+    sfxStatus.set(src, 'error');
+  }, { once: true });
+  audio.load();
+}
+
 export function AudioProvider({ children }: { children: ReactNode }) {
   const [masterVolume, setMasterVolume] = useState(50);
   const [musicVolume, setMusicVolume] = useState(30);
   const [sfxVolume, setSfxVolume] = useState(80);
   const [isMuted, setIsMuted] = useState(false);
 
+  useEffect(() => {
+    Object.values(SFX_FILE_MAP).forEach((src) => {
+      primeAudioFile(src);
+    });
+  }, []);
+
   const playSfx = useCallback((type: SfxType) => {
     if (isMuted) return;
+    const volume = Math.max(0.0001, (masterVolume / 100) * (sfxVolume / 100));
+    const audioFile = SFX_FILE_MAP[type];
+
+    if (audioFile && sfxStatus.get(audioFile) === 'ready') {
+      const playedFile = playAudioFile(audioFile, Math.min(1, volume));
+      if (playedFile) {
+        return;
+      }
+    }
+
     const context = getAudioContext();
     if (!context) return;
 
     if (context.state === 'suspended') {
       void context.resume();
     }
-
-    const volume = Math.max(0.0001, (masterVolume / 100) * (sfxVolume / 100));
 
     switch (type) {
       case 'click':
