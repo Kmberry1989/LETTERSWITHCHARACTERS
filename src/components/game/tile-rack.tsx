@@ -13,6 +13,7 @@ function Tile({
   tile,
   isSelected,
   onClick,
+  onPointerDown,
   onDragStart,
   onDragEnd,
   canDrag,
@@ -24,6 +25,7 @@ function Tile({
   tile: TileType;
   isSelected: boolean;
   onClick: () => void;
+  onPointerDown: () => void;
   onDragStart: (e: React.DragEvent) => void;
   onDragEnd: () => void;
   canDrag: boolean;
@@ -41,11 +43,12 @@ function Tile({
       exit={{ opacity: 0, y: 18, scale: 0.86 }}
       transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.8 }}
       draggable={canDrag}
+      onPointerDown={onPointerDown}
       onDragStartCapture={onDragStart}
       onDragEnd={onDragEnd}
       onClick={onClick}
       className={cn(
-        "relative flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 cursor-pointer select-none items-center justify-center rounded-md border-b-4 border-black/20 bg-[#f8e8c7] shadow-[0_8px_18px_rgba(0,0,0,0.14)] transition-all duration-150 ease-in-out",
+        "relative flex h-[3.25rem] w-[3.25rem] min-[390px]:h-[3.5rem] min-[390px]:w-[3.5rem] sm:h-12 sm:w-12 md:h-14 md:w-14 cursor-pointer select-none items-center justify-center rounded-md border-b-4 border-black/20 bg-[#f8e8c7] shadow-[0_8px_18px_rgba(0,0,0,0.14)] transition-all duration-150 ease-in-out",
         isSelected && !isExchanging && "ring-2 ring-primary ring-offset-2 shadow-lg",
         isExchangeSelected && "ring-2 ring-destructive ring-offset-2 shadow-lg",
         isExchanging && !isExchangeSelected && "opacity-60",
@@ -74,7 +77,7 @@ function EmptySlot({ onDrop, onDragOver }: { onDrop: (e: React.DragEvent) => voi
   return <div
     onDrop={onDrop}
     onDragOver={onDragOver}
-    className="h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 rounded-md bg-black/10"
+    className="h-[3.25rem] w-[3.25rem] min-[390px]:h-[3.5rem] min-[390px]:w-[3.5rem] sm:h-12 sm:w-12 md:h-14 md:w-14 rounded-md bg-black/10"
     />;
 }
 
@@ -139,7 +142,7 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
               initial={shuffleTick > 0 ? { opacity: 0.88, y: -8 } : false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
-              className="flex items-center justify-center gap-1 sm:gap-2"
+              className="flex items-center justify-center gap-1 overflow-x-auto px-1 sm:gap-2"
             >
               <AnimatePresence initial={false}>
               {tiles.map((tile, i) => (
@@ -154,6 +157,10 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
                       tile={tile}
                       isSelected={selectedTileIndex === i}
                       onClick={() => onTileSelect(i)}
+                      onPointerDown={() => {
+                        if (!canMoveTiles && !isExchanging) return;
+                        onTileSelect(i);
+                      }}
                       onDragStart={(e) => {
                         if (!canMoveTiles) {
                           e.preventDefault();

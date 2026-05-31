@@ -50,14 +50,14 @@ function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; c
       {children || (
         type === '★' ? (
           <div className="flex flex-col items-center justify-center gap-0.5">
-            <Star className="h-5 w-5 fill-current text-amber-100 drop-shadow-[0_0_6px_rgba(255,255,255,0.55)] sm:h-6 sm:w-6" />
-            <span className="text-[0.62rem] font-black uppercase tracking-[0.22em] text-amber-50 [text-shadow:-1px_-1px_0_rgba(120,53,15,0.45),1px_-1px_0_rgba(120,53,15,0.45),-1px_1px_0_rgba(120,53,15,0.45),1px_1px_0_rgba(120,53,15,0.45)]">
+            <Star className="h-3.5 w-3.5 fill-current text-amber-100 drop-shadow-[0_0_6px_rgba(255,255,255,0.55)] min-[420px]:h-4.5 min-[420px]:w-4.5 sm:h-6 sm:w-6" />
+            <span className="text-[0.4rem] font-black uppercase tracking-[0.12em] text-amber-50 [text-shadow:-1px_-1px_0_rgba(120,53,15,0.45),1px_-1px_0_rgba(120,53,15,0.45),-1px_1px_0_rgba(120,53,15,0.45),1px_1px_0_rgba(120,53,15,0.45)] min-[420px]:text-[0.5rem] sm:text-[0.62rem] sm:tracking-[0.22em]">
               STAR
             </span>
           </div>
         ) : isMultiplier ? (
           <div className="flex items-center justify-center">
-            <span className="text-[0.72rem] font-black tracking-[0.16em] text-white [text-shadow:-1px_-1px_0_rgba(15,23,42,0.45),1px_-1px_0_rgba(15,23,42,0.45),-1px_1px_0_rgba(15,23,42,0.45),1px_1px_0_rgba(15,23,42,0.45)] sm:text-sm">
+            <span className="text-[0.42rem] font-black tracking-[0.08em] text-white [text-shadow:-1px_-1px_0_rgba(15,23,42,0.45),1px_-1px_0_rgba(15,23,42,0.45),-1px_1px_0_rgba(15,23,42,0.45),1px_1px_0_rgba(15,23,42,0.45)] min-[420px]:text-[0.56rem] sm:text-sm sm:tracking-[0.16em]">
               {type}
             </span>
           </div>
@@ -138,7 +138,7 @@ const GameBoard = ({
 
   return (
     <div className="w-full aspect-square max-w-full">
-      <div className="grid grid-cols-15 gap-0.5 rounded-[0.9rem] bg-[#b8a68b]/75 p-1 shadow-inner sm:gap-1 sm:p-2">
+      <div className="grid grid-cols-15 gap-px rounded-[0.45rem] bg-[#b8a68b]/75 p-0.5 shadow-inner min-[420px]:gap-0.5 sm:gap-1 sm:rounded-[0.9rem] sm:p-2">
         {boardLayout.map((row, rowIndex) =>
           row.map((cellType, colIndex) => {
             const tileKey = `${rowIndex}-${colIndex}`;

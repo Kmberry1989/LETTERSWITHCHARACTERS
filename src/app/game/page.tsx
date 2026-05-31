@@ -234,7 +234,7 @@ function Game() {
             />
           )}
 
-          <div className="w-full max-w-[760px] self-center">
+          <div className="w-full max-w-[860px] self-center">
             <BoardStage>
               <BoardChrome boardThemeId={selectedBoardThemeId} boardTintId={selectedBoardTintId}>
                 <GameBoard

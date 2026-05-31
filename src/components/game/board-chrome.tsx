@@ -43,25 +43,25 @@ export default function BoardChrome({
   const tint = getBoardTintPreset(boardTintId, skin.id);
 
   return (
-    <div className={cn('relative rounded-[1.75rem] p-4 sm:p-5', className)}>
+    <div className={cn('relative rounded-[0.9rem] p-1.5 sm:rounded-[1.1rem] sm:p-2.5', className)}>
       <Layer {...skin.shadow} className="translate-y-3 scale-[1.02] blur-xl opacity-60" />
       <Layer {...skin.cloth} />
-      <div className="absolute inset-[2.5%] rounded-[1.6rem]" style={{ boxShadow: `0 0 0 1px rgba(255,255,255,0.18), 0 28px 48px ${tint.glow}` }} />
-      <Layer {...skin.frame} className="rounded-[1.75rem]" />
+      <div className="absolute inset-[1.25%] rounded-[0.8rem] sm:rounded-[1rem]" style={{ boxShadow: `0 0 0 1px rgba(255,255,255,0.18), 0 28px 48px ${tint.glow}` }} />
+      <Layer {...skin.frame} className="rounded-[0.9rem] sm:rounded-[1.1rem]" />
       <div
-        className="relative rounded-[1.2rem] border border-white/20 p-2 sm:p-3"
+        className="relative rounded-[0.6rem] border border-white/20 p-0.5 sm:rounded-[0.85rem] sm:p-1.5"
         style={{ background: skin.boardSurface, boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.35), 0 12px 24px rgba(15,23,42,0.16)' }}
       >
-        <Layer {...skin.surfaceOverlay} className="rounded-[1rem]" />
+        <Layer {...skin.surfaceOverlay} className="rounded-[0.5rem] sm:rounded-[0.7rem]" />
         <div
-          className="pointer-events-none absolute inset-0 rounded-[1rem]"
+          className="pointer-events-none absolute inset-0 rounded-[0.5rem] sm:rounded-[0.7rem]"
           style={{
             background: tint.overlay,
             mixBlendMode: skin.surfaceOverlay?.tintable === false ? 'normal' : tint.blendMode,
             opacity: tint.opacity ?? 1,
           }}
         />
-        <Layer {...skin.highlight} className="rounded-[1rem]" />
+        <Layer {...skin.highlight} className="rounded-[0.5rem] sm:rounded-[0.7rem]" />
         <div className="relative z-10">{children}</div>
       </div>
     </div>
