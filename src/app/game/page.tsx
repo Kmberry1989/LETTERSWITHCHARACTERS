@@ -78,6 +78,7 @@ function Game() {
     handleBoardDrop,
     setIsExchanging,
     shuffleTick,
+    replenishedTileIndexes,
   } = useGameState(gameId, user, game, equippedTileSetId);
 
   const userPlayerData = user && game ? game.playerData[user.uid] : null;
@@ -259,6 +260,7 @@ function Game() {
             onDrop={handleDrop}
             tileSetId={equippedTileSetId}
             shuffleTick={shuffleTick}
+            replenishedTileIndexes={replenishedTileIndexes}
           />
 
           <AlertDialog>

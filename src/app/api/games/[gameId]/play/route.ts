@@ -348,6 +348,9 @@ export async function POST(
   return NextResponse.json({
     score,
     berriesEarned,
+    tiles: finalPlayerTiles,
+    board: newBoard,
+    currentTurn: opponentUid,
     winnerBonus,
     status: updatePayload.status,
     winner: updatePayload.winner,
