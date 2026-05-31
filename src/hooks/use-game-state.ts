@@ -26,6 +26,7 @@ export function useGameState(gameId: string | null, user: any, game: any, equipp
     const [optimisticBoard, setOptimisticBoard] = useState<Record<string, Tile> | null>(null);
     const [draggedTileIndex, setDraggedTileIndex] = useState<number | null>(null);
     const [shuffleTick, setShuffleTick] = useState(0);
+    const [replenishedTileIndexes, setReplenishedTileIndexes] = useState<number[]>([]);
 
     const isPlayerTurn = user && game ? game.currentTurn === user.uid : false;
     const opponentUid = useMemo(() => game?.players.find((p: string) => p !== user?.uid), [game, user]);
@@ -178,6 +179,7 @@ export function useGameState(gameId: string | null, user: any, game: any, equipp
         });
         setOptimisticBoard(newBoard);
         const tilesToSubmit = [...pendingTiles];
+        const playedTileCount = tilesToSubmit.length;
         setPendingTiles([]);
 
         try {
@@ -197,6 +199,21 @@ export function useGameState(gameId: string | null, user: any, game: any, equipp
             }
 
             const result = await response.json();
+            const confirmedBoard = result?.board && typeof result.board === 'object' ? (result.board as Record<string, Tile>) : null;
+            if (confirmedBoard) {
+                setOptimisticBoard(confirmedBoard);
+            }
+
+            const replenishedTiles = Array.isArray(result?.tiles) ? (result.tiles.slice(0, 7) as Tile[]) : null;
+            if (replenishedTiles) {
+                setPlayerTiles(replenishedTiles);
+                setReplenishedTileIndexes(
+                    replenishedTiles
+                        .map((_, index) => index)
+                        .slice(Math.max(replenishedTiles.length - playedTileCount, 0))
+                );
+                setShuffleTick((current) => current + 1);
+            }
             const scoredPoints = typeof result?.score === 'number' ? result.score : null;
             const berriesEarned = typeof result?.berriesEarned === 'number' ? result.berriesEarned : null;
             playSfx(scoredPoints !== null && scoredPoints > 0 ? 'success' : 'place');
@@ -214,6 +231,7 @@ export function useGameState(gameId: string | null, user: any, game: any, equipp
             setOptimisticBoard(null);
             setPendingTiles(tilesToSubmit);
             setPlayerTiles(previousPlayerTiles);
+            setReplenishedTileIndexes([]);
         } finally {
             setIsSubmitting(false);
         }
@@ -387,5 +405,6 @@ export function useGameState(gameId: string | null, user: any, game: any, equipp
         handleDrop,
         handleBoardDrop,
         shuffleTick,
+        replenishedTileIndexes,
     };
 }

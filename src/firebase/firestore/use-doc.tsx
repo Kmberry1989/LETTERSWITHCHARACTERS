@@ -57,12 +57,18 @@ export function useDoc<T = any>(memoizedDocRef: LocalDocRef | null | undefined):
       }
     };
 
+    const refreshActiveDocument = () => void load(false);
+
     void load(true);
-    interval = setInterval(() => void load(false), 2500);
+    interval = setInterval(refreshActiveDocument, 1000);
+    window.addEventListener('focus', refreshActiveDocument);
+    window.addEventListener('online', refreshActiveDocument);
 
     return () => {
       cancelled = true;
       if (interval) clearInterval(interval);
+      window.removeEventListener('focus', refreshActiveDocument);
+      window.removeEventListener('online', refreshActiveDocument);
     };
   }, [memoizedDocRef]);
 
