@@ -3,6 +3,7 @@
 import { useMemo } from 'react';
 import { collection } from '@/lib/client/document-client';
 import { useCollection } from './use-collection';
+import type { PlayerStats } from '@/lib/player-stats';
 
 export interface UserProfile {
   uid: string;
@@ -12,6 +13,7 @@ export interface UserProfile {
   isAnonymous?: boolean;
   providerId?: string;
   totalScore?: number;
+  stats?: Partial<PlayerStats>;
   avatarId?: string;
   avatarPresetId?: string | null;
   avatarModelUrl?: string | null;

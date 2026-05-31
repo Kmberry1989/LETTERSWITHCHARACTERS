@@ -8,6 +8,7 @@ import {
   STARTER_BERRIES,
   STARTER_TILE_SET_ID,
 } from '@/lib/tile-cosmetics';
+import { DEFAULT_PLAYER_STATS } from '@/lib/player-stats';
 
 export type AppUser = {
   uid: string;
@@ -142,6 +143,7 @@ export async function upsertUserProfile(user: AppUser) {
       isAnonymous: Boolean(user.isAnonymous),
       providerId: user.providerId || (user.isAnonymous ? 'guest' : 'password'),
       totalScore: existing?.totalScore ?? 0,
+      stats: existing?.stats ?? DEFAULT_PLAYER_STATS,
       avatarId: existing?.avatarId ?? null,
       avatarPresetId: existing?.avatarPresetId ?? null,
       avatarModelUrl: existing?.avatarModelUrl ?? null,

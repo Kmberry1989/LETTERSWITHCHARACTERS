@@ -14,7 +14,7 @@ type GameBoardProps = {
   placedTiles?: Record<string, Tile>;
   pendingTiles?: PlacedTile[];
   onCellClick?: (row: number, col: number) => void;
-  onDrop?: (row: number, col: number) => void;
+  onDrop?: (row: number, col: number, tileIndex?: number | null) => void;
   onRecallTile?: (tile: PlacedTile) => void;
   tileSetId?: string | null;
   ownerTileSetIds?: Record<string, string | null | undefined>;
@@ -29,13 +29,6 @@ function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; c
     '★': 'board-cell-start',
   };
 
-  const labelMap: { [key: string]: { primary: string; secondary: string } } = {
-    'DL': { primary: '2L', secondary: 'Double Letter' },
-    'TL': { primary: '3L', secondary: 'Triple Letter' },
-    'DW': { primary: '2W', secondary: 'Double Word' },
-    'TW': { primary: '3W', secondary: 'Triple Word' },
-  };
-  
   const canInteract = !!(onClick || onDrop);
   const isMultiplier = type === 'DL' || type === 'TL' || type === 'DW' || type === 'TW';
 
@@ -46,9 +39,10 @@ function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; c
         'border border-[#d1c6b4] bg-[#d8cebc] text-white/30',
         'transition-transform duration-150',
         classMap[type],
-        canInteract && !children && 'cursor-pointer hover:scale-[1.02]',
+        canInteract && !children && 'cursor-pointer hover:scale-[1.02] hover:z-10',
         !canInteract && 'cursor-not-allowed',
       )}
+      data-board-interactive="true"
       onClick={canInteract ? onClick : undefined}
       onDrop={canInteract ? onDrop : undefined}
       onDragOver={canInteract ? onDragOver : undefined}
@@ -57,17 +51,14 @@ function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; c
         type === '★' ? (
           <div className="flex flex-col items-center justify-center gap-0.5">
             <Star className="h-5 w-5 fill-current text-amber-100 drop-shadow-[0_0_6px_rgba(255,255,255,0.55)] sm:h-6 sm:w-6" />
-            <span className="text-[0.55rem] font-black uppercase tracking-[0.2em] text-amber-50/95 drop-shadow-sm">
-              Start
+            <span className="text-[0.62rem] font-black uppercase tracking-[0.22em] text-amber-50 [text-shadow:-1px_-1px_0_rgba(120,53,15,0.45),1px_-1px_0_rgba(120,53,15,0.45),-1px_1px_0_rgba(120,53,15,0.45),1px_1px_0_rgba(120,53,15,0.45)]">
+              STAR
             </span>
           </div>
         ) : isMultiplier ? (
-          <div className="flex flex-col items-center justify-center">
-            <span className="text-[0.7rem] font-black tracking-[0.22em] sm:text-sm">
-              {labelMap[type].primary}
-            </span>
-            <span className="text-[0.45rem] font-bold uppercase tracking-[0.28em] text-current/80 sm:text-[0.55rem]">
-              {labelMap[type].secondary}
+          <div className="flex items-center justify-center">
+            <span className="text-[0.72rem] font-black tracking-[0.16em] text-white [text-shadow:-1px_-1px_0_rgba(15,23,42,0.45),1px_-1px_0_rgba(15,23,42,0.45),-1px_1px_0_rgba(15,23,42,0.45),1px_1px_0_rgba(15,23,42,0.45)] sm:text-sm">
+              {type}
             </span>
           </div>
         ) : null
@@ -135,11 +126,13 @@ const GameBoard = ({
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
   };
   
   const handleDrop = (e: React.DragEvent, row: number, col: number) => {
     e.preventDefault();
-    onDrop?.(row, col);
+    const sourceIndex = Number(e.dataTransfer.getData('text/plain'));
+    onDrop?.(row, col, Number.isNaN(sourceIndex) ? null : sourceIndex);
   };
 
 

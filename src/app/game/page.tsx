@@ -5,6 +5,7 @@ import React, { Suspense, useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/app-layout';
 import GameBoard from '@/components/game/game-board';
+import BoardStage from '@/components/game/board-stage';
 import TileRack from '@/components/game/tile-rack';
 import Scoreboard from '@/components/game/scoreboard';
 import { useDoc, useMemoFirebase } from '@/firebase';
@@ -230,16 +231,18 @@ function Game() {
             />
           )}
 
-          <div className="w-full max-w-[600px] self-center">
-            <GameBoard
-              placedTiles={board}
-              pendingTiles={pendingTiles}
-              onCellClick={handleCellClick}
-              onRecallTile={handleRecallTile}
-              onDrop={handleBoardDrop}
-              tileSetId={equippedTileSetId}
-              ownerTileSetIds={ownerTileSetIds}
-            />
+          <div className="w-full max-w-[760px] self-center">
+            <BoardStage>
+              <GameBoard
+                placedTiles={board}
+                pendingTiles={pendingTiles}
+                onCellClick={handleCellClick}
+                onRecallTile={handleRecallTile}
+                onDrop={handleBoardDrop}
+                tileSetId={equippedTileSetId}
+                ownerTileSetIds={ownerTileSetIds}
+              />
+            </BoardStage>
           </div>
 
           <TileRack

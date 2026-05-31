@@ -366,9 +366,10 @@ export function useGameState(gameId: string | null, user: any, game: any, equipp
         }
     };
 
-    const handleBoardDrop = (row: number, col: number) => {
-        if (draggedTileIndex === null) return;
-        placeTileAt(draggedTileIndex, row, col);
+    const handleBoardDrop = (row: number, col: number, tileIndex?: number | null) => {
+        const sourceIndex = typeof tileIndex === 'number' ? tileIndex : draggedTileIndex;
+        if (sourceIndex === null || sourceIndex === undefined) return;
+        placeTileAt(sourceIndex, row, col);
     };
 
     return {

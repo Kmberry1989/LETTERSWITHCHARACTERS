@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Apple, Chrome, PenSquare, UserPlus, UserRound } from 'lucide-react';
+import Image from 'next/image';
+import { Apple, Chrome, Sparkles, Star, UserPlus, UserRound } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -93,18 +94,54 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[radial-gradient(circle_at_top,rgba(14,165,233,0.12),transparent_30%),linear-gradient(180deg,#f8fafc_0%,#e2e8f0_100%)] p-4">
-      <Card className="w-full max-w-md border-slate-200/80 shadow-2xl">
-        <CardHeader className="text-center">
-          <div className="mb-4 flex justify-center">
-            <PenSquare className="h-12 w-12 text-primary" />
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,193,7,0.22),transparent_28%),radial-gradient(circle_at_top_right,rgba(56,189,248,0.2),transparent_26%),linear-gradient(180deg,#fff8ef_0%,#ffe6c7_45%,#ffd7d3_100%)] p-4">
+      <div className="pointer-events-none absolute inset-0">
+        <div className="absolute left-[10%] top-[12%] h-24 w-24 animate-bounce rounded-full bg-white/35 blur-2xl [animation-duration:5.5s]" />
+        <div className="absolute right-[12%] top-[18%] h-32 w-32 animate-pulse rounded-full bg-pink-300/25 blur-3xl" />
+        <div className="absolute bottom-[10%] left-[18%] h-28 w-28 animate-bounce rounded-full bg-sky-300/25 blur-3xl [animation-duration:7s]" />
+      </div>
+      <Card className="relative w-full max-w-5xl overflow-hidden border-white/60 bg-white/82 shadow-[0_30px_80px_rgba(120,53,15,0.18)] backdrop-blur">
+        <div className="grid items-stretch md:grid-cols-[1.1fr_0.9fr]">
+          <div className="relative hidden overflow-hidden bg-[linear-gradient(180deg,rgba(255,244,214,0.9),rgba(255,226,214,0.96))] p-10 md:block">
+            <div className="absolute -left-8 top-10 h-40 w-40 rounded-full bg-amber-200/50 blur-3xl" />
+            <div className="absolute bottom-0 right-0 h-52 w-52 rounded-full bg-rose-200/45 blur-3xl" />
+            <div className="relative z-10 flex h-full flex-col justify-between">
+              <div className="space-y-6">
+                <div className="relative h-28 w-28 overflow-hidden rounded-[2rem] bg-white shadow-xl ring-4 ring-white/60">
+                  <Image src="/interface/logo.png" alt="Letters with Characters logo" fill className="object-cover" priority />
+                </div>
+                <div className="space-y-3">
+                  <p className="inline-flex items-center gap-2 rounded-full bg-white/80 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-primary shadow-sm">
+                    <Sparkles className="h-4 w-4" />
+                    Wordplay clubhouse
+                  </p>
+                  <h1 className="font-headline text-5xl font-black leading-none text-slate-900">Letters with Characters</h1>
+                  <p className="max-w-md text-lg text-slate-700">
+                    Build bright words, collect stylish tiles, and jump into lively matches with a more playful board game lobby.
+                  </p>
+                </div>
+              </div>
+              <div className="grid gap-3">
+                <div className="flex items-center gap-3 rounded-2xl bg-white/75 p-4 shadow-sm"><Star className="h-5 w-5 text-amber-500" /> Drag tiles straight onto the board</div>
+                <div className="flex items-center gap-3 rounded-2xl bg-white/75 p-4 shadow-sm"><Star className="h-5 w-5 text-rose-500" /> Track scores, wins, and best games</div>
+                <div className="flex items-center gap-3 rounded-2xl bg-white/75 p-4 shadow-sm"><Star className="h-5 w-5 text-sky-500" /> Pick your own interface color theme</div>
+              </div>
+            </div>
           </div>
-          <CardTitle className="text-2xl font-headline">Letters with Characters</CardTitle>
-          <CardDescription>
-            Sign in or create an account, then jump straight into the lobby. You can add a profile picture from settings any time.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          <div className="p-2">
+            <Card className="w-full border-slate-200/70 shadow-none md:border-0">
+              <CardHeader className="text-center">
+                <div className="mb-4 flex justify-center md:hidden">
+                  <div className="relative h-20 w-20 overflow-hidden rounded-[1.5rem] shadow-lg ring-4 ring-white/70">
+                    <Image src="/interface/logo.png" alt="Letters with Characters logo" fill className="object-cover" priority />
+                  </div>
+                </div>
+                <CardTitle className="text-2xl font-headline">Letters with Characters</CardTitle>
+                <CardDescription>
+                  Sign in or create an account, then jump straight into the lobby. You can add a profile picture from settings any time.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
           <form
             onSubmit={(event) => {
               event.preventDefault();
@@ -197,7 +234,10 @@ export default function LoginPage() {
               Usernames use lowercase letters, numbers, and underscores. Google and Apple sign-in use the connected provider profile when available, and will fall back to a full-page redirect if your browser blocks popups. Guest mode is available for quick local play.
             </div>
           </form>
-        </CardContent>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
       </Card>
     </div>
   );

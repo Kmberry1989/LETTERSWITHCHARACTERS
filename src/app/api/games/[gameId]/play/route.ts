@@ -4,7 +4,7 @@ import type { PlacedTile, Tile } from '@/lib/game/types';
 import { calculateScore, getWordsFromPlacedTiles } from '@/lib/scoring';
 import { drawTiles } from '@/lib/game-logic';
 import { validatePlayableWord } from '@/lib/server/word-validator';
-import { awardPlayerProgress, awardWinnerBonusIfNeeded } from '@/lib/server/game-rewards';
+import { awardPlayerProgress, awardWinnerBonusIfNeeded, recordCompletedGame, recordScoreProgress } from '@/lib/server/game-rewards';
 import { getBerryRewardForScore } from '@/lib/tile-cosmetics';
 import { getDocument } from '@/lib/server/document-store';
 import { normalizeUserCosmetics } from '@/lib/user-profile';
@@ -343,6 +343,24 @@ export async function POST(
 
   await gameRef.update(updatePayload);
   await awardPlayerProgress(uid, { berries: berriesEarned, experience: score });
+  await recordScoreProgress(uid, {
+    turnScore: score,
+    wordsPlayed: formedWordsInfo.length,
+    gameScore: updatedScore,
+  });
+  if (isGameFinished) {
+    await recordCompletedGame({
+      players: gameData.players,
+      playerData: {
+        ...gameData.playerData,
+        [uid]: {
+          ...gameData.playerData[uid],
+          score: updatedScore,
+        },
+      },
+      winner: uid,
+    });
+  }
   const winnerBonus = await awardWinnerBonusIfNeeded(isGameFinished ? uid : undefined, false);
 
   return NextResponse.json({

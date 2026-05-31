@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminAuth, getAdminFirestore } from '@/firebase/admin';
-import { awardWinnerBonusIfNeeded } from '@/lib/server/game-rewards';
+import { awardWinnerBonusIfNeeded, recordCompletedGame } from '@/lib/server/game-rewards';
 export const dynamic = 'force-dynamic';
 
 type GameDoc = {
@@ -74,6 +74,13 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
 
   await gameRef.update(updatePayload);
+  if (updatePayload.status === 'finished') {
+    await recordCompletedGame({
+      players: gameData.players,
+      playerData: gameData.playerData,
+      winner: typeof updatePayload.winner === 'string' ? updatePayload.winner : undefined,
+    });
+  }
   const winnerBonus = await awardWinnerBonusIfNeeded(
     typeof updatePayload.winner === 'string' ? updatePayload.winner : undefined,
     gameData.status === 'finished'

@@ -127,7 +127,9 @@ function useUserGames() {
     }
 
     const fetchGames = async () => {
-      setLoading(true);
+      if (games.length === 0) {
+        setLoading(true);
+      }
       const gamePromises = gameIds.map(id => getDoc(doc(null, 'games', id)));
       const gameSnapshots = await Promise.all(gamePromises);
       const fetchedGames = gameSnapshots

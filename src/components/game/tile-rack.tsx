@@ -52,6 +52,7 @@ function Tile({
         !canDrag && "cursor-default hover:scale-100",
         "active:scale-95"
       )}
+      data-board-interactive="true"
     >
       <motion.div
         className="relative flex h-full w-full items-center justify-center rounded-md"
