@@ -12,7 +12,6 @@ import { ThemedTileFace } from '@/components/game/themed-tile-face';
 function Tile({
   tile,
   isSelected,
-  onClick,
   onPointerDown,
   onDragStart,
   onDragEnd,
@@ -24,7 +23,6 @@ function Tile({
 }: {
   tile: TileType;
   isSelected: boolean;
-  onClick: () => void;
   onPointerDown: () => void;
   onDragStart: (e: React.DragEvent) => void;
   onDragEnd: () => void;
@@ -46,7 +44,6 @@ function Tile({
       onPointerDown={onPointerDown}
       onDragStartCapture={onDragStart}
       onDragEnd={onDragEnd}
-      onClick={onClick}
       className={cn(
         "relative flex h-[3.25rem] w-[3.25rem] min-[390px]:h-[3.5rem] min-[390px]:w-[3.5rem] sm:h-12 sm:w-12 md:h-14 md:w-14 cursor-pointer select-none items-center justify-center rounded-md border-b-4 border-black/20 bg-[#f8e8c7] shadow-[0_8px_18px_rgba(0,0,0,0.14)] transition-all duration-150 ease-in-out",
         isSelected && !isExchanging && "ring-2 ring-primary ring-offset-2 shadow-lg",
@@ -156,7 +153,6 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
                     <Tile
                       tile={tile}
                       isSelected={selectedTileIndex === i}
-                      onClick={() => onTileSelect(i)}
                       onPointerDown={() => {
                         if (!canMoveTiles && !isExchanging) return;
                         onTileSelect(i);

@@ -55,6 +55,7 @@ function Game() {
     playerTiles,
     pendingTiles,
     selectedTileIndex,
+    selectedPendingTileKey,
     isSubmitting,
     isExchanging,
     exchangeSelection,
@@ -66,7 +67,7 @@ function Game() {
     opponentUid,
     handleTileSelect,
     handleCellClick,
-    handleRecallTile,
+    handlePendingTileSelect,
     handleRecallAll,
     handleShuffle,
     handlePlay,
@@ -177,8 +178,8 @@ function Game() {
 
   return (
     <AppLayout>
-      <div className="flex h-full flex-col items-center p-4">
-        <div className="w-full max-w-4xl flex flex-col gap-4">
+      <div className="flex h-full flex-col items-center overflow-x-hidden p-2 sm:p-4">
+        <div className="flex w-full max-w-4xl flex-col gap-3 sm:gap-4">
           <div className="flex items-center justify-end">
             <Dialog open={isPauseOpen} onOpenChange={setIsPauseOpen}>
               <DialogTrigger asChild>
@@ -241,35 +242,38 @@ function Game() {
                   placedTiles={board}
                   pendingTiles={pendingTiles}
                   onCellClick={handleCellClick}
-                  onRecallTile={handleRecallTile}
+                  onPendingTileSelect={handlePendingTileSelect}
                   onDrop={handleBoardDrop}
                   tileSetId={equippedTileSetId}
                   ownerTileSetIds={ownerTileSetIds}
+                  selectedPendingTileKey={selectedPendingTileKey}
                 />
               </BoardChrome>
             </BoardStage>
           </div>
 
-          <TileRack
-            tiles={playerTiles}
-            selectedTileIndex={selectedTileIndex}
-            isPlayerTurn={isPlayerTurn}
-            isSubmitting={isSubmitting}
-            isExchanging={isExchanging}
-            exchangeSelection={exchangeSelection}
-            onTileSelect={handleTileSelect}
-            onRecall={handleRecallAll}
-            onShuffle={handleShuffle}
-            onPlay={handlePlay}
-            onChatClick={() => setIsChatOpen(true)}
-            onToggleExchange={() => setIsExchanging(!isExchanging)}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-            onDrop={handleDrop}
-            tileSetId={equippedTileSetId}
-            shuffleTick={shuffleTick}
-            replenishedTileIndexes={replenishedTileIndexes}
-          />
+          <div className="sticky bottom-2 z-20 -mx-1 rounded-2xl bg-background/80 p-1 backdrop-blur sm:static sm:mx-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-0">
+            <TileRack
+              tiles={playerTiles}
+              selectedTileIndex={selectedTileIndex}
+              isPlayerTurn={isPlayerTurn}
+              isSubmitting={isSubmitting}
+              isExchanging={isExchanging}
+              exchangeSelection={exchangeSelection}
+              onTileSelect={handleTileSelect}
+              onRecall={handleRecallAll}
+              onShuffle={handleShuffle}
+              onPlay={handlePlay}
+              onChatClick={() => setIsChatOpen(true)}
+              onToggleExchange={() => setIsExchanging(!isExchanging)}
+              onDragStart={handleDragStart}
+              onDragEnd={handleDragEnd}
+              onDrop={handleDrop}
+              tileSetId={equippedTileSetId}
+              shuffleTick={shuffleTick}
+              replenishedTileIndexes={replenishedTileIndexes}
+            />
+          </div>
 
           <AlertDialog>
             <AlertDialogTrigger asChild>

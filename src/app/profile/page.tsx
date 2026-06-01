@@ -1,6 +1,7 @@
 import AppLayout from '@/components/app-layout';
 import AudioSettings from '@/components/profile/audio-settings';
 import AppearanceEditor from '@/components/profile/appearance-editor';
+import NotificationSettings from '@/components/profile/notification-settings';
 import ProfilePictureEditor from '@/components/profile/profile-picture-editor';
 import StatsPanel from '@/components/profile/stats-panel';
 import ThemeSelector from '@/components/profile/theme-selector';
@@ -20,6 +21,7 @@ export default function ProfilePage() {
             <TabsTrigger value="stats">Statistics</TabsTrigger>
             <TabsTrigger value="appearance">Appearance</TabsTrigger>
             <TabsTrigger value="themes">Themes</TabsTrigger>
+            <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="audio">Audio</TabsTrigger>
           </TabsList>
           <TabsContent value="picture">
@@ -41,6 +43,9 @@ export default function ProfilePage() {
                 <ThemeSelector />
               </CardContent>
             </Card>
+          </TabsContent>
+          <TabsContent value="notifications">
+            <NotificationSettings />
           </TabsContent>
           <TabsContent value="audio">
             <Card>

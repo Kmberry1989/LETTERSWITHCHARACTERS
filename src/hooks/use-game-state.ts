@@ -25,6 +25,7 @@ export function useGameState(gameId: string | null, user: any, game: any, equipp
     const [isChatOpen, setIsChatOpen] = useState(false);
     const [optimisticBoard, setOptimisticBoard] = useState<Record<string, Tile> | null>(null);
     const [draggedTileIndex, setDraggedTileIndex] = useState<number | null>(null);
+    const [selectedPendingTileKey, setSelectedPendingTileKey] = useState<string | null>(null);
     const [shuffleTick, setShuffleTick] = useState(0);
     const [replenishedTileIndexes, setReplenishedTileIndexes] = useState<number[]>([]);
 
@@ -52,6 +53,7 @@ export function useGameState(gameId: string | null, user: any, game: any, equipp
             setPlayerTiles(serverTiles);
             setPendingTiles([]);
             setSelectedTileIndex(null);
+            setSelectedPendingTileKey(null);
             setDraggedTileIndex(null);
             setOptimisticBoard(null);
             return;
@@ -93,6 +95,7 @@ export function useGameState(gameId: string | null, user: any, game: any, equipp
                 return newTiles;
             });
             setSelectedTileIndex(null);
+            setSelectedPendingTileKey(null);
             setDraggedTileIndex(null);
             setBlankTileDialog({ isOpen: true, pendingTileIndex: pendingTiles.length });
             return;
@@ -105,6 +108,7 @@ export function useGameState(gameId: string | null, user: any, game: any, equipp
             return newTiles;
         });
         setSelectedTileIndex(null);
+        setSelectedPendingTileKey(null);
         setDraggedTileIndex(null);
     };
 
@@ -123,22 +127,29 @@ export function useGameState(gameId: string | null, user: any, game: any, equipp
     };
 
     const handleCellClick = (row: number, col: number) => {
+        if (selectedPendingTileKey) {
+            const [fromRow, fromCol] = selectedPendingTileKey.split('-').map(Number);
+            setPendingTiles((prev: PlacedTile[]) =>
+                prev.map((tile) =>
+                    tile.row === fromRow && tile.col === fromCol
+                        ? { ...tile, row, col }
+                        : tile
+                )
+            );
+            setSelectedPendingTileKey(`${row}-${col}`);
+            playSfx('click');
+            return;
+        }
+
         if (selectedTileIndex === null) return;
         placeTileAt(selectedTileIndex, row, col);
     };
 
-    const handleRecallTile = (tileToRecall: PlacedTile) => {
+    const handlePendingTileSelect = (tileToSelect: PlacedTile) => {
         if (!isPlayerTurn) return;
-        const firstEmptyIndex = playerTiles.findIndex(t => t === null);
-        if (firstEmptyIndex !== -1) {
-            playSfx('swoosh');
-            setPlayerTiles((prev: (Tile | null)[]) => {
-                const newTiles = [...prev];
-                newTiles[firstEmptyIndex] = tileToRecall.isBlank ? { letter: ' ', score: 0 } : { letter: tileToRecall.letter, score: tileToRecall.score };
-                return newTiles;
-            });
-            setPendingTiles((prev: PlacedTile[]) => prev.filter(t => !(t.row === tileToRecall.row && t.col === tileToRecall.col)));
-        }
+        setSelectedTileIndex(null);
+        setSelectedPendingTileKey((current) => current === `${tileToSelect.row}-${tileToSelect.col}` ? null : `${tileToSelect.row}-${tileToSelect.col}`);
+        playSfx('click');
     };
 
     const handleRecallAll = () => {
@@ -153,6 +164,7 @@ export function useGameState(gameId: string | null, user: any, game: any, equipp
         }
         setPlayerTiles(newPlayerTiles);
         setPendingTiles([]);
+        setSelectedPendingTileKey(null);
     };
 
     const handleShuffle = () => {
@@ -231,6 +243,7 @@ export function useGameState(gameId: string | null, user: any, game: any, equipp
             setOptimisticBoard(null);
             setPendingTiles(tilesToSubmit);
             setPlayerTiles(previousPlayerTiles);
+            setSelectedPendingTileKey(null);
             setReplenishedTileIndexes([]);
         } finally {
             setIsSubmitting(false);
@@ -362,6 +375,7 @@ export function useGameState(gameId: string | null, user: any, game: any, equipp
             [newTiles[targetIndex], newTiles[draggedTileIndex]] = [newTiles[draggedTileIndex], newTiles[targetIndex]];
             setPlayerTiles(newTiles);
             setSelectedTileIndex(targetIndex);
+            setSelectedPendingTileKey(null);
             setDraggedTileIndex(null);
         }
     };
@@ -380,6 +394,7 @@ export function useGameState(gameId: string | null, user: any, game: any, equipp
         setPendingTiles,
         selectedTileIndex,
         setSelectedTileIndex,
+        selectedPendingTileKey,
         isSubmitting,
         isExchanging,
         setIsExchanging,
@@ -393,7 +408,7 @@ export function useGameState(gameId: string | null, user: any, game: any, equipp
         opponentUid,
         handleTileSelect,
         handleCellClick,
-        handleRecallTile,
+        handlePendingTileSelect,
         handleRecallAll,
         handleShuffle,
         handlePlay,

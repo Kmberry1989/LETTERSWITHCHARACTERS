@@ -2,11 +2,12 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAdminAuth, getAdminFirestore } from '@/firebase/admin';
 import type { Tile } from '@/lib/game/types';
 import { drawTiles } from '@/lib/game-logic';
+import { notifyUserTurn } from '@/lib/server/turn-notifications';
 export const dynamic = 'force-dynamic';
 
 type GameDoc = {
   players: string[];
-  playerData: Record<string, { tiles: Tile[] }>;
+  playerData: Record<string, { tiles: Tile[]; displayName?: string }>;
   tileBag: Tile[];
   currentTurn: string;
   status: 'active' | 'pending' | 'finished';
@@ -116,6 +117,14 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     currentTurn: opponentUid,
     consecutivePasses: 0,
   });
+  if (opponentUid) {
+    await notifyUserTurn({
+      userId: opponentUid,
+      title: 'Your turn',
+      body: `${gameData.playerData[uid]?.displayName || 'Your opponent'} exchanged tiles. It is your move now.`,
+      gameUrl: `${request.nextUrl.origin}/game?game=${gameId}`,
+    });
+  }
 
   return NextResponse.json({ exchanged: tilesToExchange.length });
 }

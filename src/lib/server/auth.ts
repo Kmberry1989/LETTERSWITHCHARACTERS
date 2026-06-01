@@ -9,6 +9,7 @@ import {
   STARTER_TILE_SET_ID,
 } from '@/lib/tile-cosmetics';
 import { DEFAULT_PLAYER_STATS } from '@/lib/player-stats';
+import { DEFAULT_NOTIFICATION_PREFERENCES } from '@/lib/notifications';
 
 export type AppUser = {
   uid: string;
@@ -164,6 +165,8 @@ export async function upsertUserProfile(user: AppUser) {
       boardTintId: existing?.boardTintId ?? getDefaultBoardTintId(existing?.boardThemeId ?? 'board-green'),
       themeId: existing?.themeId ?? 'default',
       gameIds: existing?.gameIds ?? [],
+      notificationPreferences: existing?.notificationPreferences ?? DEFAULT_NOTIFICATION_PREFERENCES,
+      pushSubscriptions: existing?.pushSubscriptions ?? [],
       updatedAt: new Date().toISOString(),
     },
     true

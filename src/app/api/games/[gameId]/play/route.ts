@@ -8,6 +8,7 @@ import { awardPlayerProgress, awardWinnerBonusIfNeeded, recordCompletedGame, rec
 import { getBerryRewardForScore } from '@/lib/tile-cosmetics';
 import { getDocument } from '@/lib/server/document-store';
 import { normalizeUserCosmetics } from '@/lib/user-profile';
+import { notifyUserGame, notifyUserTurn } from '@/lib/server/turn-notifications';
 
 export const dynamic = 'force-dynamic';
 
@@ -362,6 +363,28 @@ export async function POST(
     });
   }
   const winnerBonus = await awardWinnerBonusIfNeeded(isGameFinished ? uid : undefined, false);
+  if (isGameFinished) {
+    await Promise.all(
+      gameData.players.map((playerId) =>
+        notifyUserGame({
+          userId: playerId,
+          title: 'Game finished',
+          body:
+            playerId === uid
+              ? `You won against ${gameData.playerData[opponentUid]?.displayName || 'your opponent'}.`
+              : `${playerData.displayName} finished the game.`,
+          gameUrl: `${request.nextUrl.origin}/game?game=${gameId}`,
+        })
+      )
+    );
+  } else {
+    await notifyUserTurn({
+      userId: opponentUid,
+      title: 'Your turn',
+      body: `${playerData.displayName} played a word. It is your move now.`,
+      gameUrl: `${request.nextUrl.origin}/game?game=${gameId}`,
+    });
+  }
 
   return NextResponse.json({
     score,

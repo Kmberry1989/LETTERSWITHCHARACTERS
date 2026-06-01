@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { Apple, Chrome, Sparkles, Star, UserPlus, UserRound } from 'lucide-react';
+import { Apple, Sparkles, Star, UserPlus, UserRound } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +11,17 @@ import { useToast } from '@/hooks/use-toast';
 import { getPostLoginRoute } from '@/lib/auth-flow';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+
+function GoogleMark() {
+  return (
+    <svg aria-hidden="true" viewBox="0 0 24 24" className="h-4 w-4">
+      <path fill="#EA4335" d="M12 10.2v3.9h5.4c-.2 1.2-.9 2.3-2 3l3.2 2.5c1.9-1.8 3-4.4 3-7.6 0-.7-.1-1.3-.2-1.9H12z" />
+      <path fill="#34A853" d="M12 21c2.7 0 5-.9 6.6-2.4l-3.2-2.5c-.9.6-2 .9-3.4.9-2.6 0-4.7-1.7-5.5-4H3.2v2.6C4.8 18.8 8.1 21 12 21z" />
+      <path fill="#4A90E2" d="M6.5 13c-.2-.6-.3-1.3-.3-2s.1-1.4.3-2V6.4H3.2C2.4 8 2 9.5 2 11s.4 3 1.2 4.6L6.5 13z" />
+      <path fill="#FBBC05" d="M12 5c1.5 0 2.9.5 3.9 1.5l2.9-2.9C17 1.9 14.7 1 12 1 8.1 1 4.8 3.2 3.2 6.4L6.5 9c.8-2.3 2.9-4 5.5-4z" />
+    </svg>
+  );
+}
 
 export default function LoginPage() {
   const router = useRouter();
@@ -198,24 +209,24 @@ export default function LoginPage() {
                 <Button
                   type="button"
                   disabled={isLoading}
-                  className="h-12 w-full justify-center gap-3 rounded-xl border border-slate-200 bg-white text-slate-900 shadow-[0_10px_24px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:bg-white hover:text-slate-900 hover:shadow-[0_16px_30px_rgba(15,23,42,0.12)]"
+                  className="h-12 w-full justify-center gap-3 rounded-xl border border-[#dadce0] bg-white text-[#1f1f1f] shadow-[0_10px_24px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:bg-white hover:text-[#1f1f1f] hover:shadow-[0_16px_30px_rgba(15,23,42,0.12)]"
                   onClick={() => void handleSocialAuth('google')}
                 >
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full border border-slate-200 bg-white shadow-sm">
-                    <Chrome className="h-4 w-4 text-emerald-600" />
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full border border-[#dadce0] bg-white shadow-sm">
+                    <GoogleMark />
                   </span>
-                  <span className="font-medium">Continue with Google</span>
+                  <span className="font-medium">Sign in with Google</span>
                 </Button>
                 <Button
                   type="button"
                   disabled={isLoading}
-                  className="h-12 w-full justify-center gap-3 rounded-xl border border-slate-950 bg-slate-950 text-white shadow-[0_14px_28px_rgba(15,23,42,0.22)] transition hover:-translate-y-0.5 hover:bg-black hover:text-white hover:shadow-[0_18px_34px_rgba(15,23,42,0.28)]"
+                  className="h-12 w-full justify-center gap-3 rounded-xl border border-black bg-black text-white shadow-[0_14px_28px_rgba(15,23,42,0.22)] transition hover:-translate-y-0.5 hover:bg-[#111] hover:text-white hover:shadow-[0_18px_34px_rgba(15,23,42,0.28)]"
                   onClick={() => void handleSocialAuth('apple')}
                 >
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-white/10 ring-1 ring-white/15">
                     <Apple className="h-4 w-4" />
                   </span>
-                  <span className="font-medium">Continue with Apple</span>
+                  <span className="font-medium">Sign in with Apple</span>
                 </Button>
               </div>
             </div>

@@ -61,6 +61,31 @@ npm run typecheck
 npm run build
 ```
 
+## Notifications
+
+Turn notifications now support email and browser web push.
+
+Required environment variables for email:
+
+- `RESEND_API_KEY`
+- `RESEND_FROM_EMAIL`
+
+Required environment variables for web push:
+
+- `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
+- `VAPID_PRIVATE_KEY`
+- `VAPID_SUBJECT`
+
+Notes:
+
+- Email turn alerts default to on for existing and new users.
+- Web push defaults to off until the user enables it from `/profile` and grants browser notification permission.
+- Supported events:
+  - turn ready
+  - challenge accepted
+  - game finished
+  - in-game chat message
+
 Manual smoke test:
 
 - user A can create one open challenge

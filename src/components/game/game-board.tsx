@@ -15,9 +15,10 @@ type GameBoardProps = {
   pendingTiles?: PlacedTile[];
   onCellClick?: (row: number, col: number) => void;
   onDrop?: (row: number, col: number, tileIndex?: number | null) => void;
-  onRecallTile?: (tile: PlacedTile) => void;
+  onPendingTileSelect?: (tile: PlacedTile) => void;
   tileSetId?: string | null;
   ownerTileSetIds?: Record<string, string | null | undefined>;
+  selectedPendingTileKey?: string | null;
 };
 
 function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; children?: React.ReactNode; onClick?: () => void, onDrop?: (e: React.DragEvent) => void, onDragOver?: (e: React.DragEvent) => void }) {
@@ -71,27 +72,34 @@ function PlacedTileComponent({
   tile,
   isPending,
   onClick,
+  onDragStart,
+  isSelected,
   tileSetId,
   ownerTileSetIds,
 }: {
   tile: Tile,
   isPending: boolean,
   onClick?: () => void,
+  onDragStart?: (e: React.DragEvent) => void,
+  isSelected?: boolean,
   tileSetId?: string | null,
   ownerTileSetIds?: Record<string, string | null | undefined>,
 }) {
-  const canRecall = !!onClick;
+  const canInteract = !!onClick;
   const resolvedTileSetId = tile.tileSetId || (tile.ownerUid ? ownerTileSetIds?.[tile.ownerUid] : undefined) || tileSetId;
   return (
     <motion.div 
       layout
       initial={{ scale: 0.85, opacity: 0, rotate: -4 }}
       animate={{ scale: 1, opacity: 1, rotate: 0 }}
-      whileHover={{ scale: canRecall ? 1.03 : 1 }}
+      whileHover={{ scale: canInteract ? 1.03 : 1 }}
+      draggable={isPending}
+      onDragStartCapture={onDragStart}
       className={cn(
         "relative flex h-full w-full items-center justify-center rounded-sm border-b-2 border-black/20 bg-[#f8e8c7] shadow-[0_10px_18px_rgba(0,0,0,0.16)]",
-        isPending && canRecall && "cursor-pointer ring-2 ring-yellow-400 ring-offset-1",
-        isPending && !canRecall && "ring-2 ring-yellow-400/50 ring-offset-1",
+        isPending && canInteract && "cursor-pointer ring-2 ring-yellow-400 ring-offset-1",
+        isPending && !canInteract && "ring-2 ring-yellow-400/50 ring-offset-1",
+        isSelected && "ring-2 ring-primary ring-offset-2",
         "before:absolute before:inset-0 before:rounded-sm before:bg-gradient-to-br before:from-white/55 before:via-transparent before:to-transparent"
       )}
       onClick={onClick}
@@ -112,9 +120,10 @@ const GameBoard = ({
   pendingTiles = [],
   onCellClick,
   onDrop,
-  onRecallTile,
+  onPendingTileSelect,
   tileSetId,
   ownerTileSetIds,
+  selectedPendingTileKey,
 }: GameBoardProps) => {
   const allTiles = { ...placedTiles };
   const pendingKeys = new Set();
@@ -131,6 +140,13 @@ const GameBoard = ({
   
   const handleDrop = (e: React.DragEvent, row: number, col: number) => {
     e.preventDefault();
+    const pendingSource = e.dataTransfer.getData('application/x-pending-tile');
+    if (pendingSource) {
+      const [pendingRow, pendingCol] = pendingSource.split('-').map(Number);
+      onPendingTileSelect?.({ row: pendingRow, col: pendingCol, letter: '', score: 0 });
+      onCellClick?.(row, col);
+      return;
+    }
     const sourceIndex = Number(e.dataTransfer.getData('text/plain'));
     onDrop?.(row, col, Number.isNaN(sourceIndex) ? null : sourceIndex);
   };
@@ -158,9 +174,14 @@ const GameBoard = ({
                   <PlacedTileComponent 
                     tile={tile} 
                     isPending={isPending}
+                    isSelected={selectedPendingTileKey === tileKey}
                     tileSetId={tileSetId}
                     ownerTileSetIds={ownerTileSetIds}
-                    onClick={isPending && onRecallTile ? () => onRecallTile({ ...tile, row: rowIndex, col: colIndex }) : undefined}
+                    onClick={isPending && onPendingTileSelect ? () => onPendingTileSelect({ ...tile, row: rowIndex, col: colIndex }) : undefined}
+                    onDragStart={isPending ? (e) => {
+                      e.dataTransfer.effectAllowed = 'move';
+                      e.dataTransfer.setData('application/x-pending-tile', `${rowIndex}-${colIndex}`);
+                    } : undefined}
                   />
                 )}
               </Cell>

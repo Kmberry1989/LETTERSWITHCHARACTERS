@@ -5,6 +5,7 @@ import { calculateScore } from '@/lib/scoring';
 import { drawTiles } from '@/lib/game-logic';
 import { generateBotMove } from '@/ai/ai-bot-move';
 import { awardWinnerBonusIfNeeded } from '@/lib/server/game-rewards';
+import { notifyUserGame, notifyUserTurn } from '@/lib/server/turn-notifications';
 export const dynamic = 'force-dynamic';
 
 type GameDoc = {
@@ -117,6 +118,26 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
             typeof updatePayload.winner === 'string' ? updatePayload.winner : undefined,
             false
         );
+        if (opponentUid && updatePayload.status !== 'finished') {
+            await notifyUserTurn({
+                userId: opponentUid,
+                title: 'Your turn',
+                body: 'Bitty Botty passed. It is your move now.',
+                gameUrl: `${request.nextUrl.origin}/game?game=${gameId}`,
+            });
+        } else if (opponentUid && updatePayload.status === 'finished') {
+            await notifyUserGame({
+                userId: opponentUid,
+                title: 'Game finished',
+                body:
+                    updatePayload.winner === opponentUid
+                        ? 'You won against Bitty Botty.'
+                        : updatePayload.winner === 'draw'
+                            ? 'Your game with Bitty Botty ended in a draw.'
+                            : 'Bitty Botty finished the game.',
+                gameUrl: `${request.nextUrl.origin}/game?game=${gameId}`,
+            });
+        }
         return NextResponse.json({ message: 'Bot passed.', winnerBonus, ...updatePayload });
     }
 
@@ -207,6 +228,21 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
 
     await gameRef.update(updatePayload);
     const winnerBonus = await awardWinnerBonusIfNeeded(isGameFinished ? botUid : undefined, false);
+    if (opponentUid && !isGameFinished) {
+        await notifyUserTurn({
+            userId: opponentUid,
+            title: 'Your turn',
+            body: `Bitty Botty played ${move.word.toUpperCase()}. It is your move now.`,
+            gameUrl: `${request.nextUrl.origin}/game?game=${gameId}`,
+        });
+    } else if (opponentUid && isGameFinished) {
+        await notifyUserGame({
+            userId: opponentUid,
+            title: 'Game finished',
+            body: 'Bitty Botty finished the game.',
+            gameUrl: `${request.nextUrl.origin}/game?game=${gameId}`,
+        });
+    }
 
     return NextResponse.json({ score, word: move.word, winnerBonus, status: updatePayload.status, winner: updatePayload.winner });
 }

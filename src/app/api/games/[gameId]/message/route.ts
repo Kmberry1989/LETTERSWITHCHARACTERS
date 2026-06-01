@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAdminAuth, getAdminFirestore } from '@/firebase/admin';
+import { notifyUserChat } from '@/lib/server/turn-notifications';
 export const dynamic = 'force-dynamic';
 
 type GameDoc = {
@@ -66,6 +67,16 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   await gameRef.update({
     messages: [...(gameData.messages || []), newMessage],
   });
+
+  const opponentUid = gameData.players.find((player) => player !== uid);
+  if (opponentUid) {
+    await notifyUserChat({
+      userId: opponentUid,
+      title: 'New game message',
+      body: `${senderName}: ${text}`,
+      gameUrl: `${request.nextUrl.origin}/game?game=${gameId}`,
+    });
+  }
 
   return NextResponse.json({ success: true });
 }

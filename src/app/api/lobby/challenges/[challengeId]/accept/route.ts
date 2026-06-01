@@ -8,6 +8,7 @@ import {
 } from '@/lib/server/document-store';
 import { createNewGame } from '@/lib/game/create-new-game';
 import type { UserProfile } from '@/firebase/firestore/use-users';
+import { notifyUserChallenge } from '@/lib/server/turn-notifications';
 
 type Challenge = {
   id: string;
@@ -68,6 +69,12 @@ export async function POST(
     acceptedAt: new Date().toISOString(),
     acceptedByUid: user.uid,
     gameId,
+  });
+  await notifyUserChallenge({
+    userId: challenge.creatorUid,
+    title: 'Challenge accepted',
+    body: `${accepterProfile.displayName || 'A player'} accepted your challenge.`,
+    challengeUrl: `${new URL(_request.url).origin}/game?game=${gameId}`,
   });
 
   return NextResponse.json({ gameId });

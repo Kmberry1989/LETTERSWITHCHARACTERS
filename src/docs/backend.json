@@ -37,6 +37,14 @@
           "type": "string",
           "description": "The ID of the user's selected board tint overlay preset."
         },
+        "notificationPreferences": {
+          "type": "object",
+          "description": "User notification preference flags for email and web push turn alerts."
+        },
+        "pushSubscriptions": {
+          "type": "array",
+          "description": "Stored browser push subscriptions for web push notifications."
+        },
         "gameIds": {
             "type": "array",
             "items": { "type": "string" },

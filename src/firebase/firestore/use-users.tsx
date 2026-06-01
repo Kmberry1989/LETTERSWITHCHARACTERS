@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { collection } from '@/lib/client/document-client';
 import { useCollection } from './use-collection';
 import type { PlayerStats } from '@/lib/player-stats';
+import type { NotificationPreferences, StoredPushSubscription } from '@/lib/notifications';
 
 export interface UserProfile {
   uid: string;
@@ -30,6 +31,8 @@ export interface UserProfile {
   boardTintId?: string;
   themeId?: string;
   gameIds?: string[];
+  notificationPreferences?: NotificationPreferences;
+  pushSubscriptions?: StoredPushSubscription[];
 }
 
 export function useUsers() {
