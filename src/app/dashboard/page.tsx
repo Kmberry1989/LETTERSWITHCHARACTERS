@@ -17,6 +17,7 @@ import { Swords } from 'lucide-react';
 import { resolveAvatarImage } from '@/lib/avatar-catalog';
 import { usePlayableGate } from '@/hooks/use-playable-gate';
 import { useTurnNotifications } from '@/hooks/use-turn-notifications';
+import { ArcadeStatusPanel } from '@/components/retention/arcade-status-panel';
 
 interface PlayerData {
   displayName: string;
@@ -172,6 +173,10 @@ export default function DashboardPage() {
             </Link>
           </Button>
         </div>
+        <ArcadeStatusPanel
+          hasUsersTurn={Boolean(usersTurnGame)}
+          nextTurnHref={usersTurnGame ? `/game?game=${usersTurnGame.id}` : undefined}
+        />
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {loading && Array.from({ length: 3 }).map((_, i) => <GameCardSkeleton key={i} />)}
           {!loading && games.map((game) => <GameCard key={game.id} game={game} />)}

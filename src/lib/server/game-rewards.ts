@@ -2,6 +2,7 @@ import { getDocument, updateDocument } from '@/lib/server/document-store';
 import { normalizeUserCosmetics } from '@/lib/user-profile';
 import { getLevelForExperience, WIN_BONUS_BERRIES, WIN_BONUS_EXPERIENCE } from '@/lib/tile-cosmetics';
 import { normalizePlayerStats } from '@/lib/player-stats';
+import { applyArcadeSession, normalizeRetentionState } from '@/lib/retention';
 
 export async function awardPlayerProgress(userId: string, rewards: { berries?: number; experience?: number }) {
   if (!userId) return null;
@@ -50,6 +51,7 @@ export async function recordCompletedGame(
     game.players.map(async (playerId) => {
       const profile = await getDocument<any>('users', playerId);
       const stats = normalizePlayerStats(profile?.stats);
+      const retention = normalizeRetentionState(profile?.retention);
       const didWin = game.winner === playerId;
       const didTie = game.winner === 'draw';
       const nextStats = {
@@ -60,9 +62,14 @@ export async function recordCompletedGame(
         ties: stats.ties + (didTie ? 1 : 0),
         highestGameScore: Math.max(stats.highestGameScore, game.playerData[playerId]?.score || 0),
       };
+      const retentionResult = applyArcadeSession(retention, 'word-duel', {
+        completed: true,
+        score: game.playerData[playerId]?.score || 0,
+      });
 
       await updateDocument('users', playerId, {
         stats: nextStats,
+        retention: retentionResult.retention,
         updatedAt: new Date().toISOString(),
       });
     })

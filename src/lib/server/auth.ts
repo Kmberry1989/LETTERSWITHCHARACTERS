@@ -10,6 +10,7 @@ import {
 } from '@/lib/tile-cosmetics';
 import { DEFAULT_PLAYER_STATS } from '@/lib/player-stats';
 import { DEFAULT_NOTIFICATION_PREFERENCES } from '@/lib/notifications';
+import { DEFAULT_RETENTION_STATE } from '@/lib/retention';
 
 export type AppUser = {
   uid: string;
@@ -167,6 +168,7 @@ export async function upsertUserProfile(user: AppUser) {
       gameIds: existing?.gameIds ?? [],
       notificationPreferences: existing?.notificationPreferences ?? DEFAULT_NOTIFICATION_PREFERENCES,
       pushSubscriptions: existing?.pushSubscriptions ?? [],
+      retention: existing?.retention ?? DEFAULT_RETENTION_STATE,
       updatedAt: new Date().toISOString(),
     },
     true

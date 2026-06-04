@@ -5,6 +5,7 @@ import { collection } from '@/lib/client/document-client';
 import { useCollection } from './use-collection';
 import type { PlayerStats } from '@/lib/player-stats';
 import type { NotificationPreferences, StoredPushSubscription } from '@/lib/notifications';
+import type { RetentionState } from '@/lib/retention';
 
 export interface UserProfile {
   uid: string;
@@ -33,6 +34,7 @@ export interface UserProfile {
   gameIds?: string[];
   notificationPreferences?: NotificationPreferences;
   pushSubscriptions?: StoredPushSubscription[];
+  retention?: Partial<RetentionState>;
 }
 
 export function useUsers() {
