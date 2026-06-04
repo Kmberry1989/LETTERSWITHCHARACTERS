@@ -1,4 +1,5 @@
 import webpush from 'web-push';
+import type * as WebPushTypes from 'web-push';
 import { getDocument, updateDocument } from '@/lib/server/document-store';
 import {
   normalizeNotificationPreferences,
@@ -72,7 +73,7 @@ async function sendPush(
 
   for (const subscription of subscriptions) {
     try {
-      await webpush.sendNotification(subscription as webpush.PushSubscription, JSON.stringify(payload));
+      await webpush.sendNotification(subscription as WebPushTypes.PushSubscription, JSON.stringify(payload));
       survivingSubscriptions.push(subscription);
     } catch (error: any) {
       const statusCode = error?.statusCode;
