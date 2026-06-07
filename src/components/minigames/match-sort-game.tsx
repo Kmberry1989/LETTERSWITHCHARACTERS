@@ -318,6 +318,3 @@ export default function MatchSortGame() {
     </Card>
   );
 }
-    </Card>
-  );
-}
