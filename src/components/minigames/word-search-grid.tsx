@@ -174,15 +174,13 @@ export default function WordSearchGrid() {
           <div className="mt-6">
             <h3 className="mb-3 font-semibold">Bonus Dictionary Words ({bonusWords.length})</h3>
             <div className="flex flex-wrap gap-2">
-              {bonusWords.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Any valid contiguous word you trace now counts, too.</p>
-              ) : (
+              {bonusWords.length > 0 ? (
                 bonusWords.map((word) => (
                   <Badge key={word} variant="outline" className="text-sm">
                     {word.toUpperCase()}
                   </Badge>
                 ))
-              )}
+              ) : null}
             </div>
           </div>
           {allWordsFound && (
@@ -193,8 +191,7 @@ export default function WordSearchGrid() {
           )}
         </div>
       </CardContent>
-      <CardFooter className="flex justify-between">
-        <p className="text-sm text-muted-foreground">Click on the letters to form words. Good luck!</p>
+      <CardFooter className="flex justify-end">
         <Button variant="outline" onClick={handleClearSelection} disabled={selectedCells.length === 0}>
             Clear Selection
         </Button>

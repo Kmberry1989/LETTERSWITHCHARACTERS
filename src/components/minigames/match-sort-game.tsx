@@ -5,7 +5,7 @@ import { RefreshCcw } from 'lucide-react';
 import { ArcadeSessionButton } from '@/components/retention/arcade-session-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 type GoodsId = 'soda' | 'cereal' | 'chips' | 'soap' | 'juice' | 'tea';
 type GoodsItem = {
@@ -58,7 +58,6 @@ function canMoveItem(item: GoodsItem, destination: Shelf) {
 export default function MatchSortGame() {
   const [shelves, setShelves] = useState<Shelf[]>(INITIAL_SHELVES);
   const [selectedShelfIndex, setSelectedShelfIndex] = useState<number | null>(null);
-  const [status, setStatus] = useState('Move the front item from shelf to shelf and group matching goods together.');
 
   const completedShelves = useMemo(() => shelves.filter(isShelfComplete).length, [shelves]);
   const solved = completedShelves >= 5;
@@ -69,13 +68,11 @@ export default function MatchSortGame() {
     if (selectedShelfIndex === null) {
       if (shelf.length === 0 || isShelfComplete(shelf)) return;
       setSelectedShelfIndex(shelfIndex);
-      setStatus(`Selected ${shelf[shelf.length - 1].label}. Choose a shelf to move it to.`);
       return;
     }
 
     if (selectedShelfIndex === shelfIndex) {
       setSelectedShelfIndex(null);
-      setStatus('Selection cleared.');
       return;
     }
 
@@ -84,7 +81,6 @@ export default function MatchSortGame() {
     if (!movingItem) return;
 
     if (!canMoveItem(movingItem, shelf)) {
-      setStatus(`That shelf cannot take ${movingItem.label} right now.`);
       setSelectedShelfIndex(shelfIndex);
       return;
     }
@@ -96,22 +92,17 @@ export default function MatchSortGame() {
       return next;
     });
     setSelectedShelfIndex(null);
-    setStatus(`${movingItem.label} moved.`);
   };
 
   const reset = () => {
     setShelves(INITIAL_SHELVES.map((shelf) => shelf.map((item) => ({ ...item }))));
     setSelectedShelfIndex(null);
-    setStatus('Fresh stockroom. Sort matching goods onto shared shelves.');
   };
 
   return (
     <Card className="overflow-hidden border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(254,252,232,0.94))] shadow-[0_24px_70px_rgba(161,98,7,0.1)]">
       <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <CardTitle className="font-headline text-3xl">Goods Sort</CardTitle>
-          <CardDescription>Sort store goods by moving the front item between shelves until each shelf holds one product line.</CardDescription>
-        </div>
+        <CardTitle className="font-headline text-3xl">Goods Sort</CardTitle>
         <div className="flex flex-wrap gap-2">
           <Badge variant="secondary" className="rounded-full px-3 py-1">
             {completedShelves} shelves complete
@@ -173,8 +164,6 @@ export default function MatchSortGame() {
             );
           })}
         </div>
-
-        <div className="rounded-[28px] border border-slate-200 bg-white/80 p-5 text-sm text-slate-600">{status}</div>
       </CardContent>
     </Card>
   );

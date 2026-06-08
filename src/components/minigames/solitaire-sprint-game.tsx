@@ -6,7 +6,7 @@ import { RefreshCcw } from 'lucide-react';
 import { ArcadeSessionButton } from '@/components/retention/arcade-session-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 type Suit = 'hearts' | 'spades' | 'clubs' | 'diamonds';
 type SolitaireCard = {
@@ -163,7 +163,6 @@ function CardFace({
 export default function SolitaireSprintGame() {
   const [game, setGame] = useState<GameState>(() => createInitialGame());
   const [selection, setSelection] = useState<Selection>(null);
-  const [status, setStatus] = useState('Classic Klondike rules: build down in alternating colors and send Aces upward.');
 
   const solved = useMemo(
     () => SUITS.every((suit) => game.foundations[suit].length === 13),
@@ -175,7 +174,6 @@ export default function SolitaireSprintGame() {
   const reset = () => {
     setGame(createInitialGame());
     setSelection(null);
-    setStatus('Fresh shuffle. Build foundations from Ace to King.');
   };
 
   const drawFromStock = () => {
@@ -183,7 +181,6 @@ export default function SolitaireSprintGame() {
     setGame((current) => {
       if (current.stock.length === 0) {
         if (current.waste.length === 0) return current;
-        setStatus('Stock recycled from waste.');
         return {
           ...current,
           stock: current.waste.map((card) => ({ ...card, faceUp: false })).reverse(),
@@ -193,7 +190,6 @@ export default function SolitaireSprintGame() {
 
       const nextStock = [...current.stock];
       const drawn = { ...nextStock.pop()!, faceUp: true };
-      setStatus(`Drew ${rankLabel(drawn.rank)}${suitSymbol(drawn.suit)}.`);
       return {
         ...current,
         stock: nextStock,
@@ -215,7 +211,6 @@ export default function SolitaireSprintGame() {
       },
     }));
     setSelection(null);
-    setStatus(`Moved ${rankLabel(card.rank)}${suitSymbol(card.suit)} to foundation.`);
     return true;
   };
 
@@ -233,7 +228,6 @@ export default function SolitaireSprintGame() {
       };
     });
     setSelection(null);
-    setStatus(`Placed ${rankLabel(card.rank)}${suitSymbol(card.suit)} on tableau.`);
     return true;
   };
 
@@ -256,7 +250,6 @@ export default function SolitaireSprintGame() {
       };
     });
     setSelection(null);
-    setStatus(`Sent ${rankLabel(card.rank)}${suitSymbol(card.suit)} upward.`);
     return true;
   };
 
@@ -276,7 +269,6 @@ export default function SolitaireSprintGame() {
       };
     });
     setSelection(null);
-    setStatus(`Moved a ${movingCards.length}-card run.`);
     return true;
   };
 
@@ -317,10 +309,7 @@ export default function SolitaireSprintGame() {
   return (
     <Card className="overflow-hidden border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(241,245,249,0.94))] shadow-[0_24px_70px_rgba(15,23,42,0.1)]">
       <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <CardTitle className="font-headline text-3xl">Solitaire Sprint</CardTitle>
-          <CardDescription>Now a full shuffle-and-build solitaire loop, tuned for fast arcade sessions.</CardDescription>
-        </div>
+        <CardTitle className="font-headline text-3xl">Solitaire Sprint</CardTitle>
         <div className="flex flex-wrap gap-2">
           <Badge variant="secondary" className="rounded-full px-3 py-1">
             {stockCount} in stock
@@ -425,8 +414,6 @@ export default function SolitaireSprintGame() {
             </div>
           </div>
         </div>
-
-        <div className="rounded-[28px] border border-slate-200 bg-white/80 p-5 text-sm text-slate-600">{status}</div>
       </CardContent>
     </Card>
   );

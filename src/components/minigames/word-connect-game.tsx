@@ -5,7 +5,7 @@ import { RefreshCcw } from 'lucide-react';
 import { ArcadeSessionButton } from '@/components/retention/arcade-session-button';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 
 const LETTERS = ['S', 'T', 'A', 'R', 'E', 'N'];
@@ -13,7 +13,7 @@ const LETTERS = ['S', 'T', 'A', 'R', 'E', 'N'];
 export default function WordConnectGame() {
   const [path, setPath] = useState<number[]>([]);
   const [foundWords, setFoundWords] = useState<string[]>([]);
-  const [status, setStatus] = useState('Find four words from the wheel.');
+  const [status, setStatus] = useState('');
   const { toast } = useToast();
   const solved = foundWords.length >= 4;
 
@@ -61,16 +61,13 @@ export default function WordConnectGame() {
   const reset = () => {
     setPath([]);
     setFoundWords([]);
-    setStatus('Fresh wheel. Find four words from the wheel.');
+    setStatus('');
   };
 
   return (
     <Card className="overflow-hidden border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(254,242,242,0.92))] shadow-[0_20px_60px_rgba(251,113,133,0.12)]">
       <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <div>
-          <CardTitle className="font-headline text-3xl">Word Connect</CardTitle>
-          <CardDescription>Build a chain by tapping letters. Four valid words completes today’s target.</CardDescription>
-        </div>
+        <CardTitle className="font-headline text-3xl">Word Connect</CardTitle>
         <div className="flex flex-wrap gap-2">
           <Badge variant="secondary" className="rounded-full px-3 py-1">
             {foundWords.length} / 4 words
@@ -123,21 +120,19 @@ export default function WordConnectGame() {
               Clear Chain
             </Button>
           </div>
-          <div className="mt-4 text-sm text-slate-600">{status}</div>
+          {status ? <div className="mt-4 text-sm text-slate-600">{status}</div> : null}
         </div>
 
         <div className="rounded-[28px] border border-slate-200 bg-white/80 p-5">
           <div className="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Found Words</div>
           <div className="mt-3 flex flex-wrap gap-2">
-            {foundWords.length === 0 ? (
-              <span className="text-sm text-slate-500">Nothing banked yet.</span>
-            ) : (
+            {foundWords.length > 0 ? (
               foundWords.map((word) => (
                 <Badge key={word} className="rounded-full bg-slate-950 px-3 py-1.5 text-white hover:bg-slate-950">
                   {word}
                 </Badge>
               ))
-            )}
+            ) : null}
           </div>
         </div>
       </CardContent>
