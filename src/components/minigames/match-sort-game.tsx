@@ -12,21 +12,19 @@ type GoodsItem = {
   id: string;
   kind: GoodsId;
   emoji: string;
-  label: string;
 };
-
 type Shelf = GoodsItem[];
 
-const GOODS_LOOKUP: Record<GoodsId, { emoji: string; label: string }> = {
-  soda: { emoji: '🥤', label: 'Soda' },
-  cereal: { emoji: '🥣', label: 'Cereal' },
-  chips: { emoji: '🍟', label: 'Chips' },
-  soap: { emoji: '🧼', label: 'Soap' },
-  juice: { emoji: '🧃', label: 'Juice' },
-  tea: { emoji: '🍵', label: 'Tea' },
+const GOODS_LOOKUP: Record<GoodsId, { emoji: string }> = {
+  soda: { emoji: '🥤' },
+  cereal: { emoji: '🥣' },
+  chips: { emoji: '🍟' },
+  soap: { emoji: '🧼' },
+  juice: { emoji: '🧃' },
+  tea: { emoji: '🍵' },
 };
 
-const INITIAL_SHELF_LAYOUT: GoodsId[][] = [
+const BASE_LAYOUT: GoodsId[][] = [
   ['soda', 'juice', 'chips', 'soap'],
   ['tea', 'cereal', 'juice', 'chips'],
   ['soap', 'tea', 'cereal', 'soda'],
@@ -36,17 +34,18 @@ const INITIAL_SHELF_LAYOUT: GoodsId[][] = [
   [],
 ];
 
-const INITIAL_SHELVES: Shelf[] = INITIAL_SHELF_LAYOUT.map((shelf, shelfIndex) =>
-  shelf.map((kind, itemIndex) => ({
-    id: `${kind}-${shelfIndex}-${itemIndex}`,
-    kind,
-    emoji: GOODS_LOOKUP[kind].emoji,
-    label: GOODS_LOOKUP[kind].label,
-  }))
-);
+function buildShelves() {
+  return BASE_LAYOUT.map((shelf, shelfIndex) =>
+    shelf.map((kind, itemIndex) => ({
+      id: `${kind}-${shelfIndex}-${itemIndex}-${Math.random().toString(36).slice(2, 7)}`,
+      kind,
+      emoji: GOODS_LOOKUP[kind].emoji,
+    }))
+  );
+}
 
 function isShelfComplete(shelf: Shelf) {
-  return shelf.length === 4 && shelf.every((item) => item.kind === shelf[0].kind);
+  return shelf.length === 4 && shelf.every((item) => item.kind === shelf[0]?.kind);
 }
 
 function canMoveItem(item: GoodsItem, destination: Shelf) {
@@ -56,7 +55,7 @@ function canMoveItem(item: GoodsItem, destination: Shelf) {
 }
 
 export default function MatchSortGame() {
-  const [shelves, setShelves] = useState<Shelf[]>(INITIAL_SHELVES);
+  const [shelves, setShelves] = useState<Shelf[]>(() => buildShelves());
   const [selectedShelfIndex, setSelectedShelfIndex] = useState<number | null>(null);
 
   const completedShelves = useMemo(() => shelves.filter(isShelfComplete).length, [shelves]);
@@ -95,7 +94,7 @@ export default function MatchSortGame() {
   };
 
   const reset = () => {
-    setShelves(INITIAL_SHELVES.map((shelf) => shelf.map((item) => ({ ...item }))));
+    setShelves(buildShelves());
     setSelectedShelfIndex(null);
   };
 
@@ -111,59 +110,50 @@ export default function MatchSortGame() {
             <RefreshCcw className="mr-2 h-4 w-4" />
             Restock
           </Button>
-          {solved && <ArcadeSessionButton modeId="match-sort" score={200 + completedShelves * 20} label="Bank this clear" />}
+          {solved ? <ArcadeSessionButton modeId="match-sort" score={200 + completedShelves * 20} label="Bank this clear" /> : null}
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          {shelves.map((shelf, shelfIndex) => {
-            const selected = selectedShelfIndex === shelfIndex;
-            const complete = isShelfComplete(shelf);
-            return (
-              <button
-                key={shelfIndex}
-                type="button"
-                onClick={() => handleShelfClick(shelfIndex)}
-                className={`rounded-[28px] border bg-white/85 p-4 text-left shadow-sm transition-all ${
-                  complete
-                    ? 'border-emerald-300 ring-4 ring-emerald-100'
-                    : selected
-                      ? 'border-amber-400 ring-4 ring-amber-100'
-                      : 'border-slate-200 hover:-translate-y-1'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Shelf {shelfIndex + 1}</div>
-                  <Badge variant={complete ? 'default' : 'outline'} className="rounded-full px-3 py-1">
-                    {shelf.length}/4
-                  </Badge>
-                </div>
-                <div className="mt-4 flex min-h-[220px] items-end gap-2 rounded-[22px] bg-[linear-gradient(180deg,rgba(248,250,252,0.85),rgba(241,245,249,0.96))] p-3">
-                  {Array.from({ length: 4 }).map((_, slot) => {
-                    const item = shelf[slot];
-                    return (
-                      <div
-                        key={`${shelfIndex}-${slot}`}
-                        className={`flex h-44 flex-1 flex-col justify-end rounded-2xl border ${
-                          item ? 'border-slate-200 bg-white shadow-sm' : 'border-dashed border-slate-200 bg-white/40'
-                        }`}
-                      >
-                        {item ? (
-                          <div className="flex flex-col items-center gap-3 p-3">
-                            <div className="text-4xl">{item.emoji}</div>
-                            <div className="text-center text-xs font-black uppercase tracking-[0.14em] text-slate-700">
-                              {item.label}
-                            </div>
-                          </div>
-                        ) : null}
-                      </div>
-                    );
-                  })}
-                </div>
-              </button>
-            );
-          })}
-        </div>
+      <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+        {shelves.map((shelf, shelfIndex) => {
+          const selected = selectedShelfIndex === shelfIndex;
+          const complete = isShelfComplete(shelf);
+          return (
+            <button
+              key={shelfIndex}
+              type="button"
+              onClick={() => handleShelfClick(shelfIndex)}
+              className={`rounded-[30px] border bg-white/85 p-4 shadow-sm transition-all ${
+                complete
+                  ? 'border-emerald-300 ring-4 ring-emerald-100'
+                  : selected
+                    ? 'border-amber-400 ring-4 ring-amber-100'
+                    : 'border-slate-200 hover:-translate-y-1'
+              }`}
+            >
+              <div className="mb-4 flex items-center justify-between">
+                <div className="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Shelf {shelfIndex + 1}</div>
+                <Badge variant={complete ? 'default' : 'outline'} className="rounded-full px-3 py-1">
+                  {shelf.length}/4
+                </Badge>
+              </div>
+              <div className="flex min-h-[220px] items-end gap-2 rounded-[24px] bg-[linear-gradient(180deg,rgba(248,250,252,0.85),rgba(241,245,249,0.96))] p-3">
+                {Array.from({ length: 4 }).map((_, slot) => {
+                  const item = shelf[slot];
+                  return (
+                    <div
+                      key={`${shelfIndex}-${slot}`}
+                      className={`flex h-44 flex-1 items-center justify-center rounded-2xl border ${
+                        item ? 'border-slate-200 bg-white shadow-sm' : 'border-dashed border-slate-200 bg-white/40'
+                      }`}
+                    >
+                      {item ? <div className="text-4xl sm:text-5xl">{item.emoji}</div> : null}
+                    </div>
+                  );
+                })}
+              </div>
+            </button>
+          );
+        })}
       </CardContent>
     </Card>
   );

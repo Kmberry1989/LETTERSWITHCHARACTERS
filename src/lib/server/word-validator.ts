@@ -2,6 +2,7 @@ import { readFileSync } from 'fs';
 import path from 'path';
 
 let cachedWordSet: Set<string> | null = null;
+let cachedWordList: string[] | null = null;
 
 function loadWordSet() {
   if (cachedWordSet) {
@@ -19,6 +20,15 @@ function loadWordSet() {
   );
 
   return cachedWordSet;
+}
+
+export function getPlayableWordList() {
+  if (cachedWordList) {
+    return cachedWordList;
+  }
+
+  cachedWordList = Array.from(loadWordSet());
+  return cachedWordList;
 }
 
 function isDictionaryHit(word: string) {

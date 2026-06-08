@@ -7,6 +7,7 @@ export const RETENTION_MODES = [
   'liquid-sort',
   'match-sort',
   'solitaire',
+  'wheel',
 ] as const;
 
 export type RetentionModeId = (typeof RETENTION_MODES)[number];
@@ -69,6 +70,7 @@ export const DEFAULT_RETENTION_STATE: RetentionState = {
     'liquid-sort': createDefaultModeProgress(),
     'match-sort': createDefaultModeProgress(),
     solitaire: createDefaultModeProgress(),
+    wheel: createDefaultModeProgress(),
   },
 };
 
@@ -76,46 +78,52 @@ export const MODE_METADATA: Record<
   RetentionModeId,
   {
     title: string;
-    description: string;
     href: string;
     accent: string;
+    iconPath: string;
   }
 > = {
   'word-duel': {
     title: 'Word Duel',
-    description: 'Take your async turn, finish matches, and build rivalry momentum.',
     href: '/dashboard',
     accent: 'from-amber-200 via-orange-100 to-rose-100',
+    iconPath: '/arcade-icons/word-duel.svg',
   },
   'word-search': {
     title: 'Word Search',
-    description: 'Find hidden words in quick brain-warming grids.',
     href: '/minigames/word-search',
     accent: 'from-sky-200 via-cyan-100 to-emerald-100',
+    iconPath: '/arcade-icons/word-search.svg',
   },
   'word-connect': {
     title: 'Word Connect',
-    description: 'Draw through letters to hit the daily target.',
     href: '/minigames/word-connect',
     accent: 'from-fuchsia-200 via-rose-100 to-orange-100',
+    iconPath: '/arcade-icons/word-connect.svg',
   },
   'liquid-sort': {
     title: 'Liquid Sort',
-    description: 'Untangle tubes with smooth pours and fast retries.',
     href: '/minigames/liquid-sort',
     accent: 'from-cyan-200 via-sky-100 to-indigo-100',
+    iconPath: '/arcade-icons/liquid-sort.svg',
   },
   'match-sort': {
     title: 'Goods Sort',
-    description: 'Restack store shelves until each product line is grouped cleanly.',
     href: '/minigames/match-sort',
     accent: 'from-amber-200 via-yellow-100 to-orange-100',
+    iconPath: '/arcade-icons/goods-sort.svg',
   },
   solitaire: {
     title: 'Solitaire Sprint',
-    description: 'A compact solitaire lane for longer unwind sessions.',
     href: '/minigames/solitaire',
     accent: 'from-violet-200 via-purple-100 to-pink-100',
+    iconPath: '/arcade-icons/solitaire.svg',
+  },
+  wheel: {
+    title: 'Wheel',
+    href: '/minigames/wheel',
+    accent: 'from-emerald-200 via-lime-100 to-yellow-100',
+    iconPath: '/arcade-icons/wheel.svg',
   },
 };
 
@@ -155,6 +163,12 @@ const DAILY_ROTATION: Array<{
     description: 'Push a small solitaire deal up through the foundations.',
     targetLabel: 'Build every foundation to 4',
   },
+  {
+    modeId: 'wheel',
+    title: 'Phrase Spin',
+    description: 'Solve a fresh phrase before the wheel cools down.',
+    targetLabel: 'Solve the phrase',
+  },
 ];
 
 const QUEST_ROTATION: QuestDefinition[][] = [
@@ -172,6 +186,11 @@ const QUEST_ROTATION: QuestDefinition[][] = [
     defineQuest('q-any-session', 'Daily Warmup', 'Play any 2 sessions across the arcade.', 'any', 2, 20, 30),
     defineQuest('q-match', 'Sorting Sprint', 'Clear 1 match-and-sort board.', 'match-sort', 1, 25, 35),
     defineQuest('q-word-connect', 'Letter Trail', 'Finish 1 word-connect board.', 'word-connect', 1, 30, 45),
+  ],
+  [
+    defineQuest('q-any-session', 'Daily Warmup', 'Play any 2 sessions across the arcade.', 'any', 2, 20, 30),
+    defineQuest('q-wheel', 'Lucky Spin', 'Solve 1 wheel phrase.', 'wheel', 1, 25, 35),
+    defineQuest('q-word-search', 'Grid Sweep', 'Finish 1 word-search board.', 'word-search', 1, 30, 45),
   ],
 ];
 
