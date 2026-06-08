@@ -337,8 +337,14 @@ export default function LiquidSortGame() {
             const isAnimating = pourAnimation?.sourceIndex === index;
             const isTarget = pourAnimation?.targetIndex === index;
             const pointerRect = stageRef.current?.getBoundingClientRect();
-            const dragX = pointerRect ? dragState!.pointerX - pointerRect.left - dragState!.offsetX : base.x;
-            const dragY = pointerRect ? dragState!.pointerY - pointerRect.top - dragState!.offsetY : base.y;
+            const dragX =
+              pointerRect && dragState
+                ? dragState.pointerX - pointerRect.left - dragState.offsetX
+                : base.x;
+            const dragY =
+              pointerRect && dragState
+                ? dragState.pointerY - pointerRect.top - dragState.offsetY
+                : base.y;
             const target = pourAnimation
               ? bottleCenter(pourAnimation.targetIndex)
               : null;

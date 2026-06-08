@@ -3,25 +3,41 @@
 import { useAudio } from '@/hooks/use-audio';
 import { useEffect, useRef } from 'react';
 
-const MUSIC_URL = 'https://cdn.pixabay.com/audio/2022/05/27/audio_18c499e74c.mp3';
+const MUSIC_URL = process.env.NEXT_PUBLIC_BACKGROUND_MUSIC_URL;
 
 export default function MusicPlayer() {
   const { masterVolume, musicVolume, isMuted } = useAudio();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const hasStartedRef = useRef(false);
+  const isUnavailableRef = useRef(false);
 
   useEffect(() => {
+    if (!MUSIC_URL) {
+      return;
+    }
+
     if (!audioRef.current) {
-      audioRef.current = new Audio(MUSIC_URL);
-      audioRef.current.loop = true;
+      const audio = new Audio(MUSIC_URL);
+      audio.loop = true;
+      audio.preload = 'none';
+      audio.addEventListener('error', () => {
+        isUnavailableRef.current = true;
+        audio.pause();
+      });
+      audioRef.current = audio;
     }
 
     const audio = audioRef.current;
+    if (!audio || isUnavailableRef.current) {
+      return;
+    }
     
     if (!isMuted && masterVolume > 0 && musicVolume > 0) {
         audio.play().then(() => {
           hasStartedRef.current = true;
-        }).catch(e => console.error("Error playing music:", e));
+        }).catch(() => {
+          // Ignore autoplay failures until the next user gesture.
+        });
     } else {
         audio.pause();
     }
@@ -32,7 +48,15 @@ export default function MusicPlayer() {
 
   useEffect(() => {
     const attemptStart = () => {
-      if (hasStartedRef.current || !audioRef.current || isMuted || masterVolume <= 0 || musicVolume <= 0) {
+      if (
+        !MUSIC_URL ||
+        hasStartedRef.current ||
+        !audioRef.current ||
+        isUnavailableRef.current ||
+        isMuted ||
+        masterVolume <= 0 ||
+        musicVolume <= 0
+      ) {
         return;
       }
 
