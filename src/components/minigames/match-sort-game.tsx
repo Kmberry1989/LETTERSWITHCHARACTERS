@@ -26,7 +26,7 @@ const GOODS_LOOKUP: Record<GoodsId, { emoji: string; label: string }> = {
   tea: { emoji: '🍵', label: 'Tea' },
 };
 
-const INITIAL_SHELVES: Shelf[] = [
+const INITIAL_SHELF_LAYOUT: GoodsId[][] = [
   ['soda', 'juice', 'chips', 'soap'],
   ['tea', 'cereal', 'juice', 'chips'],
   ['soap', 'tea', 'cereal', 'soda'],
@@ -34,7 +34,9 @@ const INITIAL_SHELVES: Shelf[] = [
   ['cereal', 'soda', 'chips', 'tea'],
   [],
   [],
-].map((shelf, shelfIndex) =>
+];
+
+const INITIAL_SHELVES: Shelf[] = INITIAL_SHELF_LAYOUT.map((shelf, shelfIndex) =>
   shelf.map((kind, itemIndex) => ({
     id: `${kind}-${shelfIndex}-${itemIndex}`,
     kind,
