@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useMemo } from 'react';
-import { RotateCcw } from 'lucide-react';
+import { useMemo, useState } from 'react';
+import { motion } from 'framer-motion';
+import { Droplets, RotateCcw } from 'lucide-react';
 import { ArcadeSessionButton } from '@/components/retention/arcade-session-button';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -19,212 +20,91 @@ const INITIAL_TUBES: Tube[] = [
   [],
 ];
 
-const COLOR_MAP: Record<TubeColor, string> = {
-  rose: '#fb7185', // pink-400
-  sky: '#38bdf8',  // sky-400
-  amber: '#fbbf24', // amber-400
-  emerald: '#34d399', // emerald-400
+const COLOR_CLASS: Record<TubeColor, string> = {
+  rose: 'from-rose-400 to-pink-500',
+  sky: 'from-sky-400 to-cyan-500',
+  amber: 'from-amber-300 to-orange-500',
+  emerald: 'from-emerald-400 to-teal-500',
 };
 
-const TUBE_WIDTH = 60;
-const TUBE_HEIGHT = 200;
-const TUBE_RADIUS = 15;
-const MAX_CAPACITY = 4;
-
 function canPour(from: Tube, to: Tube) {
-  if (from.length === 0 || to.length === MAX_CAPACITY) return false;
+  if (from.length === 0 || to.length === 4) return false;
   if (to.length === 0) return true;
   return from[from.length - 1] === to[to.length - 1];
 }
 
 function isSolved(tubes: Tube[]) {
-  return tubes.every((tube) => tube.length === 0 || (tube.length === MAX_CAPACITY && new Set(tube).size === 1));
+  return tubes.every((tube) => tube.length === 0 || (tube.length === 4 && new Set(tube).size === 1));
 }
 
 export default function LiquidSortGame() {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [tubes, setTubes] = useState<Tube[]>(INITIAL_TUBES);
   const [selectedTube, setSelectedTube] = useState<number | null>(null);
   const [moves, setMoves] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [pourState, setPourState] = useState<{
+    fromIndex: number;
+    toIndex: number;
+    color: TubeColor;
+  } | null>(null);
   const solved = useMemo(() => isSolved(tubes), [tubes]);
 
-  // Canvas Animation & Rendering Loop
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let animationFrameId: number;
-    let time = 0;
-
-    const render = () => {
-      time += 0.05;
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      
-      const paddingX = 40;
-      const paddingY = 60;
-      const spacingX = (canvas.width - paddingX * 2 - TUBE_WIDTH) / 5; // 6 tubes = 5 gaps
-
-      for (let i = 0; i < tubes.length; i++) {
-        const x = paddingX + i * spacingX;
-        let y = paddingY;
-        
-        // Elevate selected tube
-        if (selectedTube === i) {
-          y -= 20;
-        }
-
-        // Draw Liquid
-        const tubeData = tubes[i];
-        const sectionHeight = (TUBE_HEIGHT - 10) / MAX_CAPACITY;
-        
-        let currentY = y + TUBE_HEIGHT - 5; // Start from bottom
-        
-        for (let j = 0; j < tubeData.length; j++) {
-          const color = COLOR_MAP[tubeData[j]];
-          ctx.fillStyle = color;
-          
-          ctx.beginPath();
-          // Add a wave effect to the top layer of the liquid
-          if (j === tubeData.length - 1 && !solved) {
-            const waveOffset = Math.sin(time + i) * 3;
-            ctx.moveTo(x, currentY - sectionHeight + waveOffset);
-            ctx.bezierCurveTo(
-              x + TUBE_WIDTH / 2, currentY - sectionHeight - waveOffset,
-              x + TUBE_WIDTH / 2, currentY - sectionHeight + waveOffset,
-              x + TUBE_WIDTH, currentY - sectionHeight - waveOffset
-            );
-            ctx.lineTo(x + TUBE_WIDTH, currentY);
-            ctx.lineTo(x, currentY);
-          } else {
-            ctx.rect(x, currentY - sectionHeight, TUBE_WIDTH, sectionHeight);
-          }
-          ctx.fill();
-          
-          currentY -= sectionHeight;
-        }
-
-        // Draw Tube Outline (Glass effect)
-        ctx.strokeStyle = selectedTube === i ? '#38bdf8' : '#cbd5e1';
-        ctx.lineWidth = selectedTube === i ? 4 : 2;
-        ctx.lineCap = 'round';
-        ctx.lineJoin = 'round';
-
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        ctx.lineTo(x, y + TUBE_HEIGHT - TUBE_RADIUS);
-        ctx.arcTo(x, y + TUBE_HEIGHT, x + TUBE_RADIUS, y + TUBE_HEIGHT, TUBE_RADIUS);
-        ctx.lineTo(x + TUBE_WIDTH - TUBE_RADIUS, y + TUBE_HEIGHT);
-        ctx.arcTo(x + TUBE_WIDTH, y + TUBE_HEIGHT, x + TUBE_WIDTH, y + TUBE_HEIGHT - TUBE_RADIUS, TUBE_RADIUS);
-        ctx.lineTo(x + TUBE_WIDTH, y);
-        ctx.stroke();
-
-        // Draw Tube Number
-        ctx.fillStyle = '#94a3b8';
-        ctx.font = 'bold 12px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText(`TUBE ${i + 1}`, x + TUBE_WIDTH / 2, y + TUBE_HEIGHT + 25);
-      }
-
-      animationFrameId = requestAnimationFrame(render);
-    };
-
-    render();
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-    };
-  }, [tubes, selectedTube, solved]);
-
-  const handleCanvasClick = (e: React.MouseEvent<HTMLCanvasElement>) => {
-    if (isAnimating || solved) return;
-    
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const mouseX = (e.clientX - rect.left) * scaleX;
-
-    const paddingX = 40;
-    const spacingX = (canvas.width - paddingX * 2 - TUBE_WIDTH) / 5;
-    
-    // Determine which tube was clicked based on X coordinate
-    let clickedIndex = -1;
-    for (let i = 0; i < tubes.length; i++) {
-      const x = paddingX + i * spacingX;
-      if (mouseX >= x - 10 && mouseX <= x + TUBE_WIDTH + 10) {
-        clickedIndex = i;
-        break;
-      }
-    }
-
-    if (clickedIndex === -1) return;
+  const handleTubeClick = (index: number) => {
+    if (pourState) return;
 
     if (selectedTube === null) {
-      if (tubes[clickedIndex].length > 0) setSelectedTube(clickedIndex);
+      if (tubes[index].length > 0) setSelectedTube(index);
       return;
     }
 
-    if (selectedTube === clickedIndex) {
+    if (selectedTube === index) {
       setSelectedTube(null);
       return;
     }
 
-    const from = tubes[selectedTube];
-    const to = tubes[clickedIndex];
-    
+    const fromIndex = selectedTube;
+    const from = tubes[fromIndex];
+    const to = tubes[index];
     if (!canPour(from, to)) {
-      setSelectedTube(clickedIndex); // Switch selection if invalid pour
+      setSelectedTube(index);
       return;
     }
 
-    // Perform pour
-    setIsAnimating(true);
-    const next = tubes.map((tube) => [...tube]);
-    
-    // Find how many blocks of the same color can be poured
-    const colorToPour = from[from.length - 1];
-    let blocksToPour = 0;
-    for (let i = from.length - 1; i >= 0; i--) {
-      if (from[i] === colorToPour && to.length + blocksToPour < MAX_CAPACITY) {
-        blocksToPour++;
-      } else {
-        break;
-      }
-    }
-
-    for (let i = 0; i < blocksToPour; i++) {
-      next[clickedIndex].push(next[selectedTube].pop() as TubeColor);
-    }
-
-    setTubes(next);
-    setMoves((value) => value + 1);
+    const color = from[from.length - 1];
     setSelectedTube(null);
-    
-    // Simulate animation delay for fluid transfer
-    setTimeout(() => {
-      setIsAnimating(false);
-    }, 300);
+    setPourState({ fromIndex, toIndex: index, color });
+
+    window.setTimeout(() => {
+      setTubes((current) => {
+        const next = current.map((tube) => [...tube]);
+        next[index].push(next[fromIndex].pop() as TubeColor);
+        return next;
+      });
+      setMoves((value) => value + 1);
+    }, 420);
+
+    window.setTimeout(() => {
+      setPourState(null);
+    }, 940);
   };
 
   const reset = () => {
     setTubes(INITIAL_TUBES.map((tube) => [...tube]));
     setSelectedTube(null);
+    setPourState(null);
     setMoves(0);
-    setIsAnimating(false);
   };
 
   return (
     <Card className="overflow-hidden border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(239,246,255,0.9))] shadow-[0_20px_60px_rgba(14,116,144,0.14)]">
       <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <CardTitle className="font-headline text-3xl">Fluid Sort</CardTitle>
-          <CardDescription>Tap to pour matching colors. Smooth canvas fluid dynamics.</CardDescription>
+          <CardTitle className="font-headline text-3xl">Liquid Sort</CardTitle>
+          <CardDescription>Tap a bottle, then another. The pour now tilts, streams, settles, and lands.</CardDescription>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Badge variant="secondary" className="rounded-full px-3 py-1">Moves {moves}</Badge>
+          <Badge variant="secondary" className="rounded-full px-3 py-1">
+            Moves {moves}
+          </Badge>
           <Button variant="outline" className="rounded-full" onClick={reset}>
             <RotateCcw className="mr-2 h-4 w-4" />
             Reset
@@ -232,22 +112,70 @@ export default function LiquidSortGame() {
           {solved && <ArcadeSessionButton modeId="liquid-sort" score={Math.max(40, 100 - moves * 3)} label="Bank this clear" />}
         </div>
       </CardHeader>
-      <CardContent className="space-y-6 flex flex-col items-center">
-        <canvas
-          ref={canvasRef}
-          width={800}
-          height={320}
-          onClick={handleCanvasClick}
-          className="w-full max-w-4xl cursor-pointer touch-none rounded-2xl bg-white/50 border border-slate-200 shadow-inner"
-        />
+      <CardContent className="space-y-6">
+        <div className="grid gap-4 sm:grid-cols-3 xl:grid-cols-6">
+          {tubes.map((tube, index) => {
+            const selected = selectedTube === index;
+            const pouringFrom = pourState?.fromIndex === index;
+            const pouringTo = pourState?.toIndex === index;
+
+            return (
+              <div key={index} className="relative mx-auto">
+                {pourState && (pouringFrom || pouringTo) ? (
+                  <motion.div
+                    initial={{ opacity: 0, scaleX: 0.2 }}
+                    animate={{ opacity: 1, scaleX: 1 }}
+                    className={`pointer-events-none absolute ${pouringFrom ? 'left-[76px] top-8 origin-left' : 'right-[76px] top-8 origin-right'} z-20 h-3 w-20 rounded-full bg-gradient-to-r ${COLOR_CLASS[pourState.color]} shadow-[0_0_24px_rgba(56,189,248,0.35)]`}
+                    style={{ rotate: pouringFrom ? 18 : -18 }}
+                  />
+                ) : null}
+
+                <motion.button
+                  type="button"
+                  onClick={() => handleTubeClick(index)}
+                  animate={{
+                    rotate: pouringFrom ? -18 : 0,
+                    y: selected ? -4 : 0,
+                    scale: pouringTo ? 1.03 : 1,
+                  }}
+                  transition={{ type: 'spring', stiffness: 180, damping: 18 }}
+                  className={`relative flex h-56 w-24 flex-col-reverse overflow-hidden rounded-[2rem] border bg-white/75 p-2 shadow-sm transition-all ${
+                    selected ? 'border-sky-400 ring-4 ring-sky-200' : 'border-slate-200 hover:-translate-y-1'
+                  }`}
+                >
+                  <div className="absolute inset-x-2 top-2 rounded-full bg-white/80 px-2 py-1 text-center text-[0.65rem] font-black uppercase tracking-[0.18em] text-slate-500">
+                    Bottle {index + 1}
+                  </div>
+                  {Array.from({ length: 4 }).map((_, slot) => {
+                    const color = tube[slot];
+                    return (
+                      <motion.div
+                        key={`${index}-${slot}-${color || 'empty'}`}
+                        layout
+                        transition={{ type: 'spring', stiffness: 170, damping: 20 }}
+                        className={`mt-2 h-10 rounded-2xl border ${
+                          color
+                            ? `bg-gradient-to-r ${COLOR_CLASS[color]} border-transparent shadow-lg shadow-slate-200/50`
+                            : 'border-dashed border-slate-200 bg-slate-100/70'
+                        }`}
+                      >
+                        {color ? <Droplets className="mx-auto mt-2 h-5 w-5 text-white/80" /> : null}
+                      </motion.div>
+                    );
+                  })}
+                </motion.button>
+              </div>
+            );
+          })}
+        </div>
         {solved ? (
-          <div className="w-full rounded-[28px] border border-emerald-200 bg-emerald-50/90 p-5 text-emerald-950">
+          <div className="rounded-[28px] border border-emerald-200 bg-emerald-50/90 p-5 text-emerald-950">
             <div className="text-lg font-black">Solved cleanly.</div>
             <div className="mt-1 text-sm">Use the button above to feed the shared quest board and daily challenge progress.</div>
           </div>
         ) : (
-          <div className="w-full rounded-[28px] border border-slate-200 bg-white/80 p-5 text-sm text-slate-600">
-            Empty tubes are your breathing room. Same-color pours keep the board recoverable.
+          <div className="rounded-[28px] border border-slate-200 bg-white/80 p-5 text-sm text-slate-600">
+            Empty bottles create breathing room. Matching top colors keeps the pour smooth and reversible.
           </div>
         )}
       </CardContent>

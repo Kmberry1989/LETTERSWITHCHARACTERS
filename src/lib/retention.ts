@@ -106,10 +106,10 @@ export const MODE_METADATA: Record<
     accent: 'from-cyan-200 via-sky-100 to-indigo-100',
   },
   'match-sort': {
-    title: 'Match & Sort',
-    description: 'Group objects into clean themed sets.',
+    title: 'Goods Sort',
+    description: 'Restack store shelves until each product line is grouped cleanly.',
     href: '/minigames/match-sort',
-    accent: 'from-lime-200 via-emerald-100 to-teal-100',
+    accent: 'from-amber-200 via-yellow-100 to-orange-100',
   },
   solitaire: {
     title: 'Solitaire Sprint',

@@ -6,14 +6,15 @@ import { ArcadeSessionButton } from '@/components/retention/arcade-session-butto
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useToast } from '@/hooks/use-toast';
 
 const LETTERS = ['S', 'T', 'A', 'R', 'E', 'N'];
-const VALID_WORDS = ['STAR', 'STARE', 'RATE', 'TEAR', 'EARN', 'NEAR'];
 
 export default function WordConnectGame() {
   const [path, setPath] = useState<number[]>([]);
   const [foundWords, setFoundWords] = useState<string[]>([]);
   const [status, setStatus] = useState('Find four words from the wheel.');
+  const { toast } = useToast();
   const solved = foundWords.length >= 4;
 
   const currentWord = useMemo(() => path.map((index) => LETTERS[index]).join(''), [path]);
@@ -22,22 +23,39 @@ export default function WordConnectGame() {
     setPath((current) => (current.includes(index) ? current.filter((value) => value !== index) : [...current, index]));
   };
 
-  const submitWord = () => {
+  const submitWord = async () => {
     if (currentWord.length < 3) {
       setStatus('Use at least 3 letters.');
-      return;
-    }
-    if (!VALID_WORDS.includes(currentWord)) {
-      setStatus(`"${currentWord}" is not on today’s board.`);
       return;
     }
     if (foundWords.includes(currentWord)) {
       setStatus(`"${currentWord}" is already banked.`);
       return;
     }
-    setFoundWords((current) => [...current, currentWord]);
-    setStatus(`Nice. "${currentWord}" locked in.`);
-    setPath([]);
+
+    try {
+      const response = await fetch('/api/arcade/validate-word', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ word: currentWord }),
+      });
+      const result = await response.json().catch(() => null);
+      if (!response.ok || !result?.isValid) {
+        setStatus(result?.reason || `"${currentWord}" is not in the playable dictionary.`);
+        return;
+      }
+
+      setFoundWords((current) => [...current, currentWord]);
+      setStatus(`Nice. "${currentWord}" locked in.`);
+      setPath([]);
+      toast({
+        title: 'Word accepted',
+        description: `"${currentWord}" is in the full playable dictionary.`,
+      });
+    } catch {
+      setStatus('Dictionary check failed. Try again.');
+      return;
+    }
   };
 
   const reset = () => {
@@ -65,31 +83,42 @@ export default function WordConnectGame() {
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="mx-auto flex max-w-xl flex-wrap items-center justify-center gap-4 rounded-[32px] border border-rose-100 bg-white/85 p-6 shadow-sm">
-          {LETTERS.map((letter, index) => {
-            const active = path.includes(index);
-            return (
-              <button
-                key={`${letter}-${index}`}
-                type="button"
-                onClick={() => toggleLetter(index)}
-                className={`flex h-20 w-20 items-center justify-center rounded-full border text-2xl font-black transition-all ${
-                  active
-                    ? 'border-rose-400 bg-rose-500 text-white shadow-lg shadow-rose-200'
-                    : 'border-rose-100 bg-rose-50 text-rose-900 hover:-translate-y-1'
-                }`}
-              >
-                {letter}
-              </button>
-            );
-          })}
+        <div className="mx-auto flex max-w-xl items-center justify-center rounded-[36px] border border-rose-100 bg-white/85 p-6 shadow-sm">
+          <div className="relative h-[320px] w-[320px]">
+            <div className="absolute inset-[64px] rounded-full border border-dashed border-rose-200 bg-[radial-gradient(circle,rgba(255,241,242,0.8),rgba(255,255,255,0.15))]" />
+            {LETTERS.map((letter, index) => {
+              const active = path.includes(index);
+              const angle = (Math.PI * 2 * index) / LETTERS.length - Math.PI / 2;
+              const radius = 118;
+              const left = 160 + Math.cos(angle) * radius;
+              const top = 160 + Math.sin(angle) * radius;
+              return (
+                <button
+                  key={`${letter}-${index}`}
+                  type="button"
+                  onClick={() => toggleLetter(index)}
+                  className={`absolute flex h-20 w-20 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full border text-2xl font-black transition-all ${
+                    active
+                      ? 'border-rose-400 bg-rose-500 text-white shadow-lg shadow-rose-200'
+                      : 'border-rose-100 bg-rose-50 text-rose-900 hover:scale-105'
+                  }`}
+                  style={{ left, top }}
+                >
+                  {letter}
+                </button>
+              );
+            })}
+            <div className="absolute left-1/2 top-1/2 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-slate-950 text-xs font-black uppercase tracking-[0.2em] text-white shadow-xl">
+              Connect
+            </div>
+          </div>
         </div>
 
         <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-sm">
           <div className="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Current Chain</div>
           <div className="mt-3 text-4xl font-black tracking-[0.22em] text-slate-900">{currentWord || '...'}</div>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Button onClick={submitWord}>Submit Word</Button>
+            <Button onClick={() => void submitWord()}>Submit Word</Button>
             <Button variant="secondary" onClick={() => setPath([])}>
               Clear Chain
             </Button>
