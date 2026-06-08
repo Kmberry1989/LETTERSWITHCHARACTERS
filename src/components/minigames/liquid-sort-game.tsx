@@ -356,9 +356,9 @@ export default function LiquidSortGame() {
                 ? Math.min(sourceTop.y - 26, target.y - 118)
                 : base.y;
             const rotate = isAnimating ? -34 : 0;
-            const motion = surfaceMotion[index];
-            const decay = motion ? Math.max(0, 1 - (performance.now() - motion.startedAt) / 1400) : 0;
-            const waveHeight = (motion?.amplitude || 0) * decay;
+            const surfaceWave = surfaceMotion[index];
+            const decay = surfaceWave ? Math.max(0, 1 - (performance.now() - surfaceWave.startedAt) / 1400) : 0;
+            const waveHeight = (surfaceWave?.amplitude || 0) * decay;
 
             return (
               <motion.div
