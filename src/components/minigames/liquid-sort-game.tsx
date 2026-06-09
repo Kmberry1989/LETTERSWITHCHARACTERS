@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect, useMemo, useRef, useState } from 'react';
-import dynamic from 'next/dynamic';
 import { RotateCcw } from 'lucide-react';
 import { ArcadeSessionButton } from '@/components/retention/arcade-session-button';
 import { Badge } from '@/components/ui/badge';
@@ -32,24 +31,23 @@ const INITIAL_TUBES: Tube[] = [
   [],
 ];
 
-const TUBE_POSITIONS = [70, 190, 310, 430, 550, 670];
-const WORLD_X = [-4.35, -2.61, -0.87, 0.87, 2.61, 4.35];
-const STAGE_WIDTH = 740;
-const STAGE_HEIGHT = 380;
-const SLOT_HEIGHT = 0.48;
-const TUBE_RADIUS = 0.34;
-
-const LiquidSortSceneCanvas = dynamic(() => import('./liquid-sort-scene').then((module) => module.LiquidSortScene), {
-  ssr: false,
-  loading: () => <div className="h-full w-full bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.94),rgba(223,239,252,0.88))]" />,
-});
-
-const COLOR_MAP: Record<TubeColor, string> = {
-  rose: '#ef5da8',
-  sky: '#32b6ef',
-  amber: '#ffac2f',
-  emerald: '#29c39a',
+const COLOR_MAP: Record<TubeColor, { liquid: string; glow: string }> = {
+  rose: { liquid: 'linear-gradient(180deg,#fb7185 0%,#ec4899 100%)', glow: 'rgba(244, 114, 182, 0.25)' },
+  sky: { liquid: 'linear-gradient(180deg,#38bdf8 0%,#0ea5e9 100%)', glow: 'rgba(56, 189, 248, 0.25)' },
+  amber: { liquid: 'linear-gradient(180deg,#fbbf24 0%,#f97316 100%)', glow: 'rgba(251, 191, 36, 0.28)' },
+  emerald: { liquid: 'linear-gradient(180deg,#34d399 0%,#14b8a6 100%)', glow: 'rgba(52, 211, 153, 0.25)' },
 };
+
+const TUBE_POSITIONS = [22, 142, 262, 382, 502, 622];
+const TUBE_WIDTH = 92;
+const TUBE_HEIGHT = 250;
+const SLOT_HEIGHT = 44;
+const STAGE_WIDTH = 736;
+const STAGE_HEIGHT = 360;
+
+function cloneTubes(tubes: Tube[]) {
+  return tubes.map((tube) => [...tube]);
+}
 
 function canPour(from: Tube, to: Tube) {
   if (from.length === 0 || to.length === 4) return false;
@@ -71,30 +69,26 @@ function isSolved(tubes: Tube[]) {
   return tubes.every((tube) => tube.length === 0 || (tube.length === 4 && new Set(tube).size === 1));
 }
 
-function cloneTubes(tubes: Tube[]) {
-  return tubes.map((tube) => [...tube]);
-}
-
-function getDisplayTubes(tubes: Tube[], pour: PourState | null) {
-  if (!pour) {
+function getDisplayTubes(tubes: Tube[], pourState: PourState | null) {
+  if (!pourState) {
     return tubes.map((tube) => tube.map((color) => ({ color, fill: 1 })));
   }
 
   return tubes.map((tube, index) => {
     const segments = tube.map((color) => ({ color, fill: 1 }));
 
-    if (index === pour.sourceIndex) {
-      for (let moved = 0; moved < pour.amount; moved += 1) {
+    if (index === pourState.sourceIndex) {
+      for (let moved = 0; moved < pourState.amount; moved += 1) {
         const segment = segments[segments.length - 1 - moved];
         if (segment) {
-          segment.fill = Math.max(0.08, 1 - pour.progress);
+          segment.fill = Math.max(0.1, 1 - pourState.progress);
         }
       }
     }
 
-    if (index === pour.targetIndex) {
-      for (let moved = 0; moved < pour.amount; moved += 1) {
-        segments.push({ color: pour.color, fill: Math.max(0.08, pour.progress) });
+    if (index === pourState.targetIndex) {
+      for (let moved = 0; moved < pourState.amount; moved += 1) {
+        segments.push({ color: pourState.color, fill: Math.max(0.1, pourState.progress) });
       }
     }
 
@@ -111,6 +105,7 @@ export default function LiquidSortGame() {
   const [hoverTarget, setHoverTarget] = useState<number | null>(null);
   const [pourState, setPourState] = useState<PourState | null>(null);
 
+  const displayTubes = useMemo(() => getDisplayTubes(tubes, pourState), [tubes, pourState]);
   const solved = useMemo(() => isSolved(tubes), [tubes]);
 
   useEffect(() => {
@@ -119,11 +114,13 @@ export default function LiquidSortGame() {
     const handlePointerMove = (event: PointerEvent) => {
       const rect = stageRef.current?.getBoundingClientRect();
       if (!rect) return;
+
       const next = {
         sourceIndex: dragState.sourceIndex,
         pointerX: event.clientX - rect.left,
         pointerY: event.clientY - rect.top,
       };
+
       dragRef.current = next;
       setDragState(next);
 
@@ -131,9 +128,9 @@ export default function LiquidSortGame() {
         if (index === dragState.sourceIndex) return false;
         return (
           next.pointerX >= left &&
-          next.pointerX <= left + 72 &&
-          next.pointerY >= 50 &&
-          next.pointerY <= 330
+          next.pointerX <= left + TUBE_WIDTH &&
+          next.pointerY >= 40 &&
+          next.pointerY <= 320
         );
       });
       setHoverTarget(nextTarget === -1 ? null : nextTarget);
@@ -180,7 +177,7 @@ export default function LiquidSortGame() {
     let frame = 0;
 
     const animate = (time: number) => {
-      const progress = Math.min(1, (time - startedAt) / 850);
+      const progress = Math.min(1, (time - startedAt) / 760);
       setPourState((current) => (current ? { ...current, progress } : current));
 
       if (progress < 1) {
@@ -206,8 +203,8 @@ export default function LiquidSortGame() {
   const reset = () => {
     setTubes(cloneTubes(INITIAL_TUBES));
     setMoves(0);
-    setDragState(null);
     dragRef.current = null;
+    setDragState(null);
     setHoverTarget(null);
     setPourState(null);
   };
@@ -216,6 +213,7 @@ export default function LiquidSortGame() {
     if (pourState || tubes[index].length === 0) return;
     const rect = stageRef.current?.getBoundingClientRect();
     if (!rect) return;
+
     const next = {
       sourceIndex: index,
       pointerX: event.clientX - rect.left,
@@ -243,21 +241,102 @@ export default function LiquidSortGame() {
       <CardContent>
         <div
           ref={stageRef}
-          className="relative mx-auto overflow-hidden rounded-[40px] border border-white/80 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.95),rgba(223,239,252,0.9))] shadow-inner"
+          className="relative mx-auto overflow-hidden rounded-[40px] border border-white/80 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.96),rgba(219,235,248,0.92))] shadow-inner"
           style={{ width: STAGE_WIDTH, height: STAGE_HEIGHT }}
         >
-          <div className="absolute inset-0">
-            <LiquidSortSceneCanvas tubes={tubes} dragState={dragState} hoverTarget={hoverTarget} pourState={pourState} />
-          </div>
+          {displayTubes.map((tube, index) => {
+            const baseLeft = TUBE_POSITIONS[index];
+            const isDragging = dragState?.sourceIndex === index;
+            const isPouring = pourState?.sourceIndex === index;
+            const progress = pourState?.progress || 0;
+            const dragLeft = dragState ? dragState.pointerX - TUBE_WIDTH / 2 : baseLeft;
+            const dragTop = dragState ? Math.max(18, dragState.pointerY - TUBE_HEIGHT / 2) : 70;
+            const targetLeft = pourState ? TUBE_POSITIONS[pourState.targetIndex] - 18 : baseLeft;
+            const left = isDragging ? dragLeft : isPouring ? baseLeft + (targetLeft - baseLeft) * Math.min(progress, 0.78) : baseLeft;
+            const top = isDragging ? dragTop : isPouring ? 70 - Math.sin(progress * Math.PI) * 54 : 70;
+            const rotate = isDragging ? -8 : isPouring ? -30 * Math.sin(Math.min(progress, 0.9) * Math.PI) : 0;
+            const isTarget = hoverTarget === index || pourState?.targetIndex === index;
 
-          {TUBE_POSITIONS.map((left, index) => (
+            return (
+              <div
+                key={index}
+                className="absolute"
+                style={{
+                  left,
+                  top,
+                  width: TUBE_WIDTH,
+                  height: TUBE_HEIGHT,
+                  transform: `rotate(${rotate}deg) scale(${isTarget ? 1.02 : 1})`,
+                  transition: isDragging ? 'none' : 'transform 200ms ease, left 220ms ease, top 220ms ease',
+                  zIndex: isDragging || isPouring ? 30 : 10,
+                }}
+              >
+                <div className="pointer-events-none absolute left-1/2 top-[-12px] z-20 -translate-x-1/2 rounded-full bg-white/88 px-2 py-1 text-[0.62rem] font-black uppercase tracking-[0.18em] text-slate-500">
+                  {index + 1}
+                </div>
+                <div
+                  onPointerDown={(event) => startDrag(index, event)}
+                  className="relative h-full w-full overflow-hidden rounded-[34px] border-[5px] border-white/85 bg-white/55 shadow-[0_20px_40px_rgba(15,23,42,0.12)]"
+                  style={{ cursor: pourState ? 'default' : 'grab', touchAction: 'none' }}
+                >
+                  <div className="absolute inset-[9px] rounded-[28px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.18),rgba(255,255,255,0.06))]" />
+                  <div className="absolute inset-x-[15px] top-[16px] h-[12px] rounded-full bg-white/55" />
+
+                  {tube.map((segment, segmentIndex) => {
+                    const color = COLOR_MAP[segment.color];
+                    const height = Math.max(10, SLOT_HEIGHT * segment.fill);
+                    const bottom = 16 + segmentIndex * SLOT_HEIGHT;
+                    const isTopSegment = segmentIndex === tube.length - 1;
+
+                    return (
+                      <div
+                        key={`${index}-${segmentIndex}-${segment.color}-${segment.fill}`}
+                        className="absolute left-[12px] right-[12px] overflow-hidden"
+                        style={{
+                          bottom,
+                          height,
+                          borderRadius: isTopSegment ? 18 : 14,
+                          background: color.liquid,
+                          boxShadow: `0 10px 24px ${color.glow}`,
+                          transition: 'height 80ms linear',
+                        }}
+                      >
+                        <div
+                          className="absolute inset-x-0 top-0 h-[8px]"
+                          style={{
+                            background: 'linear-gradient(180deg,rgba(255,255,255,0.45),rgba(255,255,255,0))',
+                            borderTopLeftRadius: 18,
+                            borderTopRightRadius: 18,
+                            transform: `translateY(${isTopSegment && pourState ? Math.sin(progress * Math.PI * 2) * 1.6 : 0}px)`,
+                          }}
+                        />
+                      </div>
+                    );
+                  })}
+
+                  <div className="pointer-events-none absolute left-[22px] top-[20px] bottom-[22px] w-[10px] rounded-full bg-white/35 blur-[1px]" />
+                </div>
+              </div>
+            );
+          })}
+
+          {pourState ? (
             <div
-              key={index}
-              onPointerDown={(event) => startDrag(index, event)}
-              className="absolute top-[40px] h-[290px] w-[72px]"
-              style={{ left, touchAction: 'none', cursor: pourState ? 'default' : 'grab' }}
+              className="pointer-events-none absolute z-20 origin-left rounded-full"
+              style={{
+                left: TUBE_POSITIONS[pourState.sourceIndex] + 62,
+                top: 84,
+                width:
+                  Math.abs(TUBE_POSITIONS[pourState.targetIndex] - TUBE_POSITIONS[pourState.sourceIndex]) + 22,
+                height: 10,
+                background: COLOR_MAP[pourState.color].liquid,
+                boxShadow: `0 8px 20px ${COLOR_MAP[pourState.color].glow}`,
+                transform: `rotate(${TUBE_POSITIONS[pourState.targetIndex] > TUBE_POSITIONS[pourState.sourceIndex] ? 14 : -14}deg) scaleX(${Math.max(0.15, pourState.progress)})`,
+                opacity: Math.min(1, pourState.progress * 1.4),
+                transition: 'transform 40ms linear, opacity 40ms linear',
+              }}
             />
-          ))}
+          ) : null}
         </div>
       </CardContent>
     </Card>
