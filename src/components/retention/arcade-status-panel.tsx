@@ -1,14 +1,13 @@
 'use client';
 
 import Link from 'next/link';
-import { useMemo, useState } from 'react';
-import { ArrowRight, CalendarRange, Gift, Sparkles, Swords, Trophy } from 'lucide-react';
+import { useMemo } from 'react';
+import { ArrowRight, CalendarRange, Sparkles, Swords, Trophy } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { useToast } from '@/hooks/use-toast';
 import { useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { doc } from '@/lib/client/document-client';
 import type { UserProfile } from '@/firebase/firestore/use-users';
@@ -27,8 +26,6 @@ type ArcadeStatusPanelProps = {
 
 export function ArcadeStatusPanel({ hasUsersTurn = false, nextTurnHref }: ArcadeStatusPanelProps) {
   const { user } = useUser();
-  const { toast } = useToast();
-  const [claiming, setClaiming] = useState(false);
   const userDocRef = useMemoFirebase(() => (user ? doc(null, 'users', user.uid) : null), [user]);
   const { data: userProfile, isLoading } = useDoc<UserProfile>(userDocRef);
 
@@ -41,40 +38,6 @@ export function ArcadeStatusPanel({ hasUsersTurn = false, nextTurnHref }: Arcade
     : summary.dailyChallengeCompleted
       ? 'Browse the arcade'
       : `Play ${MODE_METADATA[summary.dailyChallenge.modeId].title}`;
-
-  const claimDailyReward = async () => {
-    setClaiming(true);
-    try {
-      const response = await fetch('/api/retention/progress', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'claim-daily-reward' }),
-      });
-      const result = await response.json().catch(() => null);
-      if (!response.ok) {
-        throw new Error(result?.error || 'Could not claim daily reward.');
-      }
-      if (!result?.claimed) {
-        toast({
-          title: 'Reward locked',
-          description: 'Complete a challenge or arcade session first.',
-        });
-        return;
-      }
-      toast({
-        title: 'Daily reward claimed',
-        description: `+${result.rewards.experience} XP and +${result.rewards.berries} berries added.`,
-      });
-    } catch (error: any) {
-      toast({
-        title: 'Claim failed',
-        description: error?.message || 'Could not claim your reward right now.',
-        variant: 'destructive',
-      });
-    } finally {
-      setClaiming(false);
-    }
-  };
 
   if (isLoading || !userProfile) {
     return <Skeleton className="h-[420px] w-full rounded-[28px]" />;
@@ -137,15 +100,9 @@ export function ArcadeStatusPanel({ hasUsersTurn = false, nextTurnHref }: Arcade
               <Button asChild variant="secondary" className="rounded-full bg-white/85 text-slate-950 hover:bg-white">
                 <Link href={dailyMode.href}>Play {dailyMode.title}</Link>
               </Button>
-              <Button
-                variant="outline"
-                className="rounded-full border-white/80 bg-white/45"
-                onClick={claimDailyReward}
-                disabled={claiming || summary.rewardClaimedToday}
-              >
-                <Gift className="mr-2 h-4 w-4" />
-                {summary.rewardClaimedToday ? 'Reward claimed' : claiming ? 'Claiming...' : 'Claim daily reward'}
-              </Button>
+              <Badge variant="outline" className="rounded-full border-white/80 bg-white/55 px-4 py-2 text-slate-900">
+                {summary.rewardClaimedToday ? 'Auto-claimed today' : 'Auto-claims on your next eligible clear'}
+              </Badge>
             </div>
           </div>
 
@@ -166,7 +123,7 @@ export function ArcadeStatusPanel({ hasUsersTurn = false, nextTurnHref }: Arcade
             <div className="mt-4">
               <Progress value={questPercent} className="h-3 rounded-full bg-slate-200" />
               <div className="mt-2 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500">
-                {summary.totalQuestProgress} of {summary.totalQuestGoal} quest actions banked
+                {summary.totalQuestProgress} of {summary.totalQuestGoal} quest actions logged
               </div>
             </div>
 

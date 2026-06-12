@@ -2,11 +2,12 @@
 
 import { useMemo, useState } from 'react';
 import { RefreshCcw } from 'lucide-react';
-import { ArcadeSessionButton } from '@/components/retention/arcade-session-button';
+import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { WHEEL_PHRASES } from '@/lib/arcade/wheel-phrases';
+import { createArcadeSessionId } from '@/lib/arcade/session-id';
 import { cn } from '@/lib/utils';
 
 const WHEEL_VALUES = [150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900];
@@ -55,6 +56,7 @@ export default function WheelGame() {
   const [guess, setGuess] = useState('');
   const [solved, setSolved] = useState(false);
   const [spinIndex, setSpinIndex] = useState<number | null>(null);
+  const [sessionId, setSessionId] = useState(() => createArcadeSessionId());
 
   const consonantsLeft = useMemo(
     () => uniqueLetters(round.phrase, true).filter((letter) => !guessedLetters.includes(letter)),
@@ -129,6 +131,7 @@ export default function WheelGame() {
     setGuess('');
     setSolved(false);
     setSpinIndex(null);
+    setSessionId(createArcadeSessionId());
   };
 
   return (
@@ -151,7 +154,7 @@ export default function WheelGame() {
             <RefreshCcw className="mr-2 h-4 w-4" />
             New Round
           </Button>
-          {solved ? <ArcadeSessionButton modeId="wheel" score={Math.max(bank, 500)} label="Bank solve" /> : null}
+          {solved ? <ArcadeSessionStatus sessionId={sessionId} modeId="wheel" score={Math.max(bank, 500)} /> : null}
         </div>
       </CardHeader>
       <CardContent className="space-y-6">

@@ -14,6 +14,7 @@ export const dynamic = 'force-dynamic';
 type ProgressRequestBody =
   | {
       action: 'arcade-session';
+      sessionId: string;
       modeId: RetentionModeId;
       score?: number;
       completed?: boolean;
@@ -67,24 +68,60 @@ export async function POST(request: Request) {
     });
   }
 
+  if (!body.sessionId?.trim()) {
+    return NextResponse.json({ error: 'Missing sessionId.' }, { status: 400 });
+  }
+
   const result = applyArcadeSession(retention, body.modeId, {
+    sessionId: body.sessionId,
     score: body.score,
     completed: body.completed,
     completeDailyChallenge: body.completeDailyChallenge,
   });
 
-  await updateDocument('users', user.uid, {
-    retention: result.retention,
-    updatedAt: new Date().toISOString(),
-  });
-  await awardPlayerProgress(user.uid, {
+  const sessionRewards = {
     berries: result.rewardBerries,
     experience: result.rewardExperience,
+  };
+
+  if (result.duplicate) {
+    return NextResponse.json({
+      ok: true,
+      duplicate: true,
+      dailyRewardClaimed: false,
+      retention: result.retention,
+      rewards: {
+        session: sessionRewards,
+        dailyReward: { berries: 0, experience: 0 },
+        total: sessionRewards,
+      },
+    });
+  }
+
+  const dailyRewardResult = claimDailyReward(result.retention);
+  const totalRewards = {
+    berries: sessionRewards.berries + dailyRewardResult.rewardBerries,
+    experience: sessionRewards.experience + dailyRewardResult.rewardExperience,
+  };
+
+  await updateDocument('users', user.uid, {
+    retention: dailyRewardResult.retention,
+    updatedAt: new Date().toISOString(),
   });
+  await awardPlayerProgress(user.uid, totalRewards);
 
   return NextResponse.json({
     ok: true,
-    retention: result.retention,
-    rewards: { berries: result.rewardBerries, experience: result.rewardExperience },
+    duplicate: false,
+    dailyRewardClaimed: dailyRewardResult.claimed,
+    retention: dailyRewardResult.retention,
+    rewards: {
+      session: sessionRewards,
+      dailyReward: {
+        berries: dailyRewardResult.rewardBerries,
+        experience: dailyRewardResult.rewardExperience,
+      },
+      total: totalRewards,
+    },
   });
 }

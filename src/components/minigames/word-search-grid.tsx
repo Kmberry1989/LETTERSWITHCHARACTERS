@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { RefreshCcw } from 'lucide-react';
-import { ArcadeSessionButton } from '@/components/retention/arcade-session-button';
+import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { createArcadeSessionId } from '@/lib/arcade/session-id';
 import { cn } from '@/lib/utils';
 
 type Cell = { row: number; col: number };
@@ -129,6 +130,7 @@ export default function WordSearchGrid() {
   const [drag, setDrag] = useState<DragState | null>(null);
   const [foundWords, setFoundWords] = useState<string[]>([]);
   const [resolution, setResolution] = useState<ResolutionState | null>(null);
+  const [sessionId, setSessionId] = useState(() => createArcadeSessionId());
 
   const foundSet = useMemo(() => new Set(foundWords), [foundWords]);
 
@@ -146,6 +148,7 @@ export default function WordSearchGrid() {
     setFoundWords([]);
     setResolution(null);
     setDrag(null);
+    setSessionId(createArcadeSessionId());
 
     try {
       const response = await fetch('/api/arcade/word-search', { cache: 'no-store' });
@@ -411,7 +414,7 @@ export default function WordSearchGrid() {
               <div className="rounded-3xl border border-emerald-200 bg-emerald-50 px-4 py-5 text-center font-black tracking-[0.18em] text-emerald-700">
                 GRID CLEARED
               </div>
-              <ArcadeSessionButton modeId="word-search" score={80} label="Bank this grid" />
+              <ArcadeSessionStatus sessionId={sessionId} modeId="word-search" score={80} />
             </>
           ) : null}
         </div>

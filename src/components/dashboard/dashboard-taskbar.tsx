@@ -357,7 +357,7 @@ export function DashboardTaskbar({ hasUsersTurn, nextTurnHref, opponents }: Dash
           <SheetContent side="right" className="w-full max-w-xl overflow-y-auto">
             <SheetHeader>
               <SheetTitle>QUESTS</SheetTitle>
-              <SheetDescription>Your compact daily progress and reward view.</SheetDescription>
+              <SheetDescription>Your compact daily progress view. Eligible daily rewards now auto-claim on clear.</SheetDescription>
             </SheetHeader>
             <div className="mt-6 space-y-4">
               <div className={`rounded-[1.5rem] border border-white/70 bg-gradient-to-br ${MODE_METADATA[summary.dailyChallenge.modeId].accent} p-4`}>
@@ -370,6 +370,9 @@ export function DashboardTaskbar({ hasUsersTurn, nextTurnHref, opponents }: Dash
                   </Badge>
                   <Badge className="rounded-full bg-white/80 text-slate-900 hover:bg-white/80">
                     +{summary.dailyChallenge.rewardBerries} berries
+                  </Badge>
+                  <Badge variant="outline" className="rounded-full border-white/80 bg-white/55 text-slate-800">
+                    {summary.rewardClaimedToday ? 'Auto-claimed today' : 'Auto-claims on your next eligible clear'}
                   </Badge>
                   {summary.dailyChallengeCompleted ? (
                     <Badge className="rounded-full bg-emerald-600 text-white hover:bg-emerald-600">Completed</Badge>

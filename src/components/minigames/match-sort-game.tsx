@@ -2,10 +2,11 @@
 
 import { useMemo, useState } from 'react';
 import { RefreshCcw } from 'lucide-react';
-import { ArcadeSessionButton } from '@/components/retention/arcade-session-button';
+import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { createArcadeSessionId } from '@/lib/arcade/session-id';
 
 type GoodsId = 'soda' | 'cereal' | 'chips' | 'soap' | 'juice' | 'tea';
 type GoodsItem = {
@@ -106,6 +107,7 @@ function buildShelves() {
 export default function MatchSortGame() {
   const [shelves, setShelves] = useState<Shelf[]>(() => buildShelves());
   const [selectedShelfIndex, setSelectedShelfIndex] = useState<number | null>(null);
+  const [sessionId, setSessionId] = useState(() => createArcadeSessionId());
 
   const completedShelves = useMemo(() => shelves.filter(isShelfComplete).length, [shelves]);
   const solved = completedShelves >= GOODS_ORDER.length;
@@ -147,6 +149,7 @@ export default function MatchSortGame() {
   const reset = () => {
     setShelves(buildShelves());
     setSelectedShelfIndex(null);
+    setSessionId(createArcadeSessionId());
   };
 
   return (
@@ -161,7 +164,7 @@ export default function MatchSortGame() {
             <RefreshCcw className="mr-2 h-4 w-4" />
             Restock
           </Button>
-          {solved ? <ArcadeSessionButton modeId="match-sort" score={200 + completedShelves * 20} label="Bank this clear" /> : null}
+          {solved ? <ArcadeSessionStatus sessionId={sessionId} modeId="match-sort" score={200 + completedShelves * 20} /> : null}
         </div>
       </CardHeader>
       <CardContent className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">

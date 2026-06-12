@@ -51,6 +51,7 @@ export type RetentionState = {
   rewardClaimedDates: string[];
   dailyChallengeCompletions: string[];
   dailyChallengeHistory: string[];
+  recentSessionIds: string[];
   quests: QuestProgress[];
   modeProgress: Record<RetentionModeId, ModeProgress>;
 };
@@ -62,6 +63,7 @@ export const DEFAULT_RETENTION_STATE: RetentionState = {
   rewardClaimedDates: [],
   dailyChallengeCompletions: [],
   dailyChallengeHistory: [],
+  recentSessionIds: [],
   quests: [],
   modeProgress: {
     'word-duel': createDefaultModeProgress(),
@@ -237,6 +239,7 @@ export function normalizeRetentionState(value?: Partial<RetentionState> | null):
     rewardClaimedDates: dedupeRecentDates(safe.rewardClaimedDates || [], 10),
     dailyChallengeCompletions: dedupeRecentDates(safe.dailyChallengeCompletions || [], 10),
     dailyChallengeHistory: Array.isArray(safe.dailyChallengeHistory) ? safe.dailyChallengeHistory.slice(-10) : [],
+    recentSessionIds: dedupeRecentValues(safe.recentSessionIds || [], 20),
     quests: Array.isArray(safe.quests)
       ? safe.quests.map((quest) => ({
           ...quest,
@@ -352,6 +355,19 @@ function dedupeRecentDates(values: string[], maxDays: number) {
   return result.sort().slice(-maxDays);
 }
 
+function dedupeRecentValues(values: string[], limit: number) {
+  const seen = new Set<string>();
+  const result: string[] = [];
+
+  for (const value of values) {
+    if (!value || seen.has(value)) continue;
+    seen.add(value);
+    result.push(value);
+  }
+
+  return result.slice(-limit);
+}
+
 export function rollWeeklyActivity(existing: string[], today = new Date()) {
   const dayKey = getDayKey(today);
   return dedupeRecentDates([...existing, dayKey], 7);
@@ -385,11 +401,22 @@ export function rotateRetentionForToday(retention: RetentionState, today = new D
 export function applyArcadeSession(
   retentionValue: Partial<RetentionState> | null | undefined,
   modeId: RetentionModeId,
-  options?: { score?: number; completed?: boolean; completeDailyChallenge?: boolean; now?: Date }
+  options?: { sessionId?: string; score?: number; completed?: boolean; completeDailyChallenge?: boolean; now?: Date }
 ) {
   const now = options?.now || new Date();
   const dayKey = getDayKey(now);
   let retention = rotateRetentionForToday(normalizeRetentionState(retentionValue), now);
+  const sessionId = options?.sessionId?.trim();
+
+  if (sessionId && retention.recentSessionIds.includes(sessionId)) {
+    return {
+      duplicate: true,
+      retention,
+      rewardBerries: 0,
+      rewardExperience: 0,
+    };
+  }
+
   const dailyChallenge = getDailyChallenge(now);
   const nextModeProgress = {
     ...retention.modeProgress,
@@ -415,6 +442,9 @@ export function applyArcadeSession(
     lastActiveDate: dayKey,
     streakCount: updateStreak(retention.lastActiveDate, retention.streakCount, now),
     weeklyActivityDates: rollWeeklyActivity(retention.weeklyActivityDates, now),
+    recentSessionIds: sessionId
+      ? [...retention.recentSessionIds, sessionId].slice(-20)
+      : retention.recentSessionIds,
     quests: nextQuests,
     modeProgress: nextModeProgress,
   };
@@ -423,7 +453,7 @@ export function applyArcadeSession(
   let rewardExperience = 12;
 
   const shouldCompleteDailyChallenge =
-    Boolean(options?.completeDailyChallenge) &&
+    Boolean(options?.completeDailyChallenge ?? options?.completed) &&
     dailyChallenge.modeId === modeId &&
     !retention.dailyChallengeCompletions.includes(dayKey);
 
@@ -449,6 +479,7 @@ export function applyArcadeSession(
   }
 
   return {
+    duplicate: false,
     retention,
     rewardBerries,
     rewardExperience,

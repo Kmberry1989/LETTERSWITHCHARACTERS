@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { RefreshCcw } from 'lucide-react';
-import { ArcadeSessionButton } from '@/components/retention/arcade-session-button';
+import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { createArcadeSessionId } from '@/lib/arcade/session-id';
 
 type Puzzle = {
   letters: string[];
@@ -28,6 +29,7 @@ export default function WordConnectGame() {
   const [foundWords, setFoundWords] = useState<string[]>([]);
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(true);
+  const [sessionId, setSessionId] = useState(() => createArcadeSessionId());
 
   const currentWord = useMemo(
     () => path.map((index) => puzzle?.letters[index] || '').join(''),
@@ -42,6 +44,7 @@ export default function WordConnectGame() {
     setPath([]);
     setFoundWords([]);
     setStatus('');
+    setSessionId(createArcadeSessionId());
 
     try {
       const response = await fetch('/api/arcade/word-connect', { cache: 'no-store' });
@@ -72,7 +75,7 @@ export default function WordConnectGame() {
       return;
     }
     if (foundSet.has(currentWord)) {
-      setStatus('Already banked.');
+      setStatus('Already found.');
       return;
     }
 
@@ -139,7 +142,7 @@ export default function WordConnectGame() {
             <RefreshCcw className="mr-2 h-4 w-4" />
             New Wheel
           </Button>
-          {solved ? <ArcadeSessionButton modeId="word-connect" score={foundWords.length * 25} label="Bank this board" /> : null}
+          {solved ? <ArcadeSessionStatus sessionId={sessionId} modeId="word-connect" score={foundWords.length * 25} /> : null}
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -199,7 +202,7 @@ export default function WordConnectGame() {
                 </Badge>
               ))
             ) : (
-              <div className="text-sm text-slate-500">No words banked yet.</div>
+              <div className="text-sm text-slate-500">No words found yet.</div>
             )}
           </div>
         </div>

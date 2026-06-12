@@ -3,10 +3,11 @@
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { RefreshCcw } from 'lucide-react';
-import { ArcadeSessionButton } from '@/components/retention/arcade-session-button';
+import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { createArcadeSessionId } from '@/lib/arcade/session-id';
 
 type Suit = 'hearts' | 'spades' | 'clubs' | 'diamonds';
 type SolitaireCard = {
@@ -163,6 +164,7 @@ function CardFace({
 export default function SolitaireSprintGame() {
   const [game, setGame] = useState<GameState>(() => createInitialGame());
   const [selection, setSelection] = useState<Selection>(null);
+  const [sessionId, setSessionId] = useState(() => createArcadeSessionId());
 
   const solved = useMemo(
     () => SUITS.every((suit) => game.foundations[suit].length === 13),
@@ -174,6 +176,7 @@ export default function SolitaireSprintGame() {
   const reset = () => {
     setGame(createInitialGame());
     setSelection(null);
+    setSessionId(createArcadeSessionId());
   };
 
   const drawFromStock = () => {
@@ -321,7 +324,7 @@ export default function SolitaireSprintGame() {
             <RefreshCcw className="mr-2 h-4 w-4" />
             New Shuffle
           </Button>
-          {solved && <ArcadeSessionButton modeId="solitaire" score={300 + score} label="Bank this win" />}
+          {solved && <ArcadeSessionStatus sessionId={sessionId} modeId="solitaire" score={300 + score} />}
         </div>
       </CardHeader>
       <CardContent className="space-y-6">

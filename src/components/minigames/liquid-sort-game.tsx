@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { RotateCcw } from 'lucide-react';
-import { ArcadeSessionButton } from '@/components/retention/arcade-session-button';
+import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { createArcadeSessionId } from '@/lib/arcade/session-id';
 
 type TubeColor = 'rose' | 'sky' | 'amber' | 'emerald';
 type Tube = TubeColor[];
@@ -104,6 +105,7 @@ export default function LiquidSortGame() {
   const [dragState, setDragState] = useState<DragState | null>(null);
   const [hoverTarget, setHoverTarget] = useState<number | null>(null);
   const [pourState, setPourState] = useState<PourState | null>(null);
+  const [sessionId, setSessionId] = useState(() => createArcadeSessionId());
 
   const displayTubes = useMemo(() => getDisplayTubes(tubes, pourState), [tubes, pourState]);
   const solved = useMemo(() => isSolved(tubes), [tubes]);
@@ -207,6 +209,7 @@ export default function LiquidSortGame() {
     setDragState(null);
     setHoverTarget(null);
     setPourState(null);
+    setSessionId(createArcadeSessionId());
   };
 
   const startDrag = (index: number, event: React.PointerEvent<HTMLDivElement>) => {
@@ -235,7 +238,7 @@ export default function LiquidSortGame() {
             <RotateCcw className="mr-2 h-4 w-4" />
             Reset
           </Button>
-          {solved ? <ArcadeSessionButton modeId="liquid-sort" score={Math.max(80, 180 - moves * 8)} label="Bank clear" /> : null}
+          {solved ? <ArcadeSessionStatus sessionId={sessionId} modeId="liquid-sort" score={Math.max(80, 180 - moves * 8)} /> : null}
         </div>
       </CardHeader>
       <CardContent>

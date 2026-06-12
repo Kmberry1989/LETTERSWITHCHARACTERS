@@ -50,7 +50,7 @@ export const META_BOARD_SPACES: MetaBoardSpace[] = [
   {
     id: 'rest-stop',
     label: 'Rest Stop',
-    description: 'Recover and bank your progress before the next challenge.',
+    description: 'Recover and lock in your progress before the next challenge.',
     type: 'rest',
   },
   {
