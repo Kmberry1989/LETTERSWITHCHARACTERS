@@ -9,9 +9,9 @@ export function MainNav() {
   const pathname = usePathname();
 
   const menuItems = [
-    { href: '/dashboard', label: 'Games', icon: Gamepad2 },
+    { href: '/dashboard', label: 'Play', icon: Gamepad2 },
     { href: '/minigames', label: 'Arcade', icon: Sparkles },
-    { href: '/lobby', label: 'Lobby', icon: Swords },
+    { href: '/lobby', label: 'Match', icon: Swords },
     { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
     { href: '/shop', label: 'Shop', icon: Store },
     { href: '/profile', label: 'Profile', icon: UserCircle },

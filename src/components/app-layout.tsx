@@ -26,7 +26,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
              </div>
              <div className="group-data-[collapsible=icon]:hidden">
                <h2 className="text-lg font-semibold tracking-tight font-headline">Letters with Characters</h2>
-               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">Playful word duels</p>
              </div>
           </div>
         </SidebarHeader>

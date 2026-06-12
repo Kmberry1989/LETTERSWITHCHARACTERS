@@ -89,7 +89,7 @@ export function ArcadeStatusPanel({ hasUsersTurn = false, nextTurnHref }: Arcade
         <CardHeader className="gap-4">
           <div className="flex flex-wrap items-center gap-2">
             <Badge className="rounded-full bg-slate-950 px-3 py-1 text-[0.68rem] uppercase tracking-[0.22em] text-white hover:bg-slate-950">
-              Next Best Action
+              NEXT
             </Badge>
             <Badge variant="secondary" className="rounded-full px-3 py-1">
               {summary.weeklyActivityCount}/7 active days this week
@@ -100,7 +100,7 @@ export function ArcadeStatusPanel({ hasUsersTurn = false, nextTurnHref }: Arcade
           </div>
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div className="max-w-2xl">
-              <CardTitle className="text-3xl font-headline">Arcade rhythm, not dead time</CardTitle>
+              <CardTitle className="text-3xl font-headline">NEXT</CardTitle>
               <CardDescription className="mt-2 text-base text-slate-600">
                 {hasUsersTurn
                   ? 'A live word duel is waiting, and your daily arcade goals are still visible underneath it.'
@@ -152,7 +152,7 @@ export function ArcadeStatusPanel({ hasUsersTurn = false, nextTurnHref }: Arcade
           <div className="rounded-[28px] border border-white/70 bg-white/85 p-5 shadow-sm">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <div className="text-xs font-black uppercase tracking-[0.22em] text-muted-foreground">Quest Board</div>
+                <div className="text-xs font-black uppercase tracking-[0.22em] text-muted-foreground">QUESTS</div>
                 <div className="mt-2 text-2xl font-black text-slate-900">
                   {summary.completedQuests} / {summary.quests.length} complete
                 </div>

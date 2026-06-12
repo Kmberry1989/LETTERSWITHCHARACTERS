@@ -203,7 +203,7 @@ export default function LobbyPage() {
                 Matchmaking
               </p>
               <h1 className="mt-3 text-3xl font-bold tracking-tight font-headline">Game Lobby</h1>
-              <p className="mt-2 max-w-2xl text-muted-foreground">Chat, post an open challenge, or jump directly into the next playful word duel.</p>
+              <p className="mt-2 max-w-2xl text-muted-foreground">Chat, post an open challenge, or start a game right away.</p>
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="rounded-2xl bg-white/80 p-4 shadow-sm"><div className="flex items-center gap-2 font-semibold"><Swords className="h-4 w-4 text-primary" />Open Matches</div><div className="mt-1 text-sm text-muted-foreground">{openChallenges.length} ready to accept</div></div>
