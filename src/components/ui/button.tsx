@@ -14,14 +14,14 @@ const buttonVariants = cva(
         destructive:
           "border border-red-400/35 bg-[linear-gradient(180deg,#ff6b7a,#e43f53)] text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_10px_22px_rgba(228,63,83,0.22)] hover:-translate-y-0.5",
         outline:
-          "border border-white/75 bg-white/70 text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_8px_22px_rgba(38,55,80,0.08)] backdrop-blur-xl hover:-translate-y-0.5 hover:bg-white/88",
+          "border border-white/75 bg-white/70 text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.8),0_8px_22px_rgba(38,55,80,0.08)] backdrop-blur-xl hover:-translate-y-0.5 hover:bg-white/[.88]",
         secondary:
           "border border-emerald-900/5 bg-[linear-gradient(180deg,#eef9e8,#dcefd5)] text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.75),0_8px_20px_rgba(45,70,45,0.08)] hover:-translate-y-0.5 hover:bg-[#e6f4df]",
         reward:
           "border border-amber-300/50 bg-[linear-gradient(180deg,#ffe77d,#ffc947)] text-amber-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_10px_22px_rgba(255,201,71,0.28)] hover:-translate-y-0.5",
         glass:
-          "border border-white/75 bg-white/65 text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.85),0_12px_28px_rgba(38,55,80,0.1)] backdrop-blur-xl hover:-translate-y-0.5 hover:bg-white/82",
-        ghost: "rounded-2xl text-slate-800 hover:bg-white/65 hover:text-slate-950 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_8px_18px_rgba(38,55,80,0.08)]",
+          "border border-white/75 bg-white/[.65] text-slate-900 shadow-[inset_0_1px_0_rgba(255,255,255,0.85),0_12px_28px_rgba(38,55,80,0.1)] backdrop-blur-xl hover:-translate-y-0.5 hover:bg-white/[.82]",
+        ghost: "rounded-2xl text-slate-800 hover:bg-white/[.65] hover:text-slate-950 hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_8px_18px_rgba(38,55,80,0.08)]",
         link: "text-primary underline-offset-4 shadow-none hover:underline",
       },
       size: {
