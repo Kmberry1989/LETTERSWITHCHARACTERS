@@ -97,7 +97,7 @@ function MessageComposer({
   }
 
   return (
-    <div className="flex h-full flex-col rounded-3xl border border-slate-200 bg-white">
+    <div className="flex h-full min-h-0 min-w-0 flex-col rounded-3xl border border-slate-200 bg-white">
       <ScrollArea className="flex-1">
         <div className="space-y-3 p-4">
           {messages.length === 0 ? (
@@ -109,7 +109,7 @@ function MessageComposer({
               <div key={message.id} className={cn('flex', isCurrentUser ? 'justify-end' : 'justify-start')}>
                 <div
                   className={cn(
-                    'max-w-[85%] rounded-2xl px-4 py-3 text-sm shadow-sm',
+                    'max-w-[85%] break-words rounded-2xl px-4 py-3 text-sm shadow-sm',
                     isCurrentUser ? 'bg-slate-950 text-white' : 'bg-slate-100 text-slate-900'
                   )}
                 >
@@ -482,21 +482,21 @@ export function DashboardTaskbar({ hasUsersTurn, nextTurnHref, opponents }: Dash
               </div>
             </button>
           </SheetTrigger>
-          <SheetContent side="right" className="w-full max-w-5xl overflow-hidden p-0">
+          <SheetContent side="right" className="w-screen max-w-[100vw] overflow-hidden p-0 sm:w-[calc(100vw-1rem)] sm:max-w-5xl">
             <div className="flex h-full flex-col">
-              <SheetHeader className="border-b p-6">
+              <SheetHeader className="border-b p-6 pr-14">
                 <SheetTitle>Messages</SheetTitle>
                 <SheetDescription>Direct messages and private play invites.</SheetDescription>
               </SheetHeader>
-              <div className="grid h-full min-h-0 gap-0 lg:grid-cols-[320px,1fr]">
-                <div className="border-r border-slate-200 bg-slate-50/70 p-4">
-                  <Tabs defaultValue="threads">
+              <div className="grid h-[calc(100dvh-5rem)] min-h-0 gap-0 lg:grid-cols-[320px,minmax(0,1fr)]">
+                <div className="min-h-0 border-b border-slate-200 bg-slate-50/70 p-4 lg:border-b-0 lg:border-r">
+                  <Tabs defaultValue="threads" className="flex h-full min-h-0 flex-col">
                     <TabsList className="grid w-full grid-cols-2">
                       <TabsTrigger value="threads">Threads</TabsTrigger>
                       <TabsTrigger value="players">Players</TabsTrigger>
                     </TabsList>
-                    <TabsContent value="threads" className="mt-4 space-y-3">
-                      <ScrollArea className="h-[70vh]">
+                    <TabsContent value="threads" className="mt-4 min-h-0 flex-1">
+                      <ScrollArea className="h-[32vh] lg:h-full">
                         <div className="space-y-2">
                           {threads.map((thread) => {
                             const counterpartId = user ? getThreadCounterpartId(thread, user.uid) : thread.participantIds[0];
@@ -540,8 +540,8 @@ export function DashboardTaskbar({ hasUsersTurn, nextTurnHref, opponents }: Dash
                         </div>
                       </ScrollArea>
                     </TabsContent>
-                    <TabsContent value="players" className="mt-4 space-y-2">
-                      <ScrollArea className="h-[70vh]">
+                    <TabsContent value="players" className="mt-4 min-h-0 flex-1">
+                      <ScrollArea className="h-[32vh] lg:h-full">
                         <div className="space-y-2">
                           {suggestedPlayers.map((player) => (
                             <button
@@ -565,7 +565,7 @@ export function DashboardTaskbar({ hasUsersTurn, nextTurnHref, opponents }: Dash
                     </TabsContent>
                   </Tabs>
                 </div>
-                <div className="min-h-0 p-4">
+                <div className="min-h-0 min-w-0 p-4">
                   <MessageComposer
                     activeThread={activeThread}
                     currentUserId={user?.uid || ''}
