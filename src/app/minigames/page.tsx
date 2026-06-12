@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { MODE_METADATA, type RetentionModeId } from '@/lib/retention';
 
-const modeDescriptions: Record<RetentionModeId, string> = {
+const modeDescriptions: Partial<Record<RetentionModeId, string>> = {
   'word-search': 'Find hidden words fast, then bank berries from clean clears.',
   'word-connect': 'Link letters into satisfying chains with a quick-play rhythm.',
   'liquid-sort': 'Sort glossy color tubes while your brain cools down.',
@@ -15,7 +15,7 @@ const modeDescriptions: Record<RetentionModeId, string> = {
   wheel: 'Spin the carnival wheel for quick reward momentum.',
 };
 
-const modeTags: Record<RetentionModeId, string[]> = {
+const modeTags: Partial<Record<RetentionModeId, string[]>> = {
   'word-search': ['Quick', 'Letter hunt'],
   'word-connect': ['Combo', 'Daily'],
   'liquid-sort': ['Chill', 'Puzzle'],
@@ -49,6 +49,7 @@ export default function MinigamesPage() {
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {arcadeModes.map((modeId) => {
             const mode = MODE_METADATA[modeId];
+            const tags = modeTags[modeId] || ['Quick', 'Arcade'];
             return (
               <Card
                 key={modeId}
@@ -60,7 +61,7 @@ export default function MinigamesPage() {
                       <img src={mode.iconPath} alt="" className="h-11 w-11 object-contain drop-shadow-sm" />
                     </span>
                     <div className="flex flex-wrap justify-end gap-2">
-                      {modeTags[modeId].map((tag) => (
+                      {tags.map((tag) => (
                         <Badge key={tag} variant="secondary" className="rounded-full bg-white/65 font-black text-slate-700">
                           {tag}
                         </Badge>
@@ -69,7 +70,7 @@ export default function MinigamesPage() {
                   </div>
                   <div>
                     <CardTitle className="font-headline text-2xl font-black text-slate-950">{mode.title}</CardTitle>
-                    <p className="mt-2 min-h-[2.5rem] text-sm leading-5 text-slate-600">{modeDescriptions[modeId]}</p>
+                    <p className="mt-2 min-h-[2.5rem] text-sm leading-5 text-slate-600">{modeDescriptions[modeId] || 'Jump into a fast, collectible arcade mode.'}</p>
                   </div>
                 </CardHeader>
                 <CardContent className="p-5 pt-0 sm:p-6 sm:pt-0">
