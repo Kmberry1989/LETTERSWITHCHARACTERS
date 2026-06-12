@@ -47,7 +47,7 @@ export function MainNav() {
                     active ? 'bg-white/78 shadow-[inset_0_1px_0_rgba(255,255,255,.8),0_6px_12px_rgba(35,50,80,.08)]' : 'bg-white/35'
                   )}
                 >
-                  <Icon className="h-4.5 w-4.5 stroke-[2.35]" />
+                  <Icon className="h-[1.125rem] w-[1.125rem] stroke-[2.35]" />
                 </span>
                 <span>{item.label}</span>
               </Link>
