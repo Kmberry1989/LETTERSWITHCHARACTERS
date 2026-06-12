@@ -23,7 +23,7 @@ export function MainNav() {
   const pathname = usePathname();
 
   return (
-    <SidebarMenu className="gap-2 p-0">
+    <SidebarMenu className="gap-2 rounded-[1.65rem] bg-white/[.34] p-2">
       {menuItems.map((item) => {
         const Icon = item.icon;
         const active = isActivePath(pathname, item.href);
@@ -31,23 +31,22 @@ export function MainNav() {
           <SidebarMenuItem key={item.href}>
             <SidebarMenuButton
               asChild
+              size="lg"
               isActive={active}
               tooltip={item.label}
               className={cn(
-                'h-12 rounded-[1.25rem] px-3 font-black transition-all duration-200 group-data-[collapsible=icon]:h-11 group-data-[collapsible=icon]:w-11',
-                active
-                  ? 'pressed-card text-slate-950 data-[active=true]:bg-transparent data-[active=true]:text-slate-950'
-                  : 'hover:-translate-y-0.5 hover:bg-white/65 hover:shadow-[inset_0_1px_0_rgba(255,255,255,.7),0_8px_18px_rgba(35,50,80,.08)]'
+                'rounded-2xl px-2 font-black transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/[.72] hover:shadow-[inset_0_1px_0_rgba(255,255,255,.75),0_8px_18px_rgba(35,50,80,.08)]',
+                active && 'pressed-surface text-slate-950'
               )}
             >
               <Link href={item.href}>
                 <span
                   className={cn(
-                    'flex h-8 w-8 shrink-0 items-center justify-center rounded-xl transition-all group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9',
-                    active ? 'bg-white/78 shadow-[inset_0_1px_0_rgba(255,255,255,.8),0_6px_12px_rgba(35,50,80,.08)]' : 'bg-white/35'
+                    'flex h-9 w-9 items-center justify-center rounded-xl bg-white/[.62] shadow-[inset_0_1px_0_rgba(255,255,255,.7)] transition-all',
+                    active && 'bg-white text-emerald-700 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_6px_14px_rgba(35,50,80,.08)]'
                   )}
                 >
-                  <Icon className="h-[1.125rem] w-[1.125rem] stroke-[2.35]" />
+                  <Icon className="h-5 w-5 stroke-[2.35]" />
                 </span>
                 <span>{item.label}</span>
               </Link>
