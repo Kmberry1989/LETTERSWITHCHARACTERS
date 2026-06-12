@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 export default function LeaderboardPage() {
   return (
     <AppLayout>
-      <div className="page-shell space-y-6">
+      <div className="flex-1 space-y-6 p-4 sm:p-8">
         <div className="glass-panel relative overflow-hidden rounded-[2rem] p-5 sm:p-7">
           <div className="absolute -right-12 -top-10 h-40 w-40 rounded-full bg-amber-200/40 blur-3xl" />
           <div className="relative space-y-3">
