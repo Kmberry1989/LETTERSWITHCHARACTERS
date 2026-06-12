@@ -46,14 +46,14 @@ interface Game {
 function GameStatusBadge({ game, currentUserId }: { game: Game; currentUserId: string }) {
   if (game.status === 'finished') {
     return (
-      <Badge variant="outline" className="rounded-full">
+      <Badge variant="outline" className="rounded-full bg-white/70 font-black">
         {game.winner === currentUserId ? 'Won' : game.winner ? 'Finished' : 'Draw'}
       </Badge>
     );
   }
 
   return (
-    <Badge className="rounded-full" variant={game.currentTurn === currentUserId ? 'default' : 'secondary'}>
+    <Badge className="rounded-full font-black" variant={game.currentTurn === currentUserId ? 'default' : 'secondary'}>
       {game.currentTurn === currentUserId ? 'Your Turn' : 'Waiting'}
     </Badge>
   );
@@ -68,27 +68,27 @@ function FeaturedGameCard({ game }: { game: Game }) {
 
   const opponentAvatarImage = resolveAvatarImage(opponent);
   return (
-    <Card className="overflow-hidden border-white/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.98),rgba(248,250,252,0.94))] shadow-[0_18px_50px_rgba(15,23,42,0.08)]">
-      <CardHeader className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+    <Card className="glass-panel overflow-hidden rounded-[1.75rem] border-white/70">
+      <CardHeader className="flex flex-col gap-5 p-5 lg:flex-row lg:items-center lg:justify-between sm:p-6">
         <div className="flex items-center gap-4">
-          <Avatar className="h-16 w-16">
+          <Avatar className="h-16 w-16 ring-4 ring-white/70">
             {opponentAvatarImage && <AvatarImage src={opponentAvatarImage} alt={opponent.displayName} />}
             <AvatarFallback>{opponent.displayName.charAt(0)}</AvatarFallback>
           </Avatar>
           <div>
-            <div className="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Live Game</div>
-            <CardTitle className="mt-1 text-3xl font-headline">vs. {opponent.displayName}</CardTitle>
-            <CardDescription className="mt-2">
+            <div className="text-xs font-black uppercase tracking-[0.22em] text-slate-400">Live Game</div>
+            <CardTitle className="mt-1 text-3xl font-black font-headline">vs. {opponent.displayName}</CardTitle>
+            <CardDescription className="mt-2 text-slate-500">
               {game.currentTurn === user.uid ? 'Your move is ready.' : `${opponent.displayName} has the board right now.`}
             </CardDescription>
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
           <GameStatusBadge game={game} currentUserId={user.uid} />
-          <Badge variant="outline" className="rounded-full px-3 py-1">
+          <Badge variant="outline" className="rounded-full bg-white/70 px-3 py-1 font-black">
             You {game.playerData[user.uid]?.score || 0} - {opponent.score} {opponent.displayName}
           </Badge>
-          <Button asChild size="lg" className="rounded-full px-6">
+          <Button asChild size="lg">
             <Link href={`/game?game=${game.id}`}>{game.status === 'finished' ? 'View Results' : 'Open Game'}</Link>
           </Button>
         </div>
@@ -106,24 +106,24 @@ function GameCard({ game }: { game: Game }) {
 
   const opponentAvatarImage = resolveAvatarImage(opponent);
   return (
-    <Card className="flex flex-col border-white/70 bg-white/92 shadow-sm">
-      <CardHeader className="flex flex-row items-center gap-4">
-        <Avatar className="h-12 w-12">
+    <Card className="soft-card flex flex-col rounded-[1.5rem]">
+      <CardHeader className="flex flex-row items-center gap-4 p-5">
+        <Avatar className="h-12 w-12 ring-4 ring-white/70">
           {opponentAvatarImage && <AvatarImage src={opponentAvatarImage} alt={opponent.displayName} />}
           <AvatarFallback>{opponent.displayName.charAt(0)}</AvatarFallback>
         </Avatar>
         <div className="min-w-0 flex-1">
-          <CardTitle className="truncate text-xl">vs. {opponent.displayName}</CardTitle>
+          <CardTitle className="truncate text-xl font-black">vs. {opponent.displayName}</CardTitle>
           <div className="mt-2 flex flex-wrap gap-2">
             <GameStatusBadge game={game} currentUserId={user.uid} />
-            <Badge variant="outline" className="rounded-full">
+            <Badge variant="outline" className="rounded-full bg-white/70 font-black">
               {game.playerData[user.uid]?.score || 0}-{opponent.score}
             </Badge>
           </div>
         </div>
       </CardHeader>
-      <CardFooter className="mt-auto">
-        <Button asChild variant="outline" className="w-full rounded-full">
+      <CardFooter className="mt-auto p-5 pt-0">
+        <Button asChild variant="outline" className="w-full">
           <Link href={`/game?game=${game.id}`}>{game.status === 'finished' ? 'Review' : 'Open'}</Link>
         </Button>
       </CardFooter>
@@ -133,16 +133,16 @@ function GameCard({ game }: { game: Game }) {
 
 function GameCardSkeleton() {
   return (
-    <Card className="flex flex-col shadow-sm">
-      <CardHeader className="flex flex-row items-center gap-4">
+    <Card className="soft-card flex flex-col rounded-[1.5rem]">
+      <CardHeader className="flex flex-row items-center gap-4 p-5">
         <Skeleton className="h-12 w-12 rounded-full" />
         <div className="space-y-2">
           <Skeleton className="h-4 w-[150px]" />
           <Skeleton className="h-4 w-[100px]" />
         </div>
       </CardHeader>
-      <CardFooter className="mt-auto">
-        <Skeleton className="h-10 w-full" />
+      <CardFooter className="mt-auto p-5 pt-0">
+        <Skeleton className="h-11 w-full rounded-2xl" />
       </CardFooter>
     </Card>
   );
@@ -237,7 +237,7 @@ export default function DashboardPage() {
 
   return (
     <AppLayout>
-      <div className="flex-1 space-y-5 p-4 sm:p-8">
+      <div className="page-shell space-y-5">
         {!loading ? (
           <DashboardTaskbar
             hasUsersTurn={Boolean(usersTurnGame)}
@@ -248,21 +248,21 @@ export default function DashboardPage() {
           <Skeleton className="h-28 rounded-[2rem]" />
         )}
 
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr),320px]">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr),320px]">
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-4">
               <div>
-                <h1 className="text-3xl font-bold tracking-tight font-headline">Play</h1>
-                <p className="mt-1 text-sm text-slate-500">Move straight into your live game, then pick up anything else below.</p>
+                <h1 className="text-3xl font-black tracking-tight font-headline sm:text-4xl">Play</h1>
+                <p className="mt-1 text-sm text-slate-500">Jump into a live game, then pick up arcade routes and matches below.</p>
               </div>
               <div className="hidden gap-2 sm:flex">
-                <Button asChild variant="outline" className="rounded-full">
+                <Button asChild variant="outline">
                   <Link href="/minigames">
                     <Sparkles className="mr-2 h-4 w-4" />
                     Arcade
                   </Link>
                 </Button>
-                <Button asChild className="rounded-full">
+                <Button asChild>
                   <Link href="/lobby">
                     <Swords className="mr-2 h-4 w-4" />
                     Find Match
@@ -274,16 +274,16 @@ export default function DashboardPage() {
             {loading && <Skeleton className="h-44 rounded-[2rem]" />}
             {!loading && featuredGame ? <FeaturedGameCard game={featuredGame} /> : null}
             {!loading && !featuredGame ? (
-              <Card className="flex flex-col items-center justify-center border-dashed p-8 text-center shadow-sm">
+              <Card className="soft-card flex flex-col items-center justify-center rounded-[1.75rem] border-dashed p-8 text-center">
                 <CardHeader>
-                  <CardTitle>No Games Yet</CardTitle>
+                  <CardTitle className="font-black">No Games Yet</CardTitle>
                   <CardDescription>Start with a match or jump into the arcade while you wait for your first duel.</CardDescription>
                 </CardHeader>
                 <CardContent className="flex flex-wrap justify-center gap-3">
-                  <Button asChild className="rounded-full">
+                  <Button asChild>
                     <Link href="/lobby">Find Match</Link>
                   </Button>
-                  <Button asChild variant="outline" className="rounded-full">
+                  <Button asChild variant="outline">
                     <Link href="/minigames">Open Arcade</Link>
                   </Button>
                 </CardContent>
@@ -294,7 +294,7 @@ export default function DashboardPage() {
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-black text-slate-900">More Games</h2>
                 {!loading && remainingGames.length > 0 ? (
-                  <Badge variant="outline" className="rounded-full">
+                  <Badge variant="outline" className="rounded-full bg-white/70 font-black">
                     {remainingGames.length}
                   </Badge>
                 ) : null}
@@ -303,7 +303,7 @@ export default function DashboardPage() {
                 {loading && Array.from({ length: 3 }).map((_, index) => <GameCardSkeleton key={index} />)}
                 {!loading && remainingGames.map((game) => <GameCard key={game.id} game={game} />)}
                 {!loading && featuredGame && remainingGames.length === 0 ? (
-                  <Card className="border-dashed p-6 text-sm text-slate-500 shadow-sm md:col-span-2 xl:col-span-3">
+                  <Card className="soft-card rounded-[1.5rem] border-dashed p-6 text-sm text-slate-500 md:col-span-2 xl:col-span-3">
                     No other games right now.
                   </Card>
                 ) : null}
@@ -312,19 +312,19 @@ export default function DashboardPage() {
           </div>
 
           <div className="space-y-4">
-            <Card className="border-white/70 bg-white/92 shadow-sm">
+            <Card className="soft-card rounded-[1.75rem]">
               <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
+                <CardTitle className="font-black">Quick Actions</CardTitle>
                 <CardDescription>Lower-friction routes when you are not in a live turn.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-3">
-                <Button asChild className="w-full rounded-full">
+                <Button asChild className="w-full">
                   <Link href="/lobby">
                     <Swords className="mr-2 h-4 w-4" />
                     Find Match
                   </Link>
                 </Button>
-                <Button asChild variant="outline" className="w-full rounded-full">
+                <Button asChild variant="reward" className="w-full">
                   <Link href="/minigames">
                     <Sparkles className="mr-2 h-4 w-4" />
                     Arcade
