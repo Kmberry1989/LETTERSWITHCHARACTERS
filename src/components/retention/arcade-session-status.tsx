@@ -37,19 +37,19 @@ export function ArcadeSessionStatus({
   completed = true,
   className,
 }: ArcadeSessionStatusProps) {
-  const { user, loading } = useUser();
-  const [saveState, setSaveState] = useState<SaveState>(loading || user?.uid ? 'saving' : 'signed-out');
+  const { user, isUserLoading } = useUser();
+  const [saveState, setSaveState] = useState<SaveState>(isUserLoading || user?.uid ? 'saving' : 'signed-out');
   const [result, setResult] = useState<ArcadeSessionResponse | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
     setResult(null);
     setErrorMessage(null);
-    setSaveState(loading || user?.uid ? 'saving' : 'signed-out');
-  }, [loading, sessionId, user?.uid]);
+    setSaveState(isUserLoading || user?.uid ? 'saving' : 'signed-out');
+  }, [isUserLoading, sessionId, user?.uid]);
 
   useEffect(() => {
-    if (loading || !user?.uid || !completed || saveState !== 'saving') {
+    if (isUserLoading || !user?.uid || !completed || saveState !== 'saving') {
       return;
     }
 
@@ -87,7 +87,7 @@ export function ArcadeSessionStatus({
     return () => {
       cancelled = true;
     };
-  }, [completed, loading, modeId, saveState, score, sessionId, user?.uid]);
+  }, [completed, isUserLoading, modeId, saveState, score, sessionId, user?.uid]);
 
   if (saveState === 'signed-out') {
     return (
