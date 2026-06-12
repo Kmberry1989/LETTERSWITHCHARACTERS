@@ -243,13 +243,7 @@ export function useGameState(gameId: string | null, user: any, game: any, equipp
             setOptimisticBoard(null);
             setPendingTiles(tilesToSubmit);
             setPlayerTiles(previousPlayerTiles);
-<<<<<<< ours
-<<<<<<< ours
             setSelectedPendingTileKey(null);
-=======
->>>>>>> theirs
-=======
->>>>>>> theirs
             setReplenishedTileIndexes([]);
         } finally {
             setIsSubmitting(false);

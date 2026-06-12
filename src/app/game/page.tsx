@@ -274,31 +274,6 @@ function Game() {
               replenishedTileIndexes={replenishedTileIndexes}
             />
           </div>
-
-<<<<<<< ours
-=======
-          <TileRack
-            tiles={playerTiles}
-            selectedTileIndex={selectedTileIndex}
-            isPlayerTurn={isPlayerTurn}
-            isSubmitting={isSubmitting}
-            isExchanging={isExchanging}
-            exchangeSelection={exchangeSelection}
-            onTileSelect={handleTileSelect}
-            onRecall={handleRecallAll}
-            onShuffle={handleShuffle}
-            onPlay={handlePlay}
-            onChatClick={() => setIsChatOpen(true)}
-            onToggleExchange={() => setIsExchanging(!isExchanging)}
-            onDragStart={handleDragStart}
-            onDragEnd={handleDragEnd}
-            onDrop={handleDrop}
-            tileSetId={equippedTileSetId}
-            shuffleTick={shuffleTick}
-            replenishedTileIndexes={replenishedTileIndexes}
-          />
-
->>>>>>> theirs
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <button id="pass-turn-trigger" className="hidden">Pass</button>
