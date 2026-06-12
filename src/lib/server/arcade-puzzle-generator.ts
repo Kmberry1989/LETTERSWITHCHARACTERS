@@ -200,8 +200,17 @@ export function generateWordSearchPuzzle(size = 10, wordCount = 6): WordSearchPu
 
 function getEligibleConnectWords(letterSet: Set<string>, sourceWords: string[]) {
   return sourceWords.filter((word) => {
-    const chars = new Set(word);
-    return chars.size === word.length && Array.from(chars).every((char) => letterSet.has(char));
+    const counts = new Map<string, number>();
+    for (const char of word) {
+      counts.set(char, (counts.get(char) || 0) + 1);
+      if ((counts.get(char) || 0) > 1) {
+        return false;
+      }
+      if (!letterSet.has(char)) {
+        return false;
+      }
+    }
+    return true;
   });
 }
 
@@ -218,16 +227,22 @@ export function generateWordConnectPuzzle(): WordConnectPuzzle {
     if (acceptedWords.length >= 8) {
       return {
         letters: shuffle(anchor.toUpperCase().split('')),
-        acceptedWords: acceptedWords.slice(0, 18).map((word) => word.toUpperCase()),
-        targetCount: 5,
+        acceptedWords: acceptedWords.map((word) => word.toUpperCase()),
+        targetCount: acceptedWords.length,
       };
     }
   }
 
   const fallbackAnchor = randomItem(wordConnectAnchors);
+  const fallbackAcceptedWords = getEligibleConnectWords(new Set(fallbackAnchor), wordConnectWords)
+    .filter((word) => word.length >= 3)
+    .sort((left, right) => right.length - left.length)
+    .map((word) => word.toUpperCase());
+  const normalizedFallbackAcceptedWords =
+    fallbackAcceptedWords.length > 0 ? fallbackAcceptedWords : [fallbackAnchor.toUpperCase()];
   return {
     letters: shuffle(fallbackAnchor.toUpperCase().split('')),
-    acceptedWords: [fallbackAnchor.toUpperCase()],
-    targetCount: 1,
+    acceptedWords: normalizedFallbackAcceptedWords,
+    targetCount: normalizedFallbackAcceptedWords.length,
   };
 }

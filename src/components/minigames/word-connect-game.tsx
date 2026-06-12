@@ -13,6 +13,15 @@ type Puzzle = {
   targetCount: number;
 };
 
+const MIN_WORD_LENGTH = 3;
+
+function buildLetterCounts(letters: string[]) {
+  return letters.reduce<Record<string, number>>((counts, letter) => {
+    counts[letter] = (counts[letter] || 0) + 1;
+    return counts;
+  }, {});
+}
+
 export default function WordConnectGame() {
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null);
   const [path, setPath] = useState<number[]>([]);
@@ -24,6 +33,8 @@ export default function WordConnectGame() {
     () => path.map((index) => puzzle?.letters[index] || '').join(''),
     [path, puzzle],
   );
+  const foundSet = useMemo(() => new Set(foundWords), [foundWords]);
+  const acceptedSet = useMemo(() => new Set(puzzle?.acceptedWords || []), [puzzle]);
   const solved = foundWords.length >= (puzzle?.targetCount || 0);
 
   const loadPuzzle = async () => {
@@ -49,14 +60,30 @@ export default function WordConnectGame() {
     setPath((current) => (current.includes(index) ? current.filter((value) => value !== index) : [...current, index]));
   };
 
+  const clearPath = () => {
+    setPath([]);
+    setStatus('');
+  };
+
   const submitWord = async () => {
     if (!puzzle) return;
-    if (currentWord.length < 3) {
-      setStatus('Use at least 3 letters.');
+    if (currentWord.length < MIN_WORD_LENGTH) {
+      setStatus(`Use at least ${MIN_WORD_LENGTH} letters.`);
       return;
     }
-    if (foundWords.includes(currentWord)) {
+    if (foundSet.has(currentWord)) {
       setStatus('Already banked.');
+      return;
+    }
+
+    const availableCounts = buildLetterCounts(puzzle.letters);
+    const usedCounts = buildLetterCounts(currentWord.split(''));
+    const exceedsLetterSupply = Object.entries(usedCounts).some(
+      ([letter, count]) => count > (availableCounts[letter] || 0),
+    );
+
+    if (exceedsLetterSupply) {
+      setStatus('That word uses letters not available on this wheel.');
       return;
     }
 
@@ -69,18 +96,18 @@ export default function WordConnectGame() {
       const result = await response.json().catch(() => null);
 
       if (!response.ok || !result?.isValid) {
-        setStatus('Not in the playable dictionary.');
+        setStatus(result?.reason || 'Not in the playable dictionary.');
         return;
       }
 
-      if (!puzzle.acceptedWords.includes(currentWord)) {
-        setStatus('This wheel does not support that word.');
+      if (!acceptedSet.has(currentWord)) {
+        setStatus('That word cannot be made from this wheel.');
         return;
       }
 
       setFoundWords((current) => [...current, currentWord]);
       setPath([]);
-      setStatus('Locked in.');
+      setStatus(foundWords.length + 1 >= puzzle.targetCount ? 'Wheel cleared.' : 'Locked in.');
     } catch {
       setStatus('Validation failed.');
     }
@@ -104,6 +131,9 @@ export default function WordConnectGame() {
         <div className="flex flex-wrap gap-2">
           <Badge variant="secondary" className="rounded-full px-3 py-1">
             {foundWords.length} / {puzzle.targetCount}
+          </Badge>
+          <Badge variant="secondary" className="rounded-full px-3 py-1">
+            {puzzle.acceptedWords.length} total words
           </Badge>
           <Button variant="outline" className="rounded-full" onClick={() => void loadPuzzle()}>
             <RefreshCcw className="mr-2 h-4 w-4" />
@@ -138,17 +168,21 @@ export default function WordConnectGame() {
                 </button>
               );
             })}
-            <div className="absolute left-1/2 top-1/2 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-slate-950 text-xs font-black uppercase tracking-[0.2em] text-white shadow-xl">
+            <button
+              type="button"
+              onClick={() => void submitWord()}
+              className="absolute left-1/2 top-1/2 flex h-24 w-24 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-slate-950 text-xs font-black uppercase tracking-[0.2em] text-white shadow-xl transition-transform hover:scale-105 disabled:cursor-not-allowed disabled:opacity-50"
+              disabled={currentWord.length < MIN_WORD_LENGTH}
+            >
               Build
-            </div>
+            </button>
           </div>
         </div>
 
         <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-sm">
           <div className="text-4xl font-black tracking-[0.22em] text-slate-900">{currentWord || '...'}</div>
           <div className="mt-4 flex flex-wrap gap-3">
-            <Button onClick={() => void submitWord()}>Submit</Button>
-            <Button variant="secondary" onClick={() => setPath([])}>
+            <Button variant="secondary" onClick={clearPath}>
               Clear
             </Button>
           </div>
@@ -156,6 +190,7 @@ export default function WordConnectGame() {
         </div>
 
         <div className="rounded-[28px] border border-slate-200 bg-white/80 p-5">
+          <div className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Found words</div>
           <div className="flex flex-wrap gap-2">
             {foundWords.length > 0 ? (
               foundWords.map((word) => (

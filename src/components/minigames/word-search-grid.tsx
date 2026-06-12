@@ -314,7 +314,6 @@ export default function WordSearchGrid() {
                 {puzzle.placements
                   .filter((placement) => foundSet.has(placement.word))
                   .map((placement) => {
-                    const points = placement.cells.map((cell) => getCellCenter(cell, cellSize));
                     const first = getStartEdgePoint(placement.cells[0], placement.cells[1], cellSize);
                     const lastCell = placement.cells[placement.cells.length - 1];
                     const beforeLastCell = placement.cells[placement.cells.length - 2] || lastCell;
@@ -328,13 +327,6 @@ export default function WordSearchGrid() {
                       x: lastCenter.x + (lastDirection.x / magnitude) * cellSize * 0.42,
                       y: lastCenter.y + (lastDirection.y / magnitude) * cellSize * 0.42,
                     };
-                    const width = Math.max(cellSize * placement.cells.length * 0.94, cellSize * 1.6);
-                    const height = cellSize * 0.92;
-                    const center = {
-                      x: (first.x + lineEnd.x) / 2,
-                      y: (first.y + lineEnd.y) / 2,
-                    };
-                    const angle = Math.atan2(lineEnd.y - first.y, lineEnd.x - first.x) * (180 / Math.PI);
 
                     return (
                       <g key={placement.word}>
@@ -344,19 +336,18 @@ export default function WordSearchGrid() {
                           x2={lineEnd.x}
                           y2={lineEnd.y}
                           stroke="#22C55E"
-                          strokeWidth={cellSize * 0.34}
+                          strokeWidth={cellSize * 0.54}
                           strokeLinecap="round"
-                          opacity="0.18"
+                          opacity="0.16"
                         />
-                        <ellipse
-                          cx={center.x}
-                          cy={center.y}
-                          rx={width / 2}
-                          ry={height / 2}
-                          transform={`rotate(${angle} ${center.x} ${center.y})`}
-                          fill="none"
-                          stroke="#22C55E"
-                          strokeWidth="4"
+                        <line
+                          x1={first.x}
+                          y1={first.y}
+                          x2={lineEnd.x}
+                          y2={lineEnd.y}
+                          stroke="#16A34A"
+                          strokeWidth={3}
+                          strokeLinecap="round"
                         />
                       </g>
                     );

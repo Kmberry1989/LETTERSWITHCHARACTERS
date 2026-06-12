@@ -12,7 +12,14 @@ import { ThemedTileFace } from '@/components/game/themed-tile-face';
 function Tile({
   tile,
   isSelected,
+<<<<<<< ours
+<<<<<<< ours
   onPointerDown,
+=======
+=======
+>>>>>>> theirs
+  onClick,
+>>>>>>> theirs
   onDragStart,
   onDragEnd,
   canDrag,
@@ -23,7 +30,14 @@ function Tile({
 }: {
   tile: TileType;
   isSelected: boolean;
+<<<<<<< ours
+<<<<<<< ours
   onPointerDown: () => void;
+=======
+=======
+>>>>>>> theirs
+  onClick: () => void;
+>>>>>>> theirs
   onDragStart: (e: React.DragEvent) => void;
   onDragEnd: () => void;
   canDrag: boolean;
@@ -41,11 +55,24 @@ function Tile({
       exit={{ opacity: 0, y: 18, scale: 0.86 }}
       transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.8 }}
       draggable={canDrag}
+<<<<<<< ours
+<<<<<<< ours
       onPointerDown={onPointerDown}
+=======
+>>>>>>> theirs
+=======
+>>>>>>> theirs
       onDragStartCapture={onDragStart}
       onDragEnd={onDragEnd}
       className={cn(
+<<<<<<< ours
         "relative flex h-[3.25rem] w-[3.25rem] min-[390px]:h-[3.5rem] min-[390px]:w-[3.5rem] sm:h-12 sm:w-12 md:h-14 md:w-14 cursor-pointer select-none items-center justify-center rounded-md border-b-4 border-black/20 bg-[#f8e8c7] shadow-[0_8px_18px_rgba(0,0,0,0.14)] transition-all duration-150 ease-in-out",
+=======
+        "relative flex h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 cursor-pointer select-none items-center justify-center rounded-md border-b-4 border-black/20 bg-[#f8e8c7] shadow-[0_8px_18px_rgba(0,0,0,0.14)] transition-all duration-150 ease-in-out",
+<<<<<<< ours
+>>>>>>> theirs
+=======
+>>>>>>> theirs
         isSelected && !isExchanging && "ring-2 ring-primary ring-offset-2 shadow-lg",
         isExchangeSelected && "ring-2 ring-destructive ring-offset-2 shadow-lg",
         isExchanging && !isExchangeSelected && "opacity-60",
@@ -74,7 +101,15 @@ function EmptySlot({ onDrop, onDragOver }: { onDrop: (e: React.DragEvent) => voi
   return <div
     onDrop={onDrop}
     onDragOver={onDragOver}
+<<<<<<< ours
+<<<<<<< ours
     className="h-[3.25rem] w-[3.25rem] min-[390px]:h-[3.5rem] min-[390px]:w-[3.5rem] sm:h-12 sm:w-12 md:h-14 md:w-14 rounded-md bg-black/10"
+=======
+    className="h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 rounded-md bg-black/10"
+>>>>>>> theirs
+=======
+    className="h-10 w-10 sm:h-12 sm:w-12 md:h-14 md:w-14 rounded-md bg-black/10"
+>>>>>>> theirs
     />;
 }
 

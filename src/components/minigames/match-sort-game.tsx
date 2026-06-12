@@ -24,34 +24,83 @@ const GOODS_LOOKUP: Record<GoodsId, { emoji: string }> = {
   tea: { emoji: '🍵' },
 };
 
-const BASE_LAYOUT: GoodsId[][] = [
-  ['soda', 'juice', 'chips', 'soap'],
-  ['tea', 'cereal', 'juice', 'chips'],
-  ['soap', 'tea', 'cereal', 'soda'],
-  ['chips', 'soap', 'tea', 'juice'],
-  ['cereal', 'soda', 'chips', 'tea'],
-  [],
-  [],
-];
+const GOODS_ORDER: GoodsId[] = ['soda', 'cereal', 'chips', 'soap', 'juice', 'tea'];
+const SHELF_CAPACITY = 4;
+const EMPTY_SHELVES = 2;
+const SCRAMBLE_MOVES = 72;
 
-function buildShelves() {
-  return BASE_LAYOUT.map((shelf, shelfIndex) =>
-    shelf.map((kind, itemIndex) => ({
-      id: `${kind}-${shelfIndex}-${itemIndex}-${Math.random().toString(36).slice(2, 7)}`,
-      kind,
-      emoji: GOODS_LOOKUP[kind].emoji,
-    }))
+function createItem(kind: GoodsId, shelfIndex: number, itemIndex: number): GoodsItem {
+  return {
+    id: `${kind}-${shelfIndex}-${itemIndex}-${Math.random().toString(36).slice(2, 7)}`,
+    kind,
+    emoji: GOODS_LOOKUP[kind].emoji,
+  };
+}
+
+function buildSolvedShelves() {
+  const groupedShelves = GOODS_ORDER.map((kind, shelfIndex) =>
+    Array.from({ length: SHELF_CAPACITY }, (_, itemIndex) => createItem(kind, shelfIndex, itemIndex)),
   );
+  return [...groupedShelves, ...Array.from({ length: EMPTY_SHELVES }, () => [])];
 }
 
 function isShelfComplete(shelf: Shelf) {
-  return shelf.length === 4 && shelf.every((item) => item.kind === shelf[0]?.kind);
+  return shelf.length === SHELF_CAPACITY && shelf.every((item) => item.kind === shelf[0]?.kind);
 }
 
 function canMoveItem(item: GoodsItem, destination: Shelf) {
-  if (destination.length >= 4) return false;
+  if (destination.length >= SHELF_CAPACITY) return false;
   if (destination.length === 0) return true;
   return destination[destination.length - 1].kind === item.kind && !isShelfComplete(destination);
+}
+
+function listLegalMoves(shelves: Shelf[]) {
+  const moves: Array<{ from: number; to: number }> = [];
+
+  shelves.forEach((source, fromIndex) => {
+    const movingItem = source[source.length - 1];
+    if (!movingItem || isShelfComplete(source)) {
+      return;
+    }
+
+    shelves.forEach((destination, toIndex) => {
+      if (fromIndex === toIndex) return;
+      if (canMoveItem(movingItem, destination)) {
+        moves.push({ from: fromIndex, to: toIndex });
+      }
+    });
+  });
+
+  return moves;
+}
+
+function applyMove(shelves: Shelf[], from: number, to: number) {
+  const next = shelves.map((entry) => [...entry]);
+  const movingItem = next[from].pop();
+  if (!movingItem) {
+    return next;
+  }
+  next[to].push(movingItem);
+  return next;
+}
+
+function randomItem<T>(items: T[]) {
+  return items[Math.floor(Math.random() * items.length)];
+}
+
+function buildShelves() {
+  let shelves = buildSolvedShelves();
+
+  for (let moveIndex = 0; moveIndex < SCRAMBLE_MOVES; moveIndex += 1) {
+    const legalMoves = listLegalMoves(shelves);
+    if (legalMoves.length === 0) {
+      break;
+    }
+    const move = randomItem(legalMoves);
+    shelves = applyMove(shelves, move.from, move.to);
+  }
+
+  return shelves;
 }
 
 export default function MatchSortGame() {
@@ -59,7 +108,7 @@ export default function MatchSortGame() {
   const [selectedShelfIndex, setSelectedShelfIndex] = useState<number | null>(null);
 
   const completedShelves = useMemo(() => shelves.filter(isShelfComplete).length, [shelves]);
-  const solved = completedShelves >= 5;
+  const solved = completedShelves >= GOODS_ORDER.length;
 
   const handleShelfClick = (shelfIndex: number) => {
     const shelf = shelves[shelfIndex];
@@ -77,19 +126,21 @@ export default function MatchSortGame() {
 
     const source = shelves[selectedShelfIndex];
     const movingItem = source[source.length - 1];
-    if (!movingItem) return;
-
-    if (!canMoveItem(movingItem, shelf)) {
-      setSelectedShelfIndex(shelfIndex);
+    if (!movingItem) {
+      setSelectedShelfIndex(null);
       return;
     }
 
-    setShelves((current) => {
-      const next = current.map((entry) => [...entry]);
-      next[selectedShelfIndex].pop();
-      next[shelfIndex].push(movingItem);
-      return next;
-    });
+    if (!canMoveItem(movingItem, shelf)) {
+      if (shelf.length === 0 || isShelfComplete(shelf)) {
+        setSelectedShelfIndex(null);
+      } else {
+        setSelectedShelfIndex(shelfIndex);
+      }
+      return;
+    }
+
+    setShelves((current) => applyMove(current, selectedShelfIndex, shelfIndex));
     setSelectedShelfIndex(null);
   };
 
@@ -133,11 +184,11 @@ export default function MatchSortGame() {
               <div className="mb-4 flex items-center justify-between">
                 <div className="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Shelf {shelfIndex + 1}</div>
                 <Badge variant={complete ? 'default' : 'outline'} className="rounded-full px-3 py-1">
-                  {shelf.length}/4
+                  {shelf.length}/{SHELF_CAPACITY}
                 </Badge>
               </div>
               <div className="flex min-h-[220px] items-end gap-2 rounded-[24px] bg-[linear-gradient(180deg,rgba(248,250,252,0.85),rgba(241,245,249,0.96))] p-3">
-                {Array.from({ length: 4 }).map((_, slot) => {
+                {Array.from({ length: SHELF_CAPACITY }).map((_, slot) => {
                   const item = shelf[slot];
                   return (
                     <div
