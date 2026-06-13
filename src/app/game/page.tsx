@@ -11,6 +11,7 @@ import TileRack from '@/components/game/tile-rack';
 import Scoreboard from '@/components/game/scoreboard';
 import { useDoc, useMemoFirebase } from '@/firebase';
 import { doc } from '@/lib/client/document-client';
+import type { UserProfile } from '@/firebase/firestore/use-users';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -47,8 +48,12 @@ function Game() {
   const gameDocRef = useMemoFirebase(() => {
     return gameId ? doc(null, 'games', gameId) : null;
   }, [gameId]);
+  const userDocRef = useMemoFirebase(() => {
+    return user ? doc(null, 'users', user.uid) : null;
+  }, [user]);
 
   const { data: game, isLoading: gameLoading } = useDoc<any>(gameDocRef);
+  const { data: userProfile } = useDoc<UserProfile>(userDocRef);
 
   const {
     board,
@@ -103,8 +108,9 @@ function Game() {
         ])
       )
     : {};
-  const selectedBoardThemeId = user?.boardThemeId || 'board-green';
-  const selectedBoardTintId = user?.boardTintId || null;
+  const selectedBoardThemeId = userProfile?.boardThemeId || user?.boardThemeId || 'board-green';
+  const selectedBoardTintId = userProfile?.boardTintId || user?.boardTintId || null;
+  const selectedBoardColor = userProfile?.boardColor || user?.boardColor || null;
 
   useEffect(() => {
     if (!gameId || !game || !isBotGame || game.status !== 'active') {
@@ -237,7 +243,7 @@ function Game() {
 
           <div className="w-full max-w-[860px] self-center">
             <BoardStage>
-              <BoardChrome boardThemeId={selectedBoardThemeId} boardTintId={selectedBoardTintId}>
+              <BoardChrome boardThemeId={selectedBoardThemeId} boardTintId={selectedBoardTintId} boardColor={selectedBoardColor}>
                 <GameBoard
                   placedTiles={board}
                   pendingTiles={pendingTiles}

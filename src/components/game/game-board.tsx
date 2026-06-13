@@ -37,7 +37,7 @@ function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; c
     <div
       className={cn(
         'relative flex aspect-square select-none items-center justify-center overflow-hidden rounded-sm text-center leading-none',
-        'border border-[#d1c6b4] bg-[#d8cebc] text-white/30',
+        '[border-color:var(--board-cell-border)] [background:var(--board-cell-base)] [color:var(--board-cell-label)] border',
         'transition-transform duration-150',
         classMap[type],
         canInteract && !children && 'cursor-pointer hover:scale-[1.02] hover:z-10',
@@ -154,7 +154,7 @@ const GameBoard = ({
 
   return (
     <div className="w-full aspect-square max-w-full">
-      <div className="grid grid-cols-15 gap-px rounded-[0.45rem] bg-[#b8a68b]/75 p-0.5 shadow-inner min-[420px]:gap-0.5 sm:gap-1 sm:rounded-[0.9rem] sm:p-2">
+      <div className="grid grid-cols-15 gap-px rounded-[0.45rem] [background:var(--board-grid-bg)] p-0.5 shadow-inner min-[420px]:gap-0.5 sm:gap-1 sm:rounded-[0.9rem] sm:p-2">
         {boardLayout.map((row, rowIndex) =>
           row.map((cellType, colIndex) => {
             const tileKey = `${rowIndex}-${colIndex}`;

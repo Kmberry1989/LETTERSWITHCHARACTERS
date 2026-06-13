@@ -11,6 +11,7 @@ import {
 import { DEFAULT_PLAYER_STATS } from '@/lib/player-stats';
 import { DEFAULT_NOTIFICATION_PREFERENCES } from '@/lib/notifications';
 import { DEFAULT_RETENTION_STATE } from '@/lib/retention';
+import { getDefaultBoardTintId, resolveBoardColor } from '@/lib/board-skins';
 
 export type AppUser = {
   uid: string;
@@ -27,6 +28,7 @@ export type AppUser = {
   onboardingCompletedAt?: string | null;
   boardThemeId?: string | null;
   boardTintId?: string | null;
+  boardColor?: string | null;
   getIdToken?: () => Promise<string>;
   experience?: number;
   level?: number;
@@ -111,6 +113,7 @@ export async function getUserByToken(token?: string | null): Promise<AppUser | n
     onboardingCompletedAt: profile.onboardingCompletedAt || null,
     boardThemeId: profile.boardThemeId || 'board-green',
     boardTintId: profile.boardTintId || getDefaultBoardTintId(profile.boardThemeId || 'board-green'),
+    boardColor: resolveBoardColor(profile.boardThemeId || 'board-green', profile.boardColor || null, profile.boardTintId || null),
     berries: typeof profile.berries === 'number' ? profile.berries : STARTER_BERRIES,
     experience: typeof profile.experience === 'number' ? profile.experience : 0,
     level: getLevelForExperience(typeof profile.experience === 'number' ? profile.experience : 0),
@@ -164,6 +167,7 @@ export async function upsertUserProfile(user: AppUser) {
       level: getLevelForExperience(typeof existing?.experience === 'number' ? existing.experience : 0),
       boardThemeId: existing?.boardThemeId ?? 'board-green',
       boardTintId: existing?.boardTintId ?? getDefaultBoardTintId(existing?.boardThemeId ?? 'board-green'),
+      boardColor: resolveBoardColor(existing?.boardThemeId ?? 'board-green', existing?.boardColor ?? null, existing?.boardTintId ?? null),
       themeId: existing?.themeId ?? 'default',
       gameIds: existing?.gameIds ?? [],
       notificationPreferences: existing?.notificationPreferences ?? DEFAULT_NOTIFICATION_PREFERENCES,
@@ -190,4 +194,3 @@ export function makeUser(overrides: Partial<AppUser> & Pick<AppUser, 'uid'>): Ap
     onboardingCompletedAt: overrides.onboardingCompletedAt ?? null,
   };
 }
-import { getDefaultBoardTintId } from '@/lib/board-skins';
