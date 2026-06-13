@@ -45,7 +45,7 @@ function Tile({
       onDragStartCapture={onDragStart}
       onDragEnd={onDragEnd}
       className={cn(
-        "relative flex h-[3.25rem] w-[3.25rem] min-[390px]:h-[3.5rem] min-[390px]:w-[3.5rem] sm:h-12 sm:w-12 md:h-14 md:w-14 cursor-pointer select-none items-center justify-center rounded-md border-b-4 border-black/20 bg-[#f8e8c7] shadow-[0_8px_18px_rgba(0,0,0,0.14)] transition-all duration-150 ease-in-out",
+        "relative flex aspect-square w-full min-w-0 max-w-14 cursor-pointer select-none items-center justify-center rounded-md border-b-4 border-black/20 bg-[#f8e8c7] shadow-[0_8px_18px_rgba(0,0,0,0.14)] transition-all duration-150 ease-in-out",
         isSelected && !isExchanging && "ring-2 ring-primary ring-offset-2 shadow-lg",
         isExchangeSelected && "ring-2 ring-destructive ring-offset-2 shadow-lg",
         isExchanging && !isExchangeSelected && "opacity-60",
@@ -74,7 +74,7 @@ function EmptySlot({ onDrop, onDragOver }: { onDrop: (e: React.DragEvent) => voi
   return <div
     onDrop={onDrop}
     onDragOver={onDragOver}
-    className="h-[3.25rem] w-[3.25rem] min-[390px]:h-[3.5rem] min-[390px]:w-[3.5rem] sm:h-12 sm:w-12 md:h-14 md:w-14 rounded-md bg-black/10"
+    className="aspect-square w-full min-w-0 max-w-14 rounded-md bg-black/10"
     />;
 }
 
@@ -131,7 +131,7 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
   };
 
   return (
-    <Card className="bg-[#c4a27a] border-2 border-[#a07e56] shadow-sm">
+    <Card className="overflow-hidden bg-[#c4a27a] border-2 border-[#a07e56] shadow-sm">
       <CardContent className="p-2 sm:p-4">
         <div className="flex flex-col items-center gap-2 sm:gap-4">
             <motion.div
@@ -139,13 +139,14 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
               initial={shuffleTick > 0 ? { opacity: 0.88, y: -8 } : false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
-              className="flex items-center justify-center gap-1 overflow-x-auto px-1 sm:gap-2"
+              className="grid w-full grid-cols-7 items-center justify-center gap-1 px-1 sm:gap-2"
             >
               <AnimatePresence initial={false}>
               {tiles.map((tile, i) => (
                 <motion.div
                   layout
                   key={getTileRenderKey(tile, i)}
+                  className="min-w-0"
                   onDrop={(e) => { e.preventDefault(); onDrop(i); }}
                   onDragOver={handleDragOver}
                 >
