@@ -24,19 +24,13 @@ function BerryDisplay() {
 export function AppHeader() {
   return (
     <div className="sticky top-0 z-30 flex h-[4.25rem] w-full shrink-0 items-center justify-between border-b border-white/70 bg-[#f6faef]/[.78] px-3 backdrop-blur-xl sm:px-4">
-      <div className="flex items-center gap-2">
+      <div className="flex min-w-0 items-center gap-2">
         <SidebarTrigger className="h-10 w-10 rounded-2xl border border-white/70 bg-white/60 shadow-[inset_0_1px_0_rgba(255,255,255,.8),0_8px_18px_rgba(35,50,80,.08)] md:h-9 md:w-9" />
-        <div className="flex items-center gap-2 md:hidden">
-          <div className="relative h-10 w-10 overflow-hidden rounded-2xl bg-white shadow-sm ring-2 ring-emerald-500/10">
-            <Image src="/interface/logo.png" alt="Letters with Characters" fill className="object-cover" />
-          </div>
-          <div className="leading-tight">
-            <h1 className="text-base font-black tracking-tight font-headline">LWC</h1>
-            <p className="text-[0.65rem] font-black uppercase tracking-[0.18em] text-slate-400">Word Arcade</p>
-          </div>
+        <div className="relative block h-10 w-[min(42vw,9.5rem)] min-w-0 overflow-hidden rounded-2xl border border-white/70 bg-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,.85),0_8px_18px_rgba(35,50,80,.08)] md:hidden">
+          <Image src="/interface/header.png" alt="Letters with Characters" fill className="object-cover" priority />
         </div>
       </div>
-      <div className="flex items-center gap-2 sm:gap-3">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
         <BerryDisplay />
         <UserNav />
       </div>

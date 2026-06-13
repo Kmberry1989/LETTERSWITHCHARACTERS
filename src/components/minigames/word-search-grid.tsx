@@ -37,6 +37,8 @@ type ResolutionState = {
   success: boolean;
 };
 
+const BOARD_VIEWBOX_SIZE = 100;
+
 function cellKey(cell: Cell) {
   return `${cell.row}-${cell.col}`;
 }
@@ -123,6 +125,13 @@ function getSelectionFromPointer(
   return traceCells(start, { row, col }, size);
 }
 
+function getRelativePoint(event: PointerEvent | React.PointerEvent, rect: DOMRect) {
+  return {
+    x: ((event.clientX - rect.left) / rect.width) * BOARD_VIEWBOX_SIZE,
+    y: ((event.clientY - rect.top) / rect.height) * BOARD_VIEWBOX_SIZE,
+  };
+}
+
 export default function WordSearchGrid() {
   const boardRef = useRef<HTMLDivElement | null>(null);
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null);
@@ -174,10 +183,7 @@ export default function WordSearchGrid() {
         current
           ? {
               ...current,
-              currentPoint: {
-                x: event.clientX - rect.left,
-                y: event.clientY - rect.top,
-              },
+              currentPoint: getRelativePoint(event, rect),
               direction: traced.direction,
               cells: traced.cells,
             }
@@ -227,10 +233,7 @@ export default function WordSearchGrid() {
     setResolution(null);
     setDrag({
       start: cell,
-      currentPoint: {
-        x: event.clientX - rect.left,
-        y: event.clientY - rect.top,
-      },
+      currentPoint: getRelativePoint(event, rect),
       direction: null,
       cells: [cell],
     });
@@ -242,13 +245,12 @@ export default function WordSearchGrid() {
         <CardHeader>
           <CardTitle>Word Search</CardTitle>
         </CardHeader>
-        <CardContent className="h-[420px] animate-pulse rounded-[28px] bg-slate-100" />
+        <CardContent className="h-[320px] animate-pulse rounded-[28px] bg-slate-100 sm:h-[420px]" />
       </Card>
     );
   }
 
-  const boardSize = 420;
-  const cellSize = boardSize / puzzle.size;
+  const cellSize = BOARD_VIEWBOX_SIZE / puzzle.size;
   const allFound = foundWords.length === puzzle.words.length;
   const activePoints = drag?.cells.map((cell) => getCellCenter(cell, cellSize)) || [];
   const startPoint = drag
@@ -257,9 +259,9 @@ export default function WordSearchGrid() {
 
   return (
     <Card className="overflow-hidden border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(239,246,255,0.94))] shadow-[0_20px_55px_rgba(14,165,233,0.08)]">
-      <CardHeader className="flex flex-row items-center justify-between gap-3">
+      <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <CardTitle className="font-headline text-3xl">Word Search</CardTitle>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary" className="rounded-full px-3 py-1">
             {foundWords.length}/{puzzle.words.length}
           </Badge>
@@ -269,15 +271,14 @@ export default function WordSearchGrid() {
           </Button>
         </div>
       </CardHeader>
-      <CardContent className="grid gap-6 lg:grid-cols-[auto,220px]">
-        <div className="mx-auto">
+      <CardContent className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr),220px]">
+        <div className="mx-auto w-full max-w-[27rem] min-w-0">
           <div
             ref={boardRef}
-            className="relative overflow-hidden rounded-[28px] border border-sky-100 bg-white p-3 shadow-inner"
-            style={{ width: boardSize + 24 }}
+            className="relative w-full overflow-hidden rounded-[28px] border border-sky-100 bg-white p-2 shadow-inner sm:p-3"
           >
             <div
-              className="relative grid gap-1 rounded-[20px] bg-sky-50/70 p-1"
+              className="relative grid gap-[2px] rounded-[20px] bg-sky-50/70 p-[2px] min-[360px]:gap-1 min-[360px]:p-1"
               style={{ gridTemplateColumns: `repeat(${puzzle.size}, minmax(0, 1fr))` }}
             >
               {puzzle.grid.map((row, rowIndex) =>
@@ -296,7 +297,7 @@ export default function WordSearchGrid() {
                       type="button"
                       onPointerDown={(event) => handlePointerDown({ row: rowIndex, col: colIndex }, event)}
                       className={cn(
-                        'relative z-10 flex aspect-square h-10 w-10 select-none items-center justify-center rounded-2xl border text-base font-black tracking-[0.08em] transition-all',
+                        'relative z-10 flex aspect-square w-full select-none items-center justify-center rounded-xl border text-[0.7rem] font-black tracking-[0.08em] transition-all min-[360px]:rounded-2xl min-[360px]:text-sm sm:text-base',
                         isActive
                           ? 'border-sky-300 bg-sky-100 text-slate-950'
                           : isFound
@@ -311,7 +312,7 @@ export default function WordSearchGrid() {
               )}
               <svg
                 className="pointer-events-none absolute inset-1 z-20"
-                viewBox={`0 0 ${boardSize} ${boardSize}`}
+                viewBox={`0 0 ${BOARD_VIEWBOX_SIZE} ${BOARD_VIEWBOX_SIZE}`}
                 preserveAspectRatio="none"
               >
                 {puzzle.placements
@@ -400,7 +401,7 @@ export default function WordSearchGrid() {
             <div
               key={word}
               className={cn(
-                'rounded-2xl border px-4 py-3 text-sm font-black tracking-[0.18em]',
+                'rounded-2xl border px-3 py-3 text-center text-xs font-black tracking-[0.18em] min-[360px]:px-4 min-[360px]:text-sm lg:text-left',
                 foundSet.has(word)
                   ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
                   : 'border-slate-200 bg-white/75 text-slate-600'

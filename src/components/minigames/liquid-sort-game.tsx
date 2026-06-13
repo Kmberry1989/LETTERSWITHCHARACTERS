@@ -7,13 +7,15 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { createArcadeSessionId } from '@/lib/arcade/session-id';
+import { cn } from '@/lib/utils';
 
 type TubeColor = 'rose' | 'sky' | 'amber' | 'emerald';
 type Tube = TubeColor[];
 type DragState = {
   sourceIndex: number;
-  pointerX: number;
-  pointerY: number;
+  startX: number;
+  startY: number;
+  moved: boolean;
 };
 type PourState = {
   sourceIndex: number;
@@ -39,12 +41,7 @@ const COLOR_MAP: Record<TubeColor, { liquid: string; glow: string }> = {
   emerald: { liquid: 'linear-gradient(180deg,#34d399 0%,#14b8a6 100%)', glow: 'rgba(52, 211, 153, 0.25)' },
 };
 
-const TUBE_POSITIONS = [22, 142, 262, 382, 502, 622];
-const TUBE_WIDTH = 92;
-const TUBE_HEIGHT = 250;
 const SLOT_HEIGHT = 44;
-const STAGE_WIDTH = 736;
-const STAGE_HEIGHT = 360;
 
 function cloneTubes(tubes: Tube[]) {
   return tubes.map((tube) => [...tube]);
@@ -97,12 +94,22 @@ function getDisplayTubes(tubes: Tube[], pourState: PourState | null) {
   });
 }
 
+function findTubeIndexAtPoint(tubeRefs: Array<HTMLButtonElement | null>, x: number, y: number, sourceIndex: number) {
+  return tubeRefs.findIndex((tube, index) => {
+    if (!tube || index === sourceIndex) return false;
+    const rect = tube.getBoundingClientRect();
+    return x >= rect.left && x <= rect.right && y >= rect.top && y <= rect.bottom;
+  });
+}
+
 export default function LiquidSortGame() {
-  const stageRef = useRef<HTMLDivElement | null>(null);
+  const tubeRefs = useRef<Array<HTMLButtonElement | null>>([]);
   const dragRef = useRef<DragState | null>(null);
+  const suppressClickRef = useRef(false);
   const [tubes, setTubes] = useState<Tube[]>(cloneTubes(INITIAL_TUBES));
   const [moves, setMoves] = useState(0);
   const [dragState, setDragState] = useState<DragState | null>(null);
+  const [selectedSource, setSelectedSource] = useState<number | null>(null);
   const [hoverTarget, setHoverTarget] = useState<number | null>(null);
   const [pourState, setPourState] = useState<PourState | null>(null);
   const [sessionId, setSessionId] = useState(() => createArcadeSessionId());
@@ -110,31 +117,35 @@ export default function LiquidSortGame() {
   const displayTubes = useMemo(() => getDisplayTubes(tubes, pourState), [tubes, pourState]);
   const solved = useMemo(() => isSolved(tubes), [tubes]);
 
+  const queuePour = (sourceIndex: number, targetIndex: number) => {
+    const source = tubes[sourceIndex];
+    const target = tubes[targetIndex];
+    const amount = getPourAmount(source, target);
+    if (!amount) return false;
+
+    setPourState({
+      sourceIndex,
+      targetIndex,
+      color: source[source.length - 1],
+      amount,
+      progress: 0,
+    });
+    return true;
+  };
+
   useEffect(() => {
     if (!dragState) return;
 
     const handlePointerMove = (event: PointerEvent) => {
-      const rect = stageRef.current?.getBoundingClientRect();
-      if (!rect) return;
-
-      const next = {
-        sourceIndex: dragState.sourceIndex,
-        pointerX: event.clientX - rect.left,
-        pointerY: event.clientY - rect.top,
-      };
-
+      const current = dragRef.current;
+      if (!current) return;
+      const moved = current.moved || Math.hypot(event.clientX - current.startX, event.clientY - current.startY) > 8;
+      const next = { ...current, moved };
       dragRef.current = next;
       setDragState(next);
+      if (!moved) return;
 
-      const nextTarget = TUBE_POSITIONS.findIndex((left, index) => {
-        if (index === dragState.sourceIndex) return false;
-        return (
-          next.pointerX >= left &&
-          next.pointerX <= left + TUBE_WIDTH &&
-          next.pointerY >= 40 &&
-          next.pointerY <= 320
-        );
-      });
+      const nextTarget = findTubeIndexAtPoint(tubeRefs.current, event.clientX, event.clientY, current.sourceIndex);
       setHoverTarget(nextTarget === -1 ? null : nextTarget);
     };
 
@@ -142,25 +153,21 @@ export default function LiquidSortGame() {
       const current = dragRef.current;
       dragRef.current = null;
       setDragState(null);
-      const targetIndex = hoverTarget;
-      setHoverTarget(null);
 
-      if (!current || targetIndex === null || targetIndex === current.sourceIndex) {
+      if (!current) {
+        setHoverTarget(null);
         return;
       }
 
-      const source = tubes[current.sourceIndex];
-      const target = tubes[targetIndex];
-      const amount = getPourAmount(source, target);
-      if (!amount) return;
+      if (current.moved) {
+        suppressClickRef.current = true;
+        if (hoverTarget !== null) {
+          queuePour(current.sourceIndex, hoverTarget);
+          setSelectedSource(null);
+        }
+      }
 
-      setPourState({
-        sourceIndex: current.sourceIndex,
-        targetIndex,
-        color: source[source.length - 1],
-        amount,
-        progress: 0,
-      });
+      setHoverTarget(null);
     };
 
     window.addEventListener('pointermove', handlePointerMove);
@@ -179,7 +186,7 @@ export default function LiquidSortGame() {
     let frame = 0;
 
     const animate = (time: number) => {
-      const progress = Math.min(1, (time - startedAt) / 760);
+      const progress = Math.min(1, (time - startedAt) / 560);
       setPourState((current) => (current ? { ...current, progress } : current));
 
       if (progress < 1) {
@@ -206,33 +213,63 @@ export default function LiquidSortGame() {
     setTubes(cloneTubes(INITIAL_TUBES));
     setMoves(0);
     dragRef.current = null;
+    suppressClickRef.current = false;
     setDragState(null);
+    setSelectedSource(null);
     setHoverTarget(null);
     setPourState(null);
     setSessionId(createArcadeSessionId());
   };
 
-  const startDrag = (index: number, event: React.PointerEvent<HTMLDivElement>) => {
+  const startDrag = (index: number, event: React.PointerEvent<HTMLButtonElement>) => {
     if (pourState || tubes[index].length === 0) return;
-    const rect = stageRef.current?.getBoundingClientRect();
-    if (!rect) return;
 
     const next = {
       sourceIndex: index,
-      pointerX: event.clientX - rect.left,
-      pointerY: event.clientY - rect.top,
+      startX: event.clientX,
+      startY: event.clientY,
+      moved: false,
     };
     dragRef.current = next;
     setDragState(next);
   };
 
+  const handleTubeClick = (index: number) => {
+    if (suppressClickRef.current) {
+      suppressClickRef.current = false;
+      return;
+    }
+    if (pourState) return;
+
+    if (selectedSource === null) {
+      if (tubes[index].length === 0) return;
+      setSelectedSource(index);
+      return;
+    }
+
+    if (selectedSource === index) {
+      setSelectedSource(null);
+      return;
+    }
+
+    if (queuePour(selectedSource, index)) {
+      setSelectedSource(null);
+      return;
+    }
+
+    setSelectedSource(tubes[index].length > 0 ? index : null);
+  };
+
   return (
     <Card className="overflow-hidden border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(232,244,255,0.96))] shadow-[0_24px_70px_rgba(14,116,144,0.14)]">
-      <CardHeader className="flex flex-row items-center justify-between gap-4">
+      <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <CardTitle className="font-headline text-3xl">Liquid Sort</CardTitle>
         <div className="flex flex-wrap items-center gap-2">
           <Badge variant="secondary" className="rounded-full px-3 py-1">
             Moves {moves}
+          </Badge>
+          <Badge variant="secondary" className="rounded-full px-3 py-1">
+            Tap or drag tubes
           </Badge>
           <Button variant="outline" className="rounded-full" onClick={reset}>
             <RotateCcw className="mr-2 h-4 w-4" />
@@ -241,49 +278,37 @@ export default function LiquidSortGame() {
           {solved ? <ArcadeSessionStatus sessionId={sessionId} modeId="liquid-sort" score={Math.max(80, 180 - moves * 8)} /> : null}
         </div>
       </CardHeader>
-      <CardContent>
-        <div
-          ref={stageRef}
-          className="relative mx-auto overflow-hidden rounded-[40px] border border-white/80 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.96),rgba(219,235,248,0.92))] shadow-inner"
-          style={{ width: STAGE_WIDTH, height: STAGE_HEIGHT }}
-        >
-          {displayTubes.map((tube, index) => {
-            const baseLeft = TUBE_POSITIONS[index];
-            const isDragging = dragState?.sourceIndex === index;
-            const isPouring = pourState?.sourceIndex === index;
-            const progress = pourState?.progress || 0;
-            const dragLeft = dragState ? dragState.pointerX - TUBE_WIDTH / 2 : baseLeft;
-            const dragTop = dragState ? Math.max(18, dragState.pointerY - TUBE_HEIGHT / 2) : 70;
-            const targetLeft = pourState ? TUBE_POSITIONS[pourState.targetIndex] - 18 : baseLeft;
-            const left = isDragging ? dragLeft : isPouring ? baseLeft + (targetLeft - baseLeft) * Math.min(progress, 0.78) : baseLeft;
-            const top = isDragging ? dragTop : isPouring ? 70 - Math.sin(progress * Math.PI) * 54 : 70;
-            const rotate = isDragging ? -8 : isPouring ? -30 * Math.sin(Math.min(progress, 0.9) * Math.PI) : 0;
-            const isTarget = hoverTarget === index || pourState?.targetIndex === index;
+      <CardContent className="space-y-4">
+        <div className="rounded-[32px] border border-white/80 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.96),rgba(219,235,248,0.92))] p-3 shadow-inner sm:p-4">
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-6 sm:gap-4">
+            {displayTubes.map((tube, index) => {
+              const isDragging = dragState?.sourceIndex === index && dragState.moved;
+              const isSelected = selectedSource === index;
+              const isTarget = hoverTarget === index;
+              const isPouringTarget = pourState?.targetIndex === index;
 
-            return (
-              <div
-                key={index}
-                className="absolute"
-                style={{
-                  left,
-                  top,
-                  width: TUBE_WIDTH,
-                  height: TUBE_HEIGHT,
-                  transform: `rotate(${rotate}deg) scale(${isTarget ? 1.02 : 1})`,
-                  transition: isDragging ? 'none' : 'transform 200ms ease, left 220ms ease, top 220ms ease',
-                  zIndex: isDragging || isPouring ? 30 : 10,
-                }}
-              >
-                <div className="pointer-events-none absolute left-1/2 top-[-12px] z-20 -translate-x-1/2 rounded-full bg-white/88 px-2 py-1 text-[0.62rem] font-black uppercase tracking-[0.18em] text-slate-500">
-                  {index + 1}
-                </div>
-                <div
+              return (
+                <button
+                  key={index}
+                  ref={(node) => {
+                    tubeRefs.current[index] = node;
+                  }}
+                  type="button"
                   onPointerDown={(event) => startDrag(index, event)}
-                  className="relative h-full w-full overflow-hidden rounded-[34px] border-[5px] border-white/85 bg-white/55 shadow-[0_20px_40px_rgba(15,23,42,0.12)]"
-                  style={{ cursor: pourState ? 'default' : 'grab', touchAction: 'none' }}
+                  onClick={() => handleTubeClick(index)}
+                  className={cn(
+                    'relative h-[12rem] overflow-visible rounded-[2rem] border-[4px] border-white/85 bg-white/55 px-2 pb-4 pt-5 shadow-[0_20px_40px_rgba(15,23,42,0.12)] transition-all min-[360px]:h-[13rem] sm:h-[15.5rem]',
+                    (isSelected || isDragging) && 'scale-[1.02] ring-4 ring-sky-100',
+                    isTarget && 'ring-4 ring-emerald-100',
+                    isPouringTarget && 'ring-4 ring-sky-100'
+                  )}
+                  style={{ touchAction: 'none' }}
                 >
-                  <div className="absolute inset-[9px] rounded-[28px] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.18),rgba(255,255,255,0.06))]" />
-                  <div className="absolute inset-x-[15px] top-[16px] h-[12px] rounded-full bg-white/55" />
+                  <div className="pointer-events-none absolute left-1/2 top-[-12px] z-20 -translate-x-1/2 rounded-full bg-white/88 px-2 py-1 text-[0.62rem] font-black uppercase tracking-[0.18em] text-slate-500">
+                    {index + 1}
+                  </div>
+                  <div className="absolute inset-[8px] rounded-[1.55rem] border border-slate-200/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.18),rgba(255,255,255,0.06))]" />
+                  <div className="absolute inset-x-[14px] top-[16px] h-[10px] rounded-full bg-white/55" />
 
                   {tube.map((segment, segmentIndex) => {
                     const color = COLOR_MAP[segment.color];
@@ -310,36 +335,21 @@ export default function LiquidSortGame() {
                             background: 'linear-gradient(180deg,rgba(255,255,255,0.45),rgba(255,255,255,0))',
                             borderTopLeftRadius: 18,
                             borderTopRightRadius: 18,
-                            transform: `translateY(${isTopSegment && pourState ? Math.sin(progress * Math.PI * 2) * 1.6 : 0}px)`,
+                            transform: `translateY(${isTopSegment && pourState ? Math.sin(pourState.progress * Math.PI * 2) * 1.6 : 0}px)`,
                           }}
                         />
                       </div>
                     );
                   })}
 
-                  <div className="pointer-events-none absolute left-[22px] top-[20px] bottom-[22px] w-[10px] rounded-full bg-white/35 blur-[1px]" />
-                </div>
-              </div>
-            );
-          })}
-
-          {pourState ? (
-            <div
-              className="pointer-events-none absolute z-20 origin-left rounded-full"
-              style={{
-                left: TUBE_POSITIONS[pourState.sourceIndex] + 62,
-                top: 84,
-                width:
-                  Math.abs(TUBE_POSITIONS[pourState.targetIndex] - TUBE_POSITIONS[pourState.sourceIndex]) + 22,
-                height: 10,
-                background: COLOR_MAP[pourState.color].liquid,
-                boxShadow: `0 8px 20px ${COLOR_MAP[pourState.color].glow}`,
-                transform: `rotate(${TUBE_POSITIONS[pourState.targetIndex] > TUBE_POSITIONS[pourState.sourceIndex] ? 14 : -14}deg) scaleX(${Math.max(0.15, pourState.progress)})`,
-                opacity: Math.min(1, pourState.progress * 1.4),
-                transition: 'transform 40ms linear, opacity 40ms linear',
-              }}
-            />
-          ) : null}
+                  <div className="pointer-events-none absolute left-[22px] top-[18px] bottom-[22px] w-[8px] rounded-full bg-white/35 blur-[1px]" />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+        <div className="text-center text-sm font-medium text-slate-600">
+          {selectedSource !== null ? `Tube ${selectedSource + 1} selected. Choose a destination tube.` : 'Keep each color in its own tube.'}
         </div>
       </CardContent>
     </Card>

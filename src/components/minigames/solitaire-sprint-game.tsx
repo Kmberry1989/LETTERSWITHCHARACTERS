@@ -140,7 +140,7 @@ function CardFace({
   return (
     <motion.div
       layout
-      className={`h-28 w-20 rounded-2xl border px-3 py-2 shadow-sm ${
+      className={`h-[3.9rem] w-[2.6rem] rounded-xl border px-1.5 py-1.5 shadow-sm min-[360px]:h-[4.4rem] min-[360px]:w-[2.9rem] sm:h-28 sm:w-20 sm:rounded-2xl sm:px-3 sm:py-2 ${
         card.faceUp
           ? `bg-white ${active ? 'border-amber-400 ring-4 ring-amber-200' : 'border-slate-200'}`
           : 'border-slate-300 bg-[linear-gradient(135deg,#1e293b,#334155)]'
@@ -148,13 +148,13 @@ function CardFace({
     >
       {card.faceUp ? (
         <div className={`flex h-full flex-col justify-between ${red ? 'text-rose-600' : 'text-slate-900'}`}>
-          <div className="text-lg font-black leading-none">{rankLabel(card.rank)}</div>
-          <div className="self-center text-3xl">{suitSymbol(card.suit)}</div>
-          <div className="self-end text-lg font-black leading-none">{rankLabel(card.rank)}</div>
+          <div className="text-[0.62rem] font-black leading-none min-[360px]:text-xs sm:text-lg">{rankLabel(card.rank)}</div>
+          <div className="self-center text-base min-[360px]:text-lg sm:text-3xl">{suitSymbol(card.suit)}</div>
+          <div className="self-end text-[0.62rem] font-black leading-none min-[360px]:text-xs sm:text-lg">{rankLabel(card.rank)}</div>
         </div>
       ) : (
-        <div className="flex h-full items-center justify-center rounded-xl border border-white/10 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),rgba(255,255,255,0.02))] text-sm font-black uppercase tracking-[0.2em] text-slate-200">
-          LWC
+        <div className="flex h-full items-center justify-center rounded-[0.7rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),rgba(255,255,255,0.02))] text-[0.52rem] font-black uppercase tracking-[0.16em] text-slate-200 min-[360px]:text-[0.6rem] sm:rounded-xl sm:text-sm sm:tracking-[0.2em]">
+          Deck
         </div>
       )}
     </motion.div>
@@ -331,16 +331,16 @@ export default function SolitaireSprintGame() {
         <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
           <div className="rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-sm">
             <div className="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Stock, Waste, Foundations</div>
-            <div className="mt-4 flex flex-wrap gap-4">
+            <div className="mt-4 flex flex-wrap gap-2 min-[360px]:gap-3 sm:gap-4">
               <button
                 type="button"
                 onClick={drawFromStock}
-                className="flex h-28 w-20 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-slate-100 text-xs font-black uppercase tracking-[0.18em] text-slate-700"
+                className="flex h-[3.9rem] w-[2.6rem] items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-100 text-[0.55rem] font-black uppercase tracking-[0.14em] text-slate-700 min-[360px]:h-[4.4rem] min-[360px]:w-[2.9rem] min-[360px]:text-[0.62rem] sm:h-28 sm:w-20 sm:rounded-2xl sm:text-xs sm:tracking-[0.18em]"
               >
                 {stockCount > 0 ? 'Draw' : 'Recycle'}
               </button>
 
-              <button type="button" onClick={handleWasteClick} className="relative h-28 w-20">
+              <button type="button" onClick={handleWasteClick} className="relative h-[3.9rem] w-[2.6rem] min-[360px]:h-[4.4rem] min-[360px]:w-[2.9rem] sm:h-28 sm:w-20">
                 <AnimatePresence initial={false}>
                   {game.waste.length > 0 ? (
                     <CardFace card={game.waste[game.waste.length - 1]} active={selection?.kind === 'waste'} />
@@ -348,7 +348,7 @@ export default function SolitaireSprintGame() {
                     <motion.div
                       initial={{ opacity: 0.4 }}
                       animate={{ opacity: 1 }}
-                      className="flex h-28 w-20 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white text-xs font-semibold text-slate-400"
+                      className="flex h-[3.9rem] w-[2.6rem] items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white text-[0.55rem] font-semibold text-slate-400 min-[360px]:h-[4.4rem] min-[360px]:w-[2.9rem] min-[360px]:text-[0.62rem] sm:h-28 sm:w-20 sm:rounded-2xl sm:text-xs"
                     >
                       Waste
                     </motion.div>
@@ -359,14 +359,19 @@ export default function SolitaireSprintGame() {
               {SUITS.map((suit) => {
                 const topCard = game.foundations[suit][game.foundations[suit].length - 1];
                 return (
-                  <button key={suit} type="button" onClick={() => handleFoundationClick(suit)} className="h-28 w-20">
+                  <button
+                    key={suit}
+                    type="button"
+                    onClick={() => handleFoundationClick(suit)}
+                    className="h-[3.9rem] w-[2.6rem] min-[360px]:h-[4.4rem] min-[360px]:w-[2.9rem] sm:h-28 sm:w-20"
+                  >
                     {topCard ? (
                       <CardFace
                         card={{ ...topCard, faceUp: true }}
                         active={selection?.kind === 'foundation' && selection.suit === suit}
                       />
                     ) : (
-                      <div className="flex h-28 w-20 items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white text-3xl text-slate-300">
+                      <div className="flex h-[3.9rem] w-[2.6rem] items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white text-lg text-slate-300 min-[360px]:h-[4.4rem] min-[360px]:w-[2.9rem] min-[360px]:text-xl sm:h-28 sm:w-20 sm:rounded-2xl sm:text-3xl">
                         {suitSymbol(suit)}
                       </div>
                     )}
@@ -378,24 +383,24 @@ export default function SolitaireSprintGame() {
 
           <div className="rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-sm">
             <div className="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Tableau</div>
-            <div className="mt-4 grid grid-cols-7 gap-3">
+            <div className="mt-4 grid grid-cols-7 gap-1 min-[360px]:gap-1.5 sm:gap-3">
               {game.tableau.map((column, columnIndex) => (
                 <button
                   key={columnIndex}
                   type="button"
                   onClick={() => handleTableauClick(columnIndex)}
-                  className="relative min-h-[360px] rounded-[22px] border border-dashed border-slate-200 bg-slate-50/60 p-2 text-left"
+                  className="relative min-h-[240px] rounded-[16px] border border-dashed border-slate-200 bg-slate-50/60 p-1 text-left min-[360px]:min-h-[280px] sm:min-h-[360px] sm:rounded-[22px] sm:p-2"
                 >
                   {column.length === 0 ? (
-                    <div className="flex h-28 items-center justify-center rounded-2xl border border-dashed border-slate-200 text-xs font-black uppercase tracking-[0.18em] text-slate-300">
+                    <div className="flex h-[3.9rem] items-center justify-center rounded-xl border border-dashed border-slate-200 text-[0.55rem] font-black uppercase tracking-[0.14em] text-slate-300 min-[360px]:h-[4.4rem] min-[360px]:text-[0.62rem] sm:h-28 sm:rounded-2xl sm:text-xs sm:tracking-[0.18em]">
                       Empty
                     </div>
                   ) : (
                     column.map((card, cardIndex) => (
                       <div
                         key={card.id}
-                        className="absolute left-2"
-                        style={{ top: `${cardIndex * 28 + 8}px` }}
+                        className="absolute left-1 min-[360px]:left-1.5 sm:left-2"
+                        style={{ top: `calc(0.35rem + ${cardIndex} * clamp(1rem, 2.8vw, 1.75rem))` }}
                         onClick={(event) => {
                           event.stopPropagation();
                           handleTableauClick(columnIndex, cardIndex);

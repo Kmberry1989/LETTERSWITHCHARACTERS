@@ -62,6 +62,7 @@ export default function WheelGame() {
     () => uniqueLetters(round.phrase, true).filter((letter) => !guessedLetters.includes(letter)),
     [guessedLetters, round.phrase],
   );
+  const phraseRows = useMemo(() => round.phrase.split(' '), [round.phrase]);
   const phraseLetters = useMemo(() => new Set(uniqueLetters(round.phrase)), [round.phrase]);
   const canSpin = !solved && consonantsLeft.length > 0;
   const wheelRotation = spinIndex === null ? 0 : 1080 + spinIndex * (360 / WHEEL_VALUES.length);
@@ -158,10 +159,10 @@ export default function WheelGame() {
         </div>
       </CardHeader>
       <CardContent className="space-y-6">
-        <div className="grid gap-6 xl:grid-cols-[360px,1fr]">
+        <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,20rem),minmax(0,1fr)]">
           <div className="rounded-[32px] border border-white/70 bg-white/90 p-6">
             <div className="mb-5 flex justify-center">
-              <div className="relative h-[280px] w-[280px]">
+              <div className="relative aspect-square w-full max-w-[17.5rem]">
                 <div className="absolute left-1/2 top-0 z-20 h-0 w-0 -translate-x-1/2 border-l-[18px] border-r-[18px] border-t-0 border-b-[26px] border-l-transparent border-r-transparent border-b-slate-950" />
                 <svg
                   viewBox="0 0 280 280"
@@ -206,24 +207,28 @@ export default function WheelGame() {
             </div>
           </div>
 
-          <div className="rounded-[32px] border border-white/70 bg-white/90 p-6">
+          <div className="min-w-0 rounded-[32px] border border-white/70 bg-white/90 p-5 sm:p-6">
             <div className="mb-4 flex justify-center">
-              <div className="grid gap-2" style={{ gridTemplateColumns: 'repeat(14, minmax(0, 1fr))' }}>
-                {Array.from(round.phrase).map((char, index) => {
-                  const revealed = char === ' ' || guessedLetters.includes(char) || solved;
-                  return (
-                    <div
-                      key={`${char}-${index}`}
-                      className="flex h-12 w-10 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-lg font-black text-slate-900"
-                    >
-                      {revealed ? char : ''}
-                    </div>
-                  );
-                })}
+              <div className="flex min-w-0 flex-col items-center gap-2">
+                {phraseRows.map((row, rowIndex) => (
+                  <div key={`${row}-${rowIndex}`} className="flex flex-wrap justify-center gap-1.5 min-[360px]:gap-2">
+                    {Array.from(row).map((char, index) => {
+                      const revealed = guessedLetters.includes(char) || solved;
+                      return (
+                        <div
+                          key={`${row}-${char}-${index}`}
+                          className="flex h-10 w-8 items-center justify-center rounded-xl border border-slate-200 bg-slate-50 text-base font-black text-slate-900 min-[360px]:h-12 min-[360px]:w-9 min-[360px]:text-lg sm:h-14 sm:w-10"
+                        >
+                          {revealed ? char : ''}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ))}
               </div>
             </div>
 
-            <div className="grid gap-2 sm:grid-cols-4 lg:grid-cols-6">
+            <div className="grid grid-cols-5 gap-2 min-[360px]:grid-cols-6 sm:grid-cols-7 lg:grid-cols-6 xl:grid-cols-7">
               {ALPHABET.map((letter) => {
                 const isVowel = VOWELS.has(letter);
                 const guessed = guessedLetters.includes(letter);
@@ -247,14 +252,16 @@ export default function WheelGame() {
               })}
             </div>
 
-            <div className="mt-5 flex flex-wrap gap-3">
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row">
               <input
                 value={guess}
                 onChange={(event) => setGuess(event.target.value.toUpperCase())}
-                className="min-w-[260px] flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black tracking-[0.16em] text-slate-900 outline-none"
+                className="min-w-0 flex-1 rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm font-black tracking-[0.16em] text-slate-900 outline-none"
                 placeholder="SOLVE THE PHRASE"
               />
-              <Button onClick={solve}>Solve</Button>
+              <Button onClick={solve} className="sm:self-auto">
+                Solve
+              </Button>
             </div>
             <div className="mt-4 text-sm font-medium text-slate-600">{status}</div>
           </div>

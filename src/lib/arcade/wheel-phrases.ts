@@ -4,12 +4,12 @@ export type WheelPhrase = {
 };
 
 export const WHEEL_PHRASES: WheelPhrase[] = [
-  { category: 'Phrase', phrase: 'TAKE YOUR TIME' },
-  { category: 'Thing', phrase: 'GOLDEN TICKET' },
-  { category: 'Event', phrase: 'MIDNIGHT PARADE' },
-  { category: 'Place', phrase: 'OCEAN BOARDWALK' },
-  { category: 'Phrase', phrase: 'BETTER LUCK NEXT TIME' },
-  { category: 'Thing', phrase: 'SECRET HANDSHAKE' },
-  { category: 'Event', phrase: 'SUMMER BLOCK PARTY' },
-  { category: 'Place', phrase: 'CITY ROOFTOP GARDEN' },
+  { category: 'Phrase', phrase: 'GOOD JOB' },
+  { category: 'Thing', phrase: 'GOLD STAR' },
+  { category: 'Event', phrase: 'LUCKY DAY' },
+  { category: 'Place', phrase: 'PARK BENCH' },
+  { category: 'Phrase', phrase: 'NICE TRY' },
+  { category: 'Thing', phrase: 'OPEN BOOK' },
+  { category: 'Place', phrase: 'TRAIN STOP' },
+  { category: 'Phrase', phrase: 'FRESH AIR' },
 ];
