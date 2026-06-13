@@ -21,20 +21,23 @@ export default function AppLayout({ children }: AppLayoutProps) {
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon" className="border-r border-white/70 bg-transparent">
-        <SidebarHeader className="border-b border-white/60 p-3">
-          <div className="glass-panel overflow-hidden rounded-[1.65rem] p-2 group-data-[collapsible=icon]:hidden">
+        <SidebarHeader className="hidden" />
+        <SidebarContent className="relative px-2 py-3">
+          <div className="absolute inset-2 hidden overflow-hidden rounded-[1.8rem] group-data-[collapsible=icon]:hidden md:block">
             <Image
               src="/interface/sidebar.png"
-              alt="Letters with Characters"
-              width={782}
-              height={1774}
-              className="h-auto w-full rounded-[1.15rem] object-cover"
+              alt=""
+              fill
+              className="object-cover"
+              sizes="20rem"
               priority
             />
           </div>
-        </SidebarHeader>
-        <SidebarContent className="px-2 py-3">
-          <MainNav />
+          <div className="relative z-10 flex min-h-full items-center justify-center px-3 py-4 group-data-[collapsible=icon]:px-0">
+            <div className="w-full max-w-[12.75rem] group-data-[collapsible=icon]:max-w-none">
+              <MainNav />
+            </div>
+          </div>
         </SidebarContent>
       </Sidebar>
       <SidebarInset className="min-w-0 bg-transparent">

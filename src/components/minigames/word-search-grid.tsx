@@ -297,7 +297,7 @@ export default function WordSearchGrid() {
                       type="button"
                       onPointerDown={(event) => handlePointerDown({ row: rowIndex, col: colIndex }, event)}
                       className={cn(
-                        'relative z-10 flex aspect-square w-full select-none items-center justify-center rounded-xl border text-[0.7rem] font-black tracking-[0.08em] transition-all min-[360px]:rounded-2xl min-[360px]:text-sm sm:text-base',
+                        'relative z-10 flex aspect-square w-full select-none items-center justify-center rounded-[0.55rem] border text-[0.62rem] font-black leading-none tracking-[0.04em] transition-all min-[360px]:rounded-[0.8rem] min-[360px]:text-[0.78rem] sm:rounded-[1rem] sm:text-base',
                         isActive
                           ? 'border-sky-300 bg-sky-100 text-slate-950'
                           : isFound
