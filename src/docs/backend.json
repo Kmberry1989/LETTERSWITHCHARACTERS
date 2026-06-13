@@ -35,7 +35,11 @@
         },
         "boardTintId": {
           "type": "string",
-          "description": "The ID of the user's selected board tint overlay preset."
+          "description": "Legacy board tint preset ID used for migration fallback."
+        },
+        "boardColor": {
+          "type": "string",
+          "description": "The user's custom board accent color stored as a normalized hex value."
         },
         "notificationPreferences": {
           "type": "object",

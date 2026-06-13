@@ -30,6 +30,7 @@ export interface UserProfile {
   level?: number;
   boardThemeId?: string;
   boardTintId?: string;
+  boardColor?: string | null;
   themeId?: string;
   gameIds?: string[];
   notificationPreferences?: NotificationPreferences;

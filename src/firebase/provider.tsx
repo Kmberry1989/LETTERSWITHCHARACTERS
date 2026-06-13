@@ -2,6 +2,7 @@
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { firebaseConfig } from '@/firebase/config';
+import { resolveBoardColor } from '@/lib/board-skins';
 
 const FIREBASE_CLIENT_APP_NAME = 'letters-with-characters-client';
 
@@ -19,6 +20,7 @@ export type AppUser = {
   onboardingCompletedAt?: string | null;
   boardThemeId?: string | null;
   boardTintId?: string | null;
+  boardColor?: string | null;
   token?: string;
   getIdToken: () => Promise<string>;
 };
@@ -92,6 +94,7 @@ function withTokenGetter(user: any): AppUser | null {
     onboardingCompletedAt: user.onboardingCompletedAt ?? null,
     boardThemeId: user.boardThemeId ?? 'board-green',
     boardTintId: user.boardTintId ?? null,
+    boardColor: resolveBoardColor(user.boardThemeId ?? 'board-green', user.boardColor ?? null, user.boardTintId ?? null),
     token: user.token,
     getIdToken: async () => {
       if (user.token) return user.token;

@@ -156,18 +156,43 @@
   }
 
   .board-cell-dl {
-    @apply bg-gradient-to-br from-sky-200 via-cyan-300 to-sky-500 text-sky-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_2px_8px_rgba(15,23,42,0.12)] ring-1 ring-sky-700/35;
+    background: var(--board-cell-dl-bg);
+    color: var(--board-cell-dl-text);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.65),
+      0 2px 8px rgba(15, 23, 42, 0.12),
+      0 0 0 1px var(--board-cell-dl-ring);
   }
   .board-cell-tl {
-    @apply bg-gradient-to-br from-emerald-200 via-green-300 to-emerald-500 text-emerald-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.65),0_2px_8px_rgba(15,23,42,0.12)] ring-1 ring-emerald-800/35;
+    background: var(--board-cell-tl-bg);
+    color: var(--board-cell-tl-text);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.65),
+      0 2px 8px rgba(15, 23, 42, 0.12),
+      0 0 0 1px var(--board-cell-tl-ring);
   }
   .board-cell-dw {
-    @apply bg-gradient-to-br from-rose-200 via-pink-300 to-rose-500 text-rose-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_2px_8px_rgba(15,23,42,0.14)] ring-1 ring-rose-800/35;
+    background: var(--board-cell-dw-bg);
+    color: var(--board-cell-dw-text);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.7),
+      0 2px 8px rgba(15, 23, 42, 0.14),
+      0 0 0 1px var(--board-cell-dw-ring);
   }
   .board-cell-tw {
-    @apply bg-gradient-to-br from-orange-300 via-red-400 to-rose-600 text-rose-50 shadow-[inset_0_1px_0_rgba(255,255,255,0.55),0_2px_10px_rgba(15,23,42,0.18)] ring-2 ring-orange-950/25;
+    background: var(--board-cell-tw-bg);
+    color: var(--board-cell-tw-text);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.55),
+      0 2px 10px rgba(15, 23, 42, 0.18),
+      0 0 0 2px var(--board-cell-tw-ring);
   }
   .board-cell-start {
-    @apply bg-gradient-to-br from-amber-300 via-yellow-400 to-orange-500 text-amber-950 shadow-[inset_0_1px_0_rgba(255,255,255,0.75),0_2px_10px_rgba(15,23,42,0.18)] ring-2 ring-amber-950/35;
+    background: var(--board-cell-start-bg);
+    color: var(--board-cell-start-text);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.75),
+      0 2px 10px rgba(15, 23, 42, 0.18),
+      0 0 0 2px var(--board-cell-start-ring);
   }
 }
