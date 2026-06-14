@@ -260,7 +260,6 @@ export default function WordSearchGrid() {
     <GameScreen>
       <div className="flex min-h-0 flex-1 flex-col gap-2 rounded-[1.4rem] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(239,246,255,0.94))] p-2 shadow-[0_20px_55px_rgba(14,165,233,0.08)] md:gap-4 md:p-5">
         <div className="ml-11 flex min-h-10 items-center justify-end gap-2 md:ml-0 md:justify-between">
-          <h1 className="hidden font-headline text-3xl font-black md:block">Word Search</h1>
           <Badge variant="secondary" className="rounded-full px-3 py-1">
             {foundWords.length}/{puzzle.words.length}
           </Badge>

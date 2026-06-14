@@ -121,7 +121,6 @@ export default function LiquidSortGame() {
     <GameScreen>
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden rounded-[1.4rem] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(232,244,255,0.96))] p-2 shadow-[0_24px_70px_rgba(14,116,144,0.14)] md:gap-4 md:p-5">
         <div className="ml-11 flex min-h-10 items-center justify-end gap-2 md:ml-0 md:justify-between">
-          <h1 className="hidden font-headline text-3xl font-black md:block">Liquid Sort</h1>
           <Badge variant="secondary" className="rounded-full px-3 py-1">
             {moves}
           </Badge>

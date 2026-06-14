@@ -132,7 +132,6 @@ export default function WordConnectGame() {
     <GameScreen>
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden rounded-[1.4rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(254,242,242,0.92))] p-2 shadow-[0_20px_60px_rgba(251,113,133,0.12)] md:gap-5 md:p-5">
         <div className="ml-11 flex min-h-10 items-center justify-end gap-2 md:ml-0 md:justify-between">
-          <h1 className="hidden font-headline text-3xl font-black md:block">Word Connect</h1>
           <Badge variant="secondary" className="rounded-full px-3 py-1">
             {foundWords.length} / {puzzle.targetCount}
           </Badge>

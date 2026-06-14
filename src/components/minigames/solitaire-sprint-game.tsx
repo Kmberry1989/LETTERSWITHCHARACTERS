@@ -323,7 +323,6 @@ export default function SolitaireSprintGame() {
     <GameScreen>
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden rounded-[1.4rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(241,245,249,0.94))] p-2 shadow-[0_24px_70px_rgba(15,23,42,0.1)] md:gap-4 md:p-5">
         <div className="ml-11 flex min-h-10 items-center justify-end gap-2 md:ml-0 md:justify-between">
-          <h1 className="hidden font-headline text-3xl font-black md:block">Solitaire Sprint</h1>
           <Badge variant="secondary" className="rounded-full px-3 py-1">
             {stockCount}
           </Badge>

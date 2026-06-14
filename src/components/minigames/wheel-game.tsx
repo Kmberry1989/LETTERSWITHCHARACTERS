@@ -233,7 +233,6 @@ export default function WheelGame() {
     <GameScreen>
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden rounded-[1.4rem] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(236,253,245,0.94))] p-2 shadow-[0_20px_60px_rgba(22,163,74,0.1)] md:gap-4 md:p-5">
         <div className="ml-11 flex min-h-10 items-center justify-end gap-2 md:ml-0 md:justify-between">
-          <h1 className="hidden font-headline text-3xl font-black md:block">Wheel Duel</h1>
           <Badge variant="secondary" className="rounded-full px-3 py-1">{duelMode ? `P${activePlayer + 1}` : round.category}</Badge>
           <Badge variant="outline" className="rounded-full px-3 py-1">{duelMode ? `${scores[0]}-${scores[1]}` : bank}</Badge>
           <Button variant="outline" size="icon" className="rounded-full" onClick={() => setDuelMode((value) => !value)} aria-label="Toggle duel">

@@ -16,11 +16,11 @@ type GoodsItem = {
   emoji: string;
 };
 
-const CATEGORIES: Record<GoodsId, { label: string; emoji: string; items: string[] }> = {
-  drinks: { label: 'Drinks', emoji: '🥤', items: ['🥤', '🧃', '🧋'] },
-  snacks: { label: 'Snacks', emoji: '🍿', items: ['🍿', '🍟', '🥨'] },
-  clean: { label: 'Clean', emoji: '🧼', items: ['🧼', '🧽', '🧴'] },
-  breakfast: { label: 'Morning', emoji: '🥣', items: ['🥣', '🍞', '🍵'] },
+const CATEGORIES: Record<GoodsId, { label: string; emoji: string }> = {
+  drinks: { label: 'Drinks', emoji: '🥤' },
+  snacks: { label: 'Snacks', emoji: '🍿' },
+  clean: { label: 'Clean', emoji: '🧼' },
+  breakfast: { label: 'Morning', emoji: '🥣' },
 };
 
 const ORDER: GoodsId[] = ['drinks', 'snacks', 'clean', 'breakfast'];
@@ -50,28 +50,28 @@ export default function MatchSortGame() {
   const [tray, setTray] = useState<GoodsItem[]>(START_ITEMS);
   const [bins, setBins] = useState<Record<GoodsId, GoodsItem[]>>(() => createBins());
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
-  const [message, setMessage] = useState('Tap an item, then its shelf.');
+  const [message, setMessage] = useState('');
   const [sessionId, setSessionId] = useState(() => createArcadeSessionId());
 
   const sortedCount = useMemo(() => ORDER.reduce((sum, kind) => sum + bins[kind].length, 0), [bins]);
-  const solved = sortedCount === START_ITEMS.length;
+  const solved = tray.length === 0 && ORDER.every((kind) => bins[kind].length === 3);
   const selectedItem = tray.find((item) => item.id === selectedItemId) || null;
 
   const reset = () => {
     setTray(START_ITEMS);
     setBins(createBins());
     setSelectedItemId(null);
-    setMessage('Tap an item, then its shelf.');
+    setMessage('');
     setSessionId(createArcadeSessionId());
   };
 
   const placeInBin = (kind: GoodsId) => {
     if (!selectedItem) {
-      setMessage('Choose an item first.');
+      setMessage('Pick item');
       return;
     }
     if (selectedItem.kind !== kind) {
-      setMessage(`${selectedItem.emoji} belongs somewhere else.`);
+      setMessage('Wrong shelf');
       return;
     }
 
@@ -81,14 +81,13 @@ export default function MatchSortGame() {
       [kind]: [...current[kind], selectedItem],
     }));
     setSelectedItemId(null);
-    setMessage('Good sort.');
+    setMessage('');
   };
 
   return (
     <GameScreen>
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden rounded-[1.4rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(254,252,232,0.94))] p-2 shadow-[0_24px_70px_rgba(161,98,7,0.1)] md:gap-4 md:p-5">
         <div className="ml-11 flex min-h-10 items-center justify-end gap-2 md:ml-0 md:justify-between">
-          <h1 className="hidden font-headline text-3xl font-black md:block">Goods Sort</h1>
           <Badge variant="secondary" className="rounded-full px-3 py-1">
             {sortedCount}/{START_ITEMS.length}
           </Badge>
@@ -134,7 +133,7 @@ export default function MatchSortGame() {
           </div>
 
           <div className="rounded-[1.2rem] border border-amber-100 bg-white/90 p-2">
-            <div className="mb-1 text-center text-xs font-bold text-slate-600">{solved ? 'All shelves stocked.' : message}</div>
+            {message ? <div className="mb-1 text-center text-xs font-bold text-slate-600">{message}</div> : null}
             <div className="grid grid-cols-6 gap-1.5 md:grid-cols-12">
               {tray.map((item) => (
                 <button
@@ -142,7 +141,7 @@ export default function MatchSortGame() {
                   type="button"
                   onClick={() => {
                     setSelectedItemId((current) => (current === item.id ? null : item.id));
-                    setMessage(`${item.emoji} selected.`);
+                    setMessage('');
                   }}
                   className={cn(
                     'flex aspect-square items-center justify-center rounded-xl border bg-white text-2xl shadow-sm transition-all md:text-3xl',
