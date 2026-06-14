@@ -12,7 +12,7 @@ export default function BoardStage({ children }: { children: React.ReactNode }) 
   const containerRef = useRef<HTMLDivElement | null>(null);
   const touchStateRef = useRef<{ startDistance: number; startScale: number } | null>(null);
   const panStateRef = useRef<{ x: number; y: number } | null>(null);
-  const [scale, setScale] = useState(1.08);
+  const [scale, setScale] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
 
   const zoomed = scale > 1.01;
@@ -85,7 +85,7 @@ export default function BoardStage({ children }: { children: React.ReactNode }) 
       </div>
       <div
         ref={containerRef}
-        className="relative overflow-hidden rounded-[1.75rem] border border-white/70 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.9),rgba(255,241,224,0.94))] p-3 shadow-[0_24px_60px_rgba(15,23,42,0.1)] touch-none"
+        className="relative overflow-hidden rounded-[1.75rem] border border-white/70 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.9),rgba(255,241,224,0.94))] p-2 shadow-[0_24px_60px_rgba(15,23,42,0.1)] touch-none sm:p-3"
         onWheel={onWheel}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}

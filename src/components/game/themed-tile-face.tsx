@@ -42,7 +42,7 @@ export function ThemedTileFace({
       whileHover={{ scale: interactive ? 1.04 : 1 }}
       whileTap={{ scale: interactive ? 0.97 : 1 }}
       className={cn(
-        'relative flex h-full w-full items-center justify-center overflow-hidden rounded-[inherit]',
+        'relative flex h-full w-full items-center justify-center overflow-hidden rounded-[inherit] [container-type:inline-size]',
         className
       )}
       style={{
@@ -69,14 +69,14 @@ export function ThemedTileFace({
       />
       <div className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-black/10" />
       <span
-        className={cn('relative text-xl font-black sm:text-2xl md:text-3xl', accentTextClass)}
+        className={cn('relative text-[clamp(0.68rem,58cqw,1.875rem)] font-black leading-none', accentTextClass)}
         style={{ textShadow: textOutline }}
       >
         {isQuestionMark ? '?' : letter}
       </span>
       {showScore ? (
         <span
-          className={cn('absolute bottom-0.5 right-1 text-[0.6rem] font-bold sm:text-xs', primaryTextClass)}
+          className={cn('absolute bottom-[8%] right-[10%] text-[clamp(0.38rem,23cqw,0.75rem)] font-bold leading-none', primaryTextClass)}
           style={{ textShadow: textOutline }}
         >
           {score}
