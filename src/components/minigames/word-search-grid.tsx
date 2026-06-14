@@ -3,8 +3,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { RefreshCcw } from 'lucide-react';
+import { GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { createArcadeSessionId } from '@/lib/arcade/session-id';
@@ -176,6 +176,7 @@ export default function WordSearchGrid() {
     if (!drag || !puzzle) return;
 
     const handlePointerMove = (event: PointerEvent) => {
+      event.preventDefault();
       const rect = boardRef.current?.getBoundingClientRect();
       if (!rect) return;
       const traced = getSelectionFromPointer(event, rect, puzzle.size, drag.start);
@@ -216,7 +217,7 @@ export default function WordSearchGrid() {
       window.setTimeout(() => setResolution(null), 520);
     };
 
-    window.addEventListener('pointermove', handlePointerMove);
+    window.addEventListener('pointermove', handlePointerMove, { passive: false });
     window.addEventListener('pointerup', handlePointerUp, { once: true });
     return () => {
       window.removeEventListener('pointermove', handlePointerMove);
@@ -230,6 +231,7 @@ export default function WordSearchGrid() {
     if (!rect) return;
 
     event.preventDefault();
+    event.currentTarget.setPointerCapture(event.pointerId);
     setResolution(null);
     setDrag({
       start: cell,
@@ -241,12 +243,9 @@ export default function WordSearchGrid() {
 
   if (loading || !puzzle) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Word Search</CardTitle>
-        </CardHeader>
-        <CardContent className="h-[320px] animate-pulse rounded-[28px] bg-slate-100 sm:h-[420px]" />
-      </Card>
+      <GameScreen>
+        <div className="mt-12 h-full animate-pulse rounded-[28px] bg-white/80 md:mt-0" />
+      </GameScreen>
     );
   }
 
@@ -258,27 +257,28 @@ export default function WordSearchGrid() {
     : null;
 
   return (
-    <Card className="overflow-hidden border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(239,246,255,0.94))] shadow-[0_20px_55px_rgba(14,165,233,0.08)]">
-      <CardHeader className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <CardTitle className="font-headline text-3xl">Word Search</CardTitle>
-        <div className="flex flex-wrap items-center gap-2">
+    <GameScreen>
+      <div className="flex min-h-0 flex-1 flex-col gap-2 rounded-[1.4rem] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(239,246,255,0.94))] p-2 shadow-[0_20px_55px_rgba(14,165,233,0.08)] md:gap-4 md:p-5">
+        <div className="ml-11 flex min-h-10 items-center justify-end gap-2 md:ml-0 md:justify-between">
+          <h1 className="hidden font-headline text-3xl font-black md:block">Word Search</h1>
           <Badge variant="secondary" className="rounded-full px-3 py-1">
             {foundWords.length}/{puzzle.words.length}
           </Badge>
-          <Button variant="outline" className="rounded-full" onClick={() => void loadPuzzle()}>
-            <RefreshCcw className="mr-2 h-4 w-4" />
-            New Grid
+          <Button variant="outline" size="icon" className="rounded-full md:w-auto md:px-4" onClick={() => void loadPuzzle()} aria-label="New grid">
+            <RefreshCcw className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">New Grid</span>
           </Button>
+          {allFound ? <ArcadeSessionStatus sessionId={sessionId} modeId="word-search" score={80} /> : null}
         </div>
-      </CardHeader>
-      <CardContent className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr),220px]">
-        <div className="mx-auto w-full max-w-[27rem] min-w-0">
+        <div className="grid min-h-0 flex-1 min-w-0 grid-rows-[auto_1fr] content-start gap-2 md:grid-cols-[minmax(0,1fr),220px] md:grid-rows-1 md:gap-6">
+        <div className="mx-auto flex min-h-0 w-full max-w-[min(100%,calc(100svh-7rem))] min-w-0 items-start md:max-w-[27rem]">
           <div
             ref={boardRef}
-            className="relative w-full overflow-hidden rounded-[28px] border border-sky-100 bg-white p-2 shadow-inner sm:p-3"
+            className="relative w-full touch-none overflow-hidden rounded-[1rem] border border-sky-100 bg-white p-1.5 shadow-inner md:rounded-[28px] md:p-3"
+            style={{ touchAction: 'none' }}
           >
             <div
-              className="relative grid gap-[2px] rounded-[20px] bg-sky-50/70 p-[2px] min-[360px]:gap-1 min-[360px]:p-1"
+              className="relative grid gap-[2px] rounded-[0.8rem] bg-sky-50/70 p-[2px] md:rounded-[20px] md:p-1"
               style={{ gridTemplateColumns: `repeat(${puzzle.size}, minmax(0, 1fr))` }}
             >
               {puzzle.grid.map((row, rowIndex) =>
@@ -297,7 +297,7 @@ export default function WordSearchGrid() {
                       type="button"
                       onPointerDown={(event) => handlePointerDown({ row: rowIndex, col: colIndex }, event)}
                       className={cn(
-                        'relative z-10 flex aspect-square w-full select-none items-center justify-center rounded-[0.55rem] border text-[0.62rem] font-black leading-none tracking-[0.04em] transition-all min-[360px]:rounded-[0.8rem] min-[360px]:text-[0.78rem] sm:rounded-[1rem] sm:text-base',
+                        'relative z-10 flex aspect-square w-full touch-none select-none items-center justify-center rounded-[0.32rem] border text-[clamp(0.72rem,3.8vw,1rem)] font-black leading-none tracking-[0.02em] transition-all md:rounded-[0.8rem] md:text-base',
                         isActive
                           ? 'border-sky-300 bg-sky-100 text-slate-950'
                           : isFound
@@ -396,12 +396,13 @@ export default function WordSearchGrid() {
           </div>
         </div>
 
-        <div className="space-y-3">
+        <div className="min-h-0 self-start">
+          <div className="grid grid-cols-5 gap-1 md:grid-cols-1 md:gap-3">
           {puzzle.words.map((word) => (
             <div
               key={word}
               className={cn(
-                'rounded-2xl border px-3 py-3 text-center text-xs font-black tracking-[0.18em] min-[360px]:px-4 min-[360px]:text-sm lg:text-left',
+                'rounded-xl border px-2 py-2 text-center text-[0.62rem] font-black tracking-[0.12em] md:rounded-2xl md:px-4 md:py-3 md:text-sm md:tracking-[0.18em] lg:text-left',
                 foundSet.has(word)
                   ? 'border-emerald-200 bg-emerald-50 text-emerald-700'
                   : 'border-slate-200 bg-white/75 text-slate-600'
@@ -410,16 +411,15 @@ export default function WordSearchGrid() {
               {word}
             </div>
           ))}
+          </div>
           {allFound ? (
-            <>
-              <div className="rounded-3xl border border-emerald-200 bg-emerald-50 px-4 py-5 text-center font-black tracking-[0.18em] text-emerald-700">
+            <div className="mt-2 rounded-3xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-center text-xs font-black tracking-[0.18em] text-emerald-700 md:py-5 md:text-base">
                 GRID CLEARED
-              </div>
-              <ArcadeSessionStatus sessionId={sessionId} modeId="word-search" score={80} />
-            </>
+            </div>
           ) : null}
         </div>
-      </CardContent>
-    </Card>
+        </div>
+      </div>
+    </GameScreen>
   );
 }

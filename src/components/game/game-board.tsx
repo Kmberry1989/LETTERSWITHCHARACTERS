@@ -36,11 +36,11 @@ function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; c
   return (
     <div
       className={cn(
-        'relative flex aspect-square select-none items-center justify-center overflow-hidden rounded-sm text-center leading-none',
+        'relative flex aspect-square select-none items-center justify-center overflow-hidden rounded-[0.18rem] text-center leading-none sm:rounded-sm',
         '[border-color:var(--board-cell-border)] [background:var(--board-cell-base)] [color:var(--board-cell-label)] border',
         'transition-transform duration-150',
         classMap[type],
-        canInteract && !children && 'cursor-pointer hover:scale-[1.02] hover:z-10',
+        canInteract && !children && 'cursor-pointer md:hover:scale-[1.02] md:hover:z-10',
         !canInteract && 'cursor-not-allowed',
       )}
       data-board-interactive="true"
@@ -96,11 +96,11 @@ function PlacedTileComponent({
       draggable={isPending}
       onDragStartCapture={onDragStart}
       className={cn(
-        "relative flex h-full w-full items-center justify-center rounded-sm border-b-2 border-black/20 bg-[#f8e8c7] shadow-[0_10px_18px_rgba(0,0,0,0.16)]",
+        "relative flex h-full w-full items-center justify-center rounded-[0.2rem] border-b-2 border-black/20 bg-[#f8e8c7] shadow-[0_10px_18px_rgba(0,0,0,0.16)] sm:rounded-sm",
         isPending && canInteract && "cursor-pointer ring-2 ring-yellow-400 ring-offset-1",
         isPending && !canInteract && "ring-2 ring-yellow-400/50 ring-offset-1",
         isSelected && "ring-2 ring-primary ring-offset-2",
-        "before:absolute before:inset-0 before:rounded-sm before:bg-gradient-to-br before:from-white/55 before:via-transparent before:to-transparent"
+        "before:absolute before:inset-0 before:rounded-[0.2rem] before:bg-gradient-to-br before:from-white/55 before:via-transparent before:to-transparent sm:before:rounded-sm"
       )}
       onClick={onClick}
     >
@@ -153,7 +153,7 @@ const GameBoard = ({
 
 
   return (
-    <div className="w-full aspect-square max-w-full">
+    <div className="aspect-square w-full max-w-full">
       <div className="grid grid-cols-15 gap-px rounded-[0.45rem] [background:var(--board-grid-bg)] p-0.5 shadow-inner min-[420px]:gap-0.5 sm:gap-1 sm:rounded-[0.9rem] sm:p-2">
         {boardLayout.map((row, rowIndex) =>
           row.map((cellType, colIndex) => {

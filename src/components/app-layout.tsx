@@ -2,9 +2,11 @@ import type { ReactNode } from 'react';
 import Image from 'next/image';
 import { AppHeader } from '@/components/app-header';
 import { FloatingDirectMessages } from '@/components/floating-direct-messages';
+import { GameBackButton } from '@/components/game-screen';
 import { MainNav } from '@/components/main-nav';
 import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 import MusicPlayer from '@/components/profile/music-player';
+import { cn } from '@/lib/utils';
 import {
   Sidebar,
   SidebarContent,
@@ -15,9 +17,12 @@ import {
 
 type AppLayoutProps = {
   children: ReactNode;
+  mode?: 'default' | 'play';
 };
 
-export default function AppLayout({ children }: AppLayoutProps) {
+export default function AppLayout({ children, mode = 'default' }: AppLayoutProps) {
+  const isPlayMode = mode === 'play';
+
   return (
     <SidebarProvider>
       <Sidebar collapsible="icon" className="border-r border-white/70 bg-transparent">
@@ -41,11 +46,19 @@ export default function AppLayout({ children }: AppLayoutProps) {
         </SidebarContent>
       </Sidebar>
       <SidebarInset className="min-w-0 bg-transparent">
-        <AppHeader />
+        {isPlayMode ? <div className="hidden md:block"><AppHeader /></div> : <AppHeader />}
         <MusicPlayer />
-        <main className="min-w-0 max-w-full overflow-x-clip pb-28 md:pb-0">{children}</main>
-        <FloatingDirectMessages />
-        <MobileBottomNav />
+        <main
+          className={cn(
+            'min-w-0 max-w-full overflow-x-clip',
+            isPlayMode ? 'h-[100svh] overflow-hidden pb-0 md:h-auto md:min-h-0' : 'pb-28 md:pb-0'
+          )}
+        >
+          {children}
+        </main>
+        {isPlayMode ? <GameBackButton /> : null}
+        {isPlayMode ? <div className="hidden md:block"><FloatingDirectMessages /></div> : <FloatingDirectMessages />}
+        {!isPlayMode ? <MobileBottomNav /> : null}
       </SidebarInset>
     </SidebarProvider>
   );

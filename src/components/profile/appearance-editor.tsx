@@ -154,14 +154,14 @@ export default function AppearanceEditor() {
   return (
     <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
       <div className="md:col-span-1">
-        <h2 className="mb-4 font-headline text-xl font-bold">Board Preview</h2>
+        <h2 className="mb-3 font-headline text-xl font-bold">Board Preview</h2>
         <Card>
-          <CardContent className="space-y-4 p-4">
+          <CardContent className="space-y-3 p-3 sm:p-4">
             <BoardChrome boardThemeId={selectedBoardTheme} boardColor={selectedBoardColor}>
               <GameBoard />
               {tileImage && (
                 <div className="pointer-events-none absolute inset-0 z-20 flex items-center justify-center">
-                  <div className="relative aspect-square w-[18%] overflow-hidden rounded-2xl border border-black/10 shadow-2xl">
+                  <div className="relative aspect-square w-[18%] overflow-hidden rounded-[0.22rem] border border-black/10 shadow-2xl">
                     <Image
                       src={tileImage.assetPath}
                       alt={tileImage.description}
@@ -172,11 +172,11 @@ export default function AppearanceEditor() {
                 </div>
               )}
             </BoardChrome>
-            <div className="rounded-3xl border border-slate-200 bg-slate-50/80 p-4 shadow-sm">
+            <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-3 shadow-sm">
               <div className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Board Customization</div>
-              <div className="mt-2 text-xl font-black text-slate-900">{boardAppearance.skin.name}</div>
+              <div className="mt-2 text-lg font-black text-slate-900">{boardAppearance.skin.name}</div>
               <div className="mt-1 text-sm text-slate-600">{boardAppearance.boardColor}</div>
-              <div className="mt-4 h-16 rounded-2xl border border-black/10" style={boardAppearance.previewStyle} />
+              <div className="mt-3 h-10 rounded-xl border border-black/10 sm:h-14" style={boardAppearance.previewStyle} />
             </div>
           </CardContent>
         </Card>
@@ -189,13 +189,13 @@ export default function AppearanceEditor() {
             <TabsTrigger value="tiles">Tile Sets</TabsTrigger>
           </TabsList>
           <TabsContent value="board">
-            <div className="space-y-6 rounded-[2rem] border border-slate-200 bg-white/85 p-5 shadow-sm">
-              <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="space-y-4 rounded-[1.5rem] border border-slate-200 bg-white/85 p-3 shadow-sm sm:p-5">
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
                 <div>
                   <div className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">Style Family</div>
-                  <div className="mt-2 text-2xl font-black text-slate-900">One board menu, full custom color.</div>
-                  <p className="mt-2 max-w-2xl text-sm text-slate-600">
-                    Pick a board material, then tune it with any color across the spectrum gradient.
+                  <div className="mt-2 text-xl font-black text-slate-900 sm:text-2xl">Board style and color only.</div>
+                  <p className="mt-1 max-w-2xl text-sm text-slate-600">
+                    Interface themes are separate. This panel only changes the board preview and gameplay board.
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-2">
@@ -210,7 +210,7 @@ export default function AppearanceEditor() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-4">
                 {BOARD_SKINS.map((item) => {
                   const preview = resolveBoardAppearance(item.id, selectedBoardColor, null);
                   return (
@@ -218,13 +218,13 @@ export default function AppearanceEditor() {
                       key={item.id}
                       type="button"
                       onClick={() => setSelectedBoardTheme(item.id)}
-                      className={`rounded-[1.5rem] border p-3 text-left transition ${
+                      className={`rounded-[1.1rem] border p-2 text-left transition sm:rounded-[1.5rem] sm:p-3 ${
                         selectedBoardTheme === item.id
                           ? 'border-slate-950 bg-slate-950 text-white shadow-lg'
                           : 'border-slate-200 bg-white hover:-translate-y-0.5 hover:shadow-md'
                       }`}
                     >
-                      <div className="h-24 rounded-[1.1rem] border border-black/10" style={preview.previewStyle} />
+                      <div className="h-14 rounded-[0.9rem] border border-black/10 sm:h-24 sm:rounded-[1.1rem]" style={preview.previewStyle} />
                       <div className="mt-3 font-black">{item.name}</div>
                       <div className={`mt-1 text-sm ${selectedBoardTheme === item.id ? 'text-white/75' : 'text-slate-500'}`}>
                         {preview.boardColor}
@@ -234,7 +234,7 @@ export default function AppearanceEditor() {
                 })}
               </div>
 
-              <div className="rounded-[1.75rem] border border-slate-200 bg-slate-50/70 p-4">
+              <div className="rounded-[1.25rem] border border-slate-200 bg-slate-50/70 p-3 sm:rounded-[1.75rem] sm:p-4">
                 <div className="mb-4 text-xs font-black uppercase tracking-[0.2em] text-slate-500">Custom Color</div>
                 <BoardColorPicker value={selectedBoardColor} onChange={setSelectedBoardColor} />
               </div>

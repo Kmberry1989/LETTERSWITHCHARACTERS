@@ -70,8 +70,8 @@ export default function BoardStage({ children }: { children: React.ReactNode }) 
   };
 
   return (
-    <div className="space-y-3">
-      <div className="flex items-center justify-between rounded-2xl bg-white/75 px-4 py-2 shadow-sm">
+    <div className="flex h-full min-h-0 flex-col gap-2 md:space-y-3">
+      <div className="hidden items-center justify-between rounded-2xl bg-white/75 px-4 py-2 shadow-sm md:flex">
         <div className="text-xs font-black uppercase tracking-[0.18em] text-muted-foreground">Board Zoom</div>
         <div className="flex items-center gap-2">
           <Button type="button" variant="outline" size="icon" className="h-8 w-8" onClick={() => updateScale(scale - 0.12)}>
@@ -85,7 +85,7 @@ export default function BoardStage({ children }: { children: React.ReactNode }) 
       </div>
       <div
         ref={containerRef}
-        className="relative overflow-hidden rounded-[1.75rem] border border-white/70 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.9),rgba(255,241,224,0.94))] p-2 shadow-[0_24px_60px_rgba(15,23,42,0.1)] touch-none sm:p-3"
+        className="relative min-h-0 flex-1 overflow-hidden rounded-[1.25rem] border border-white/70 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.9),rgba(255,241,224,0.94))] p-1.5 shadow-[0_24px_60px_rgba(15,23,42,0.1)] touch-none sm:p-3 md:rounded-[1.75rem]"
         onWheel={onWheel}
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
@@ -98,7 +98,7 @@ export default function BoardStage({ children }: { children: React.ReactNode }) 
         }}
       >
         <div
-          className="transition-transform duration-150 ease-out"
+          className="mx-auto max-h-full max-w-full transition-transform duration-150 ease-out"
           style={{ transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`, transformOrigin: 'center center' }}
         >
           {children}

@@ -3,10 +3,10 @@
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { RefreshCcw } from 'lucide-react';
+import { GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { createArcadeSessionId } from '@/lib/arcade/session-id';
 
 type Suit = 'hearts' | 'spades' | 'clubs' | 'diamonds';
@@ -51,16 +51,25 @@ function isRed(suit: Suit) {
   return suit === 'hearts' || suit === 'diamonds';
 }
 
-function shuffleDeck<T>(items: T[]) {
+function seededRandom(seed: number) {
+  let value = seed % 2147483647;
+  return () => {
+    value = (value * 16807) % 2147483647;
+    return (value - 1) / 2147483646;
+  };
+}
+
+function shuffleDeck<T>(items: T[], seed = 42) {
   const deck = [...items];
+  const random = seededRandom(seed);
   for (let index = deck.length - 1; index > 0; index -= 1) {
-    const swapIndex = Math.floor(Math.random() * (index + 1));
+    const swapIndex = Math.floor(random() * (index + 1));
     [deck[index], deck[swapIndex]] = [deck[swapIndex], deck[index]];
   }
   return deck;
 }
 
-function createDeck(): SolitaireCard[] {
+function createDeck(seed = 42): SolitaireCard[] {
   return shuffleDeck(
     SUITS.flatMap((suit) =>
       Array.from({ length: 13 }, (_, offset) => ({
@@ -69,12 +78,13 @@ function createDeck(): SolitaireCard[] {
         suit,
         faceUp: false,
       }))
-    )
+    ),
+    seed
   );
 }
 
-function createInitialGame(): GameState {
-  const deck = createDeck();
+function createInitialGame(seed = 42): GameState {
+  const deck = createDeck(seed);
   const tableau: SolitaireCard[][] = [];
   let cursor = 0;
 
@@ -140,7 +150,7 @@ function CardFace({
   return (
     <motion.div
       layout
-      className={`h-[3.9rem] w-[2.6rem] rounded-xl border px-1.5 py-1.5 shadow-sm min-[360px]:h-[4.4rem] min-[360px]:w-[2.9rem] sm:h-28 sm:w-20 sm:rounded-2xl sm:px-3 sm:py-2 ${
+      className={`h-[3.7rem] w-[2.25rem] rounded-lg border px-1 py-1 shadow-sm min-[360px]:h-[4.1rem] min-[360px]:w-[2.55rem] sm:h-28 sm:w-20 sm:rounded-2xl sm:px-3 sm:py-2 ${
         card.faceUp
           ? `bg-white ${active ? 'border-amber-400 ring-4 ring-amber-200' : 'border-slate-200'}`
           : 'border-slate-300 bg-[linear-gradient(135deg,#1e293b,#334155)]'
@@ -148,12 +158,12 @@ function CardFace({
     >
       {card.faceUp ? (
         <div className={`flex h-full flex-col justify-between ${red ? 'text-rose-600' : 'text-slate-900'}`}>
-          <div className="text-[0.62rem] font-black leading-none min-[360px]:text-xs sm:text-lg">{rankLabel(card.rank)}</div>
-          <div className="self-center text-base min-[360px]:text-lg sm:text-3xl">{suitSymbol(card.suit)}</div>
-          <div className="self-end text-[0.62rem] font-black leading-none min-[360px]:text-xs sm:text-lg">{rankLabel(card.rank)}</div>
+          <div className="text-[0.58rem] font-black leading-none min-[360px]:text-xs sm:text-lg">{rankLabel(card.rank)}</div>
+          <div className="self-center text-sm min-[360px]:text-lg sm:text-3xl">{suitSymbol(card.suit)}</div>
+          <div className="self-end text-[0.58rem] font-black leading-none min-[360px]:text-xs sm:text-lg">{rankLabel(card.rank)}</div>
         </div>
       ) : (
-        <div className="flex h-full items-center justify-center rounded-[0.7rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),rgba(255,255,255,0.02))] text-[0.52rem] font-black uppercase tracking-[0.16em] text-slate-200 min-[360px]:text-[0.6rem] sm:rounded-xl sm:text-sm sm:tracking-[0.2em]">
+        <div className="flex h-full items-center justify-center rounded-[0.55rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),rgba(255,255,255,0.02))] text-[0.48rem] font-black uppercase tracking-[0.12em] text-slate-200 min-[360px]:text-[0.56rem] sm:rounded-xl sm:text-sm sm:tracking-[0.2em]">
           Deck
         </div>
       )}
@@ -174,7 +184,7 @@ export default function SolitaireSprintGame() {
   const score = scoreGame(game);
 
   const reset = () => {
-    setGame(createInitialGame());
+    setGame(createInitialGame(Date.now()));
     setSelection(null);
     setSessionId(createArcadeSessionId());
   };
@@ -310,37 +320,34 @@ export default function SolitaireSprintGame() {
   };
 
   return (
-    <Card className="overflow-hidden border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(241,245,249,0.94))] shadow-[0_24px_70px_rgba(15,23,42,0.1)]">
-      <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <CardTitle className="font-headline text-3xl">Solitaire Sprint</CardTitle>
-        <div className="flex flex-wrap gap-2">
+    <GameScreen>
+      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden rounded-[1.4rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(241,245,249,0.94))] p-2 shadow-[0_24px_70px_rgba(15,23,42,0.1)] md:gap-4 md:p-5">
+        <div className="ml-11 flex min-h-10 items-center justify-end gap-2 md:ml-0 md:justify-between">
+          <h1 className="hidden font-headline text-3xl font-black md:block">Solitaire Sprint</h1>
           <Badge variant="secondary" className="rounded-full px-3 py-1">
-            {stockCount} in stock
+            {stockCount}
           </Badge>
           <Badge variant="outline" className="rounded-full px-3 py-1">
-            Score {score}
+            {score}
           </Badge>
-          <Button variant="outline" className="rounded-full" onClick={reset}>
-            <RefreshCcw className="mr-2 h-4 w-4" />
-            New Shuffle
+          <Button variant="outline" size="icon" className="rounded-full md:w-auto md:px-4" onClick={reset} aria-label="New shuffle">
+            <RefreshCcw className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">New Shuffle</span>
           </Button>
           {solved && <ArcadeSessionStatus sessionId={sessionId} modeId="solitaire" score={300 + score} />}
         </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-sm">
-            <div className="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Stock, Waste, Foundations</div>
-            <div className="mt-4 flex flex-wrap gap-2 min-[360px]:gap-3 sm:gap-4">
+        <div className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] gap-2 md:gap-4">
+          <div className="rounded-[1.2rem] border border-slate-200 bg-white/85 p-2 shadow-sm md:p-5">
+            <div className="flex flex-wrap justify-center gap-1.5 min-[360px]:gap-2 sm:gap-4">
               <button
                 type="button"
                 onClick={drawFromStock}
-                className="flex h-[3.9rem] w-[2.6rem] items-center justify-center rounded-xl border border-dashed border-slate-300 bg-slate-100 text-[0.55rem] font-black uppercase tracking-[0.14em] text-slate-700 min-[360px]:h-[4.4rem] min-[360px]:w-[2.9rem] min-[360px]:text-[0.62rem] sm:h-28 sm:w-20 sm:rounded-2xl sm:text-xs sm:tracking-[0.18em]"
+                className="flex h-[3.7rem] w-[2.25rem] items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-100 text-[0.48rem] font-black uppercase tracking-[0.1em] text-slate-700 min-[360px]:h-[4.1rem] min-[360px]:w-[2.55rem] min-[360px]:text-[0.56rem] sm:h-28 sm:w-20 sm:rounded-2xl sm:text-xs sm:tracking-[0.18em]"
               >
                 {stockCount > 0 ? 'Draw' : 'Recycle'}
               </button>
 
-              <button type="button" onClick={handleWasteClick} className="relative h-[3.9rem] w-[2.6rem] min-[360px]:h-[4.4rem] min-[360px]:w-[2.9rem] sm:h-28 sm:w-20">
+              <button type="button" onClick={handleWasteClick} className="relative h-[3.7rem] w-[2.25rem] min-[360px]:h-[4.1rem] min-[360px]:w-[2.55rem] sm:h-28 sm:w-20">
                 <AnimatePresence initial={false}>
                   {game.waste.length > 0 ? (
                     <CardFace card={game.waste[game.waste.length - 1]} active={selection?.kind === 'waste'} />
@@ -348,7 +355,7 @@ export default function SolitaireSprintGame() {
                     <motion.div
                       initial={{ opacity: 0.4 }}
                       animate={{ opacity: 1 }}
-                      className="flex h-[3.9rem] w-[2.6rem] items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white text-[0.55rem] font-semibold text-slate-400 min-[360px]:h-[4.4rem] min-[360px]:w-[2.9rem] min-[360px]:text-[0.62rem] sm:h-28 sm:w-20 sm:rounded-2xl sm:text-xs"
+                      className="flex h-[3.7rem] w-[2.25rem] items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white text-[0.48rem] font-semibold text-slate-400 min-[360px]:h-[4.1rem] min-[360px]:w-[2.55rem] min-[360px]:text-[0.56rem] sm:h-28 sm:w-20 sm:rounded-2xl sm:text-xs"
                     >
                       Waste
                     </motion.div>
@@ -363,7 +370,7 @@ export default function SolitaireSprintGame() {
                     key={suit}
                     type="button"
                     onClick={() => handleFoundationClick(suit)}
-                    className="h-[3.9rem] w-[2.6rem] min-[360px]:h-[4.4rem] min-[360px]:w-[2.9rem] sm:h-28 sm:w-20"
+                    className="h-[3.7rem] w-[2.25rem] min-[360px]:h-[4.1rem] min-[360px]:w-[2.55rem] sm:h-28 sm:w-20"
                   >
                     {topCard ? (
                       <CardFace
@@ -371,7 +378,7 @@ export default function SolitaireSprintGame() {
                         active={selection?.kind === 'foundation' && selection.suit === suit}
                       />
                     ) : (
-                      <div className="flex h-[3.9rem] w-[2.6rem] items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white text-lg text-slate-300 min-[360px]:h-[4.4rem] min-[360px]:w-[2.9rem] min-[360px]:text-xl sm:h-28 sm:w-20 sm:rounded-2xl sm:text-3xl">
+                      <div className="flex h-[3.7rem] w-[2.25rem] items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white text-base text-slate-300 min-[360px]:h-[4.1rem] min-[360px]:w-[2.55rem] min-[360px]:text-xl sm:h-28 sm:w-20 sm:rounded-2xl sm:text-3xl">
                         {suitSymbol(suit)}
                       </div>
                     )}
@@ -381,26 +388,25 @@ export default function SolitaireSprintGame() {
             </div>
           </div>
 
-          <div className="rounded-[28px] border border-slate-200 bg-white/85 p-5 shadow-sm">
-            <div className="text-xs font-black uppercase tracking-[0.22em] text-slate-500">Tableau</div>
-            <div className="mt-4 grid grid-cols-7 gap-1 min-[360px]:gap-1.5 sm:gap-3">
+          <div className="min-h-0 rounded-[1.2rem] border border-slate-200 bg-white/85 p-1.5 shadow-sm md:p-5">
+            <div className="grid h-full grid-cols-7 gap-1 min-[360px]:gap-1.5 sm:gap-3">
               {game.tableau.map((column, columnIndex) => (
                 <button
                   key={columnIndex}
                   type="button"
                   onClick={() => handleTableauClick(columnIndex)}
-                  className="relative min-h-[240px] rounded-[16px] border border-dashed border-slate-200 bg-slate-50/60 p-1 text-left min-[360px]:min-h-[280px] sm:min-h-[360px] sm:rounded-[22px] sm:p-2"
+                  className="relative h-full min-h-[16rem] rounded-[0.8rem] border border-dashed border-slate-200 bg-slate-50/60 p-0.5 text-left min-[360px]:min-h-[18rem] sm:min-h-[360px] sm:rounded-[22px] sm:p-2"
                 >
                   {column.length === 0 ? (
-                    <div className="flex h-[3.9rem] items-center justify-center rounded-xl border border-dashed border-slate-200 text-[0.55rem] font-black uppercase tracking-[0.14em] text-slate-300 min-[360px]:h-[4.4rem] min-[360px]:text-[0.62rem] sm:h-28 sm:rounded-2xl sm:text-xs sm:tracking-[0.18em]">
+                    <div className="flex h-[3.7rem] items-center justify-center rounded-lg border border-dashed border-slate-200 text-[0.48rem] font-black uppercase tracking-[0.1em] text-slate-300 min-[360px]:h-[4.1rem] min-[360px]:text-[0.56rem] sm:h-28 sm:rounded-2xl sm:text-xs sm:tracking-[0.18em]">
                       Empty
                     </div>
                   ) : (
                     column.map((card, cardIndex) => (
                       <div
                         key={card.id}
-                        className="absolute left-1 min-[360px]:left-1.5 sm:left-2"
-                        style={{ top: `calc(0.35rem + ${cardIndex} * clamp(1rem, 2.8vw, 1.75rem))` }}
+                        className="absolute left-0.5 min-[360px]:left-1 sm:left-2"
+                        style={{ top: `calc(0.25rem + ${cardIndex} * clamp(0.86rem, 2.3vw, 1.75rem))` }}
                         onClick={(event) => {
                           event.stopPropagation();
                           handleTableauClick(columnIndex, cardIndex);
@@ -422,7 +428,7 @@ export default function SolitaireSprintGame() {
             </div>
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    </GameScreen>
   );
 }

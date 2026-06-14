@@ -42,7 +42,7 @@ export function ThemedTileFace({
       whileHover={{ scale: interactive ? 1.04 : 1 }}
       whileTap={{ scale: interactive ? 0.97 : 1 }}
       className={cn(
-        'relative flex h-full w-full items-center justify-center overflow-hidden rounded-[inherit] [container-type:inline-size]',
+        'relative flex h-full w-full items-center justify-center overflow-hidden rounded-[0.2rem] [container-type:inline-size] sm:rounded-sm',
         className
       )}
       style={{
@@ -67,16 +67,16 @@ export function ThemedTileFace({
         animate={interactive ? { x: ['-8%', '8%', '-8%'] } : undefined}
         transition={interactive ? { duration: 2.6, repeat: Infinity, ease: 'easeInOut' } : undefined}
       />
-      <div className="pointer-events-none absolute inset-0 rounded-[inherit] ring-1 ring-black/10" />
+      <div className="pointer-events-none absolute inset-0 rounded-[0.2rem] ring-1 ring-black/10 sm:rounded-sm" />
       <span
-        className={cn('relative text-[clamp(0.68rem,58cqw,1.875rem)] font-black leading-none', accentTextClass)}
+        className={cn('relative text-[clamp(0.58rem,48cqw,1.65rem)] font-black leading-none', accentTextClass)}
         style={{ textShadow: textOutline }}
       >
         {isQuestionMark ? '?' : letter}
       </span>
       {showScore ? (
         <span
-          className={cn('absolute bottom-[8%] right-[10%] text-[clamp(0.38rem,23cqw,0.75rem)] font-bold leading-none', primaryTextClass)}
+          className={cn('absolute bottom-[7%] right-[8%] text-[clamp(0.3rem,18cqw,0.68rem)] font-bold leading-none', primaryTextClass)}
           style={{ textShadow: textOutline }}
         >
           {score}

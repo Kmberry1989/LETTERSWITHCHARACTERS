@@ -27,7 +27,7 @@ export function AppHeader() {
       <div className="flex min-w-0 items-center gap-2">
         <SidebarTrigger className="hidden h-10 w-10 rounded-2xl border border-white/70 bg-white/60 shadow-[inset_0_1px_0_rgba(255,255,255,.8),0_8px_18px_rgba(35,50,80,.08)] md:flex md:h-9 md:w-9" />
         <div className="relative block h-10 w-[min(42vw,9.5rem)] min-w-0 overflow-hidden rounded-2xl border border-white/70 bg-white/70 shadow-[inset_0_1px_0_rgba(255,255,255,.85),0_8px_18px_rgba(35,50,80,.08)] md:hidden">
-          <Image src="/interface/header.png" alt="Letters with Characters" fill className="object-cover" priority />
+          <Image src="/interface/header.png" alt="Letters with Characters" fill className="object-cover" sizes="42vw" priority />
         </div>
       </div>
       <div className="flex min-w-0 items-center gap-2 sm:gap-3">

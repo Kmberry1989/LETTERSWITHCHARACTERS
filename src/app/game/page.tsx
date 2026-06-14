@@ -160,7 +160,7 @@ function Game() {
 
   if (gameLoading || isUserLoading || !user || !canPlay) {
     return (
-      <AppLayout>
+      <AppLayout mode="play">
         <div className="p-4 space-y-4">
           <Skeleton className="h-24 w-full" />
           <Skeleton className="h-[400px] w-full" />
@@ -172,7 +172,7 @@ function Game() {
 
   if (!game) {
     return (
-      <AppLayout>
+      <AppLayout mode="play">
         <div className="p-4 text-center">
           <h2 className="text-xl font-semibold">Game not found</h2>
           <p className="text-muted-foreground">The game you are looking for does not exist or has been deleted.</p>
@@ -183,10 +183,10 @@ function Game() {
   }
 
   return (
-    <AppLayout>
-      <div className="flex h-full flex-col items-center overflow-x-hidden p-2 sm:p-4">
-        <div className="flex w-full max-w-4xl flex-col gap-3 sm:gap-4">
-          <div className="flex items-center justify-end">
+    <AppLayout mode="play">
+      <div className="flex h-[100svh] min-w-0 flex-col items-center overflow-hidden px-1.5 pb-1 pt-12 md:h-auto md:overflow-visible md:p-4">
+        <div className="flex min-h-0 w-full max-w-4xl flex-1 flex-col gap-2 md:gap-4">
+          <div className="hidden items-center justify-end md:flex">
             <Dialog open={isPauseOpen} onOpenChange={setIsPauseOpen}>
               <DialogTrigger asChild>
                 <Button variant="outline" className="gap-2 shadow-sm">
@@ -218,30 +218,32 @@ function Game() {
           </div>
 
           {userPlayerData && opponentPlayerData && (
-            <Scoreboard
-              players={[
-                {
-                  displayName: userPlayerData.displayName,
-                  score: userPlayerData.score,
-                  avatarId: userPlayerData.avatarId,
-                  photoURL: userPlayerData.photoURL,
-                  avatarPosterUrl: userPlayerData.avatarPosterUrl,
-                },
-                {
-                  displayName: opponentPlayerData.displayName,
-                  score: opponentPlayerData.score,
-                  avatarId: opponentPlayerData.avatarId,
-                  photoURL: opponentPlayerData.photoURL,
-                  avatarPosterUrl: opponentPlayerData.avatarPosterUrl,
-                },
-              ]}
-              isPlayerTurn={isPlayerTurn}
-              currentPlayerName={userPlayerData.displayName}
-              gameStatus={game.status}
-            />
+            <div className="hidden md:block">
+              <Scoreboard
+                players={[
+                  {
+                    displayName: userPlayerData.displayName,
+                    score: userPlayerData.score,
+                    avatarId: userPlayerData.avatarId,
+                    photoURL: userPlayerData.photoURL,
+                    avatarPosterUrl: userPlayerData.avatarPosterUrl,
+                  },
+                  {
+                    displayName: opponentPlayerData.displayName,
+                    score: opponentPlayerData.score,
+                    avatarId: opponentPlayerData.avatarId,
+                    photoURL: opponentPlayerData.photoURL,
+                    avatarPosterUrl: opponentPlayerData.avatarPosterUrl,
+                  },
+                ]}
+                isPlayerTurn={isPlayerTurn}
+                currentPlayerName={userPlayerData.displayName}
+                gameStatus={game.status}
+              />
+            </div>
           )}
 
-          <div className="w-full max-w-[860px] self-center">
+          <div className="min-h-0 w-full max-w-[860px] flex-1 self-center md:flex-none">
             <BoardStage>
               <BoardChrome boardThemeId={selectedBoardThemeId} boardTintId={selectedBoardTintId} boardColor={selectedBoardColor}>
                 <GameBoard
@@ -258,7 +260,7 @@ function Game() {
             </BoardStage>
           </div>
 
-          <div className="sticky bottom-2 z-20 -mx-1 rounded-2xl bg-background/80 p-1 backdrop-blur sm:static sm:mx-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-0">
+          <div className="shrink-0 rounded-2xl bg-background/85 p-1 backdrop-blur md:static md:bg-transparent md:p-0 md:backdrop-blur-0">
             <TileRack
               tiles={playerTiles}
               selectedTileIndex={selectedTileIndex}

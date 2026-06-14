@@ -57,10 +57,10 @@ export default function BoardColorPicker({ value, onChange }: BoardColorPickerPr
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div
         ref={areaRef}
-        className="relative h-56 w-full cursor-crosshair overflow-hidden rounded-[1.5rem] border border-slate-200 shadow-inner"
+        className="relative h-32 w-full cursor-crosshair touch-none overflow-hidden rounded-[1.1rem] border border-slate-200 shadow-inner sm:h-48 sm:rounded-[1.5rem]"
         style={{ backgroundColor: `hsl(${Math.round(hsv.h)} 100% 50%)` }}
         onPointerDown={handleAreaPointerDown}
       >
@@ -72,9 +72,9 @@ export default function BoardColorPicker({ value, onChange }: BoardColorPickerPr
         />
       </div>
 
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         <div className="flex items-center justify-between text-xs font-black uppercase tracking-[0.18em] text-slate-500">
-          <span>Hue Spectrum</span>
+          <span>Hue</span>
           <span>{value}</span>
         </div>
         <input
@@ -88,9 +88,9 @@ export default function BoardColorPicker({ value, onChange }: BoardColorPickerPr
         />
       </div>
 
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3">
         <div className="min-w-0 flex-1">
-          <label className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Hex Color</label>
+          <label className="text-xs font-black uppercase tracking-[0.18em] text-slate-500">Hex</label>
           <Input
             value={hexInput}
             onChange={(event) => setHexInput(event.target.value.toUpperCase())}
@@ -105,9 +105,8 @@ export default function BoardColorPicker({ value, onChange }: BoardColorPickerPr
             placeholder="#8BBF8D"
           />
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white/80 p-3 shadow-sm">
-          <div className="text-[0.68rem] font-black uppercase tracking-[0.18em] text-slate-500">Swatch</div>
-          <div className="mt-2 h-14 w-20 rounded-xl border border-black/10 shadow-inner" style={{ backgroundColor: value }} />
+        <div className="self-end rounded-2xl border border-slate-200 bg-white/80 p-2 shadow-sm">
+          <div className="h-10 w-14 rounded-xl border border-black/10 shadow-inner sm:h-12 sm:w-20" style={{ backgroundColor: value }} />
         </div>
       </div>
     </div>

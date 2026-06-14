@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { RefreshCcw } from 'lucide-react';
+import { GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { createArcadeSessionId } from '@/lib/arcade/session-id';
 
 type Puzzle = {
@@ -118,12 +118,9 @@ export default function WordConnectGame() {
 
   if (loading || !puzzle) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>Word Connect</CardTitle>
-        </CardHeader>
-        <CardContent className="h-[320px] animate-pulse rounded-[28px] bg-slate-100 sm:h-[420px]" />
-      </Card>
+      <GameScreen>
+        <div className="mt-12 h-full animate-pulse rounded-[28px] bg-white/80 md:mt-0" />
+      </GameScreen>
     );
   }
 
@@ -132,26 +129,22 @@ export default function WordConnectGame() {
   const letterSize = puzzle.letters.length <= 5 ? 22 : 20;
 
   return (
-    <Card className="overflow-hidden border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(254,242,242,0.92))] shadow-[0_20px_60px_rgba(251,113,133,0.12)]">
-      <CardHeader className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-        <CardTitle className="font-headline text-3xl">Word Connect</CardTitle>
-        <div className="flex flex-wrap gap-2">
+    <GameScreen>
+      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden rounded-[1.4rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(254,242,242,0.92))] p-2 shadow-[0_20px_60px_rgba(251,113,133,0.12)] md:gap-5 md:p-5">
+        <div className="ml-11 flex min-h-10 items-center justify-end gap-2 md:ml-0 md:justify-between">
+          <h1 className="hidden font-headline text-3xl font-black md:block">Word Connect</h1>
           <Badge variant="secondary" className="rounded-full px-3 py-1">
             {foundWords.length} / {puzzle.targetCount}
           </Badge>
-          <Badge variant="secondary" className="rounded-full px-3 py-1">
-            Find {puzzle.targetCount} easy words
-          </Badge>
-          <Button variant="outline" className="rounded-full" onClick={() => void loadPuzzle()}>
-            <RefreshCcw className="mr-2 h-4 w-4" />
-            New Wheel
+          <Button variant="outline" size="icon" className="rounded-full md:w-auto md:px-4" onClick={() => void loadPuzzle()} aria-label="New wheel">
+            <RefreshCcw className="h-4 w-4 md:mr-2" />
+            <span className="hidden md:inline">New Wheel</span>
           </Button>
           {solved ? <ArcadeSessionStatus sessionId={sessionId} modeId="word-connect" score={foundWords.length * 25} /> : null}
         </div>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="mx-auto flex w-full max-w-xl items-center justify-center rounded-[36px] border border-rose-100 bg-white/85 p-4 shadow-sm sm:p-6">
-          <div className="relative aspect-square w-full max-w-[20rem]">
+        <div className="flex min-h-0 flex-1 flex-col justify-center gap-2 md:gap-5">
+        <div className="mx-auto flex w-full max-w-[min(100%,calc(100svh-12rem))] touch-none items-center justify-center rounded-[1.5rem] border border-rose-100 bg-white/85 p-2 shadow-sm md:max-w-xl md:p-6" style={{ touchAction: 'none' }}>
+          <div className="relative aspect-square w-full max-w-[18rem] md:max-w-[20rem]">
             <div className="absolute inset-[20%] rounded-full border border-dashed border-rose-200 bg-[radial-gradient(circle,rgba(255,241,242,0.8),rgba(255,255,255,0.15))]" />
             {puzzle.letters.map((letter, index) => {
               const active = path.includes(index);
@@ -174,6 +167,7 @@ export default function WordConnectGame() {
                     width: `${letterSize}%`,
                     height: `${letterSize}%`,
                     fontSize: 'clamp(1.05rem, 5vw, 1.75rem)',
+                    touchAction: 'none',
                   }}
                 >
                   {letter}
@@ -192,22 +186,22 @@ export default function WordConnectGame() {
           </div>
         </div>
 
-        <div className="rounded-[28px] border border-white/70 bg-white/90 p-5 shadow-sm">
-          <div className="break-all text-2xl font-black tracking-[0.18em] text-slate-900 min-[360px]:text-3xl sm:text-4xl">{currentWord || '...'}</div>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <Button variant="secondary" onClick={clearPath}>
+        <div className="rounded-[1.4rem] border border-white/70 bg-white/90 p-3 shadow-sm md:p-5">
+          <div className="break-all text-xl font-black tracking-[0.14em] text-slate-900 md:text-4xl">{currentWord || '...'}</div>
+          <div className="mt-2 flex flex-wrap gap-2 md:mt-4 md:gap-3">
+            <Button variant="secondary" size="sm" onClick={clearPath}>
               Clear
             </Button>
           </div>
-          {status ? <div className="mt-4 text-sm text-slate-600">{status}</div> : null}
+          {status ? <div className="mt-2 text-xs text-slate-600 md:mt-4 md:text-sm">{status}</div> : null}
         </div>
 
-        <div className="rounded-[28px] border border-slate-200 bg-white/80 p-5">
-          <div className="mb-4 text-sm font-semibold uppercase tracking-[0.18em] text-slate-500">Found words</div>
-          <div className="flex flex-wrap gap-2">
+        <div className="min-h-0 rounded-[1.4rem] border border-slate-200 bg-white/80 p-3 md:p-5">
+          <div className="mb-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 md:mb-4 md:text-sm">Found words</div>
+          <div className="flex max-h-16 flex-wrap gap-1 overflow-hidden md:max-h-none md:gap-2">
             {foundWords.length > 0 ? (
               foundWords.map((word) => (
-                <Badge key={word} className="rounded-full bg-slate-950 px-3 py-1.5 text-white hover:bg-slate-950">
+                <Badge key={word} className="rounded-full bg-slate-950 px-2 py-1 text-[0.62rem] text-white hover:bg-slate-950 md:px-3 md:py-1.5 md:text-xs">
                   {word}
                 </Badge>
               ))
@@ -216,7 +210,8 @@ export default function WordConnectGame() {
             )}
           </div>
         </div>
-      </CardContent>
-    </Card>
+        </div>
+      </div>
+    </GameScreen>
   );
 }
