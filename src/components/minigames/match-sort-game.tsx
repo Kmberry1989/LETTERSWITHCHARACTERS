@@ -6,6 +6,7 @@ import { GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useAudio } from '@/hooks/use-audio';
 import { createArcadeSessionId } from '@/lib/arcade/session-id';
 import { cn } from '@/lib/utils';
 
@@ -47,6 +48,7 @@ function createBins() {
 }
 
 export default function MatchSortGame() {
+  const { playSfx } = useAudio();
   const [tray, setTray] = useState<GoodsItem[]>(START_ITEMS);
   const [bins, setBins] = useState<Record<GoodsId, GoodsItem[]>>(() => createBins());
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
@@ -58,6 +60,7 @@ export default function MatchSortGame() {
   const selectedItem = tray.find((item) => item.id === selectedItemId) || null;
 
   const reset = () => {
+    playSfx('swoosh');
     setTray(START_ITEMS);
     setBins(createBins());
     setSelectedItemId(null);
@@ -67,14 +70,17 @@ export default function MatchSortGame() {
 
   const placeInBin = (kind: GoodsId) => {
     if (!selectedItem) {
+      playSfx('arcadeError');
       setMessage('Pick item');
       return;
     }
     if (selectedItem.kind !== kind) {
+      playSfx('arcadeError');
       setMessage('Wrong shelf');
       return;
     }
 
+    playSfx('place');
     setTray((current) => current.filter((item) => item.id !== selectedItem.id));
     setBins((current) => ({
       ...current,
@@ -140,6 +146,7 @@ export default function MatchSortGame() {
                   key={item.id}
                   type="button"
                   onClick={() => {
+                    playSfx('arcadeSelect');
                     setSelectedItemId((current) => (current === item.id ? null : item.id));
                     setMessage('');
                   }}

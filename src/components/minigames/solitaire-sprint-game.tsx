@@ -7,6 +7,7 @@ import { GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useAudio } from '@/hooks/use-audio';
 import { createArcadeSessionId } from '@/lib/arcade/session-id';
 
 type Suit = 'hearts' | 'spades' | 'clubs' | 'diamonds';
@@ -172,6 +173,7 @@ function CardFace({
 }
 
 export default function SolitaireSprintGame() {
+  const { playSfx } = useAudio();
   const [game, setGame] = useState<GameState>(() => createInitialGame());
   const [selection, setSelection] = useState<Selection>(null);
   const [sessionId, setSessionId] = useState(() => createArcadeSessionId());
@@ -184,12 +186,14 @@ export default function SolitaireSprintGame() {
   const score = scoreGame(game);
 
   const reset = () => {
+    playSfx('swoosh');
     setGame(createInitialGame(Date.now()));
     setSelection(null);
     setSessionId(createArcadeSessionId());
   };
 
   const drawFromStock = () => {
+    playSfx('cardMove');
     setSelection(null);
     setGame((current) => {
       if (current.stock.length === 0) {
@@ -223,6 +227,7 @@ export default function SolitaireSprintGame() {
         [suit]: [...current.foundations[suit], card],
       },
     }));
+    playSfx('arcadeSuccess');
     setSelection(null);
     return true;
   };
@@ -240,6 +245,7 @@ export default function SolitaireSprintGame() {
         tableau: nextTableau,
       };
     });
+    playSfx('cardMove');
     setSelection(null);
     return true;
   };
@@ -262,6 +268,7 @@ export default function SolitaireSprintGame() {
         },
       };
     });
+    playSfx('arcadeSuccess');
     setSelection(null);
     return true;
   };
@@ -281,12 +288,14 @@ export default function SolitaireSprintGame() {
         tableau: nextTableau,
       };
     });
+    playSfx('cardMove');
     setSelection(null);
     return true;
   };
 
   const handleWasteClick = () => {
     if (game.waste.length === 0) return;
+    playSfx('arcadeSelect');
     setSelection((current) => (current?.kind === 'waste' ? null : { kind: 'waste' }));
   };
 
@@ -316,6 +325,7 @@ export default function SolitaireSprintGame() {
     const resolvedCardIndex = cardIndex ?? column.length - 1;
     const card = column[resolvedCardIndex];
     if (!card?.faceUp) return;
+    playSfx('arcadeSelect');
     setSelection({ kind: 'tableau', columnIndex, cardIndex: resolvedCardIndex });
   };
 

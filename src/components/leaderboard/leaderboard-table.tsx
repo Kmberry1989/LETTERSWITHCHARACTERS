@@ -45,37 +45,35 @@ export default function LeaderboardTable() {
     [metric, users]
   );
 
-  const topPlayers = leaderboardData.slice(0, 3);
-
   return (
-    <Card className="soft-card overflow-hidden rounded-[2rem]">
-      <CardContent className="space-y-6 p-4 sm:p-6">
+    <Card className="soft-card overflow-hidden rounded-[1.5rem]">
+      <CardContent className="space-y-3 p-2 sm:p-5">
         <Tabs value={metric} onValueChange={(value) => setMetric(value as LeaderboardMetric)}>
-          <TabsList className="h-auto flex-wrap justify-start gap-2 rounded-2xl bg-white/[.72] p-2">
+          <TabsList className="grid h-auto grid-cols-2 gap-1 rounded-2xl bg-white/[.72] p-1 min-[390px]:grid-cols-3 sm:flex sm:flex-wrap sm:justify-start sm:gap-2 sm:p-2">
             {leaderboardMetrics.map((item) => (
-              <TabsTrigger key={item.id} value={item.id} className="rounded-xl font-black">
+              <TabsTrigger key={item.id} value={item.id} className="rounded-xl px-2 py-1.5 text-[0.68rem] font-black sm:text-sm">
                 {item.label}
               </TabsTrigger>
             ))}
           </TabsList>
         </Tabs>
 
-        <div className="grid gap-3 md:hidden">
-          {loading && Array.from({ length: 3 }).map((_, index) => <Skeleton key={index} className="h-24 rounded-[1.5rem]" />)}
-          {!loading && topPlayers.map((player) => {
+        <div className="grid max-h-[calc(100svh-11rem)] gap-1.5 overflow-y-auto pr-1 md:hidden">
+          {loading && Array.from({ length: 8 }).map((_, index) => <Skeleton key={index} className="h-14 rounded-[1rem]" />)}
+          {!loading && leaderboardData.map((player) => {
             const avatarImage = resolveAvatarImage(player);
             return (
-              <div key={player.uid} className="pressed-surface flex items-center gap-3 rounded-[1.5rem] p-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/[.78] text-lg font-black text-slate-900 shadow-sm">#{player.rank}</div>
-                <Avatar className="h-12 w-12 border border-white/[.78] shadow-sm">
+              <div key={player.uid} className="pressed-surface flex min-w-0 items-center gap-2 rounded-[1rem] p-2">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/[.78] text-sm font-black text-slate-900 shadow-sm">#{player.rank}</div>
+                <Avatar className="h-9 w-9 shrink-0 border border-white/[.78] shadow-sm">
                   {avatarImage && <AvatarImage src={avatarImage} alt={player.name} />}
                   <AvatarFallback>{player.name.substring(0, 2)}</AvatarFallback>
                 </Avatar>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate font-black text-slate-950">{player.name}</div>
-                  <div className="text-xs font-black uppercase tracking-[0.16em] text-slate-500">{player.subtitle}</div>
+                  <div className="truncate text-sm font-black text-slate-950">{player.name}</div>
+                  <div className="text-[0.62rem] font-black uppercase tracking-[0.12em] text-slate-500">{player.subtitle}</div>
                 </div>
-                <Badge className="rounded-full bg-emerald-600 px-3 py-1 text-white hover:bg-emerald-600">{player.value.toLocaleString()}</Badge>
+                <Badge className="shrink-0 rounded-full bg-emerald-600 px-2 py-1 text-[0.68rem] text-white hover:bg-emerald-600">{player.value.toLocaleString()}</Badge>
               </div>
             );
           })}

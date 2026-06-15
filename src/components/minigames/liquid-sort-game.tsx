@@ -6,6 +6,7 @@ import { GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useAudio } from '@/hooks/use-audio';
 import { createArcadeSessionId } from '@/lib/arcade/session-id';
 import { cn } from '@/lib/utils';
 
@@ -68,6 +69,7 @@ function isSolved(tubes: Tube[]) {
 }
 
 export default function LiquidSortGame() {
+  const { playSfx } = useAudio();
   const [tubes, setTubes] = useState<Tube[]>(() => cloneTubes(INITIAL_TUBES));
   const [selectedSource, setSelectedSource] = useState<number | null>(null);
   const [moves, setMoves] = useState(0);
@@ -77,6 +79,7 @@ export default function LiquidSortGame() {
   const solved = useMemo(() => isSolved(tubes), [tubes]);
 
   const reset = () => {
+    playSfx('swoosh');
     setTubes(cloneTubes(INITIAL_TUBES));
     setSelectedSource(null);
     setMoves(0);
@@ -90,15 +93,18 @@ export default function LiquidSortGame() {
 
     if (selectedSource === null) {
       if (tube.length === 0) {
+        playSfx('arcadeError');
         setMessage('Pick a tube with liquid first.');
         return;
       }
+      playSfx('arcadeSelect');
       setSelectedSource(index);
       setMessage(`Tube ${index + 1} selected.`);
       return;
     }
 
     if (selectedSource === index) {
+      playSfx('click');
       setSelectedSource(null);
       setMessage('Selection cleared.');
       return;
@@ -106,11 +112,13 @@ export default function LiquidSortGame() {
 
     const { next, amount } = applyPour(tubes, selectedSource, index);
     if (!amount) {
+      playSfx(tube.length > 0 ? 'arcadeSelect' : 'arcadeError');
       setSelectedSource(tube.length > 0 ? index : null);
       setMessage(tube.length > 0 ? `Tube ${index + 1} selected instead.` : 'That pour does not fit.');
       return;
     }
 
+    playSfx('sortPour');
     setTubes(next);
     setMoves((value) => value + 1);
     setSelectedSource(null);

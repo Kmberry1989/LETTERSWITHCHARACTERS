@@ -6,6 +6,7 @@ import { GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useAudio } from '@/hooks/use-audio';
 import { createArcadeSessionId } from '@/lib/arcade/session-id';
 
 type Puzzle = {
@@ -24,6 +25,7 @@ function buildLetterCounts(letters: string[]) {
 }
 
 export default function WordConnectGame() {
+  const { playSfx } = useAudio();
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null);
   const [path, setPath] = useState<number[]>([]);
   const [foundWords, setFoundWords] = useState<string[]>([]);
@@ -40,6 +42,7 @@ export default function WordConnectGame() {
   const solved = foundWords.length >= (puzzle?.targetCount || 0);
 
   const loadPuzzle = async () => {
+    playSfx('swoosh');
     setLoading(true);
     setPath([]);
     setFoundWords([]);
@@ -60,10 +63,12 @@ export default function WordConnectGame() {
   }, []);
 
   const toggleLetter = (index: number) => {
+    playSfx('arcadeSelect');
     setPath((current) => (current.includes(index) ? current.filter((value) => value !== index) : [...current, index]));
   };
 
   const clearPath = () => {
+    playSfx('click');
     setPath([]);
     setStatus('');
   };
@@ -71,10 +76,12 @@ export default function WordConnectGame() {
   const submitWord = async () => {
     if (!puzzle) return;
     if (currentWord.length < MIN_WORD_LENGTH) {
+      playSfx('arcadeError');
       setStatus(`Use at least ${MIN_WORD_LENGTH} letters.`);
       return;
     }
     if (foundSet.has(currentWord)) {
+      playSfx('arcadeError');
       setStatus('Already found.');
       return;
     }
@@ -86,6 +93,7 @@ export default function WordConnectGame() {
     );
 
     if (exceedsLetterSupply) {
+      playSfx('arcadeError');
       setStatus('That word uses letters not available on this wheel.');
       return;
     }
@@ -99,19 +107,23 @@ export default function WordConnectGame() {
       const result = await response.json().catch(() => null);
 
       if (!response.ok || !result?.isValid) {
+        playSfx('arcadeError');
         setStatus(result?.reason || 'Not in the playable dictionary.');
         return;
       }
 
       if (!acceptedSet.has(currentWord)) {
+        playSfx('arcadeError');
         setStatus('That word cannot be made from this wheel.');
         return;
       }
 
+      playSfx(foundWords.length + 1 >= puzzle.targetCount ? 'success' : 'arcadeSuccess');
       setFoundWords((current) => [...current, currentWord]);
       setPath([]);
       setStatus(foundWords.length + 1 >= puzzle.targetCount ? 'Wheel cleared.' : 'Locked in.');
     } catch {
+      playSfx('arcadeError');
       setStatus('Validation failed.');
     }
   };

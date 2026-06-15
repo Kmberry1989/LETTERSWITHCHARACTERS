@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
-import { AlertCircle, CheckCircle2, Gift, Loader2, Sparkles } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Loader2, Sparkles } from 'lucide-react';
 import { useUser } from '@/firebase';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -115,7 +115,7 @@ export function ArcadeSessionStatus({
           <Loader2 className="h-5 w-5 animate-spin" />
           <div>
             <div className="text-sm font-black uppercase tracking-[0.18em]">Saving clear</div>
-            <p className="mt-1 text-sm text-sky-900">Recording your rewards, streak progress, and any eligible daily reward.</p>
+            <p className="mt-1 text-sm text-sky-900">Saving progress.</p>
           </div>
         </div>
       </div>
@@ -158,7 +158,7 @@ export function ArcadeSessionStatus({
             {duplicate
               ? 'This cleared run was already recorded, so your streak and retention progress stay intact.'
               : dailyRewardClaimed
-                ? 'This clear counted immediately, and today’s daily reward auto-claimed with it.'
+                ? 'Clear saved.'
                 : 'This clear counted immediately toward your streak and arcade progress.'}
           </p>
         </div>
@@ -170,12 +170,6 @@ export function ArcadeSessionStatus({
             </>
           ) : null}
           <Badge className="rounded-full bg-white/85 text-emerald-950 hover:bg-white/85">{streakCount} day streak</Badge>
-          {dailyRewardClaimed ? (
-            <Badge className="rounded-full bg-emerald-700 text-white hover:bg-emerald-700">
-              <Gift className="mr-1 h-3.5 w-3.5" />
-              Daily reward auto-claimed
-            </Badge>
-          ) : null}
         </div>
       </div>
     </div>

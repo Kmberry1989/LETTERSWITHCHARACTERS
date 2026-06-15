@@ -1,8 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
-
-type SfxType = 'click' | 'place' | 'swoosh' | 'success' | 'error';
+import { SFX_FILE_MAP, type SfxType } from '@/lib/audio-assets';
 
 type AudioContextType = {
   masterVolume: number;
@@ -20,14 +19,6 @@ const AudioContext = createContext<AudioContextType | undefined>(undefined);
 let sharedAudioContext: AudioContext | null = null;
 const sfxPlayers = new Map<string, HTMLAudioElement>();
 const sfxStatus = new Map<string, 'loading' | 'ready' | 'error'>();
-const SFX_FILE_MAP: Record<SfxType, string> = {
-  click: '/audio/sfx/ui-click.ogg',
-  place: '/audio/sfx/tile-place.ogg',
-  swoosh: '/audio/sfx/rack-shuffle.ogg',
-  success: '/audio/sfx/word-success.ogg',
-  error: '/audio/sfx/error-buzz.ogg',
-};
-
 function getAudioContext() {
   if (typeof window === 'undefined') {
     return null;
@@ -279,10 +270,61 @@ export function AudioProvider({ children }: { children: ReactNode }) {
         playSwoosh(context, volume);
         break;
       case 'success':
+      case 'arcadeSuccess':
+      case 'wheelLand':
         playSuccess(context, volume);
         break;
       case 'error':
+      case 'arcadeError':
         playError(context, volume);
+        break;
+      case 'arcadeSelect':
+        playTone(context, {
+          type: 'sine',
+          frequency: 660,
+          duration: 0.055,
+          startVolume: volume * 0.12,
+          endVolume: 0.0001,
+          attack: 0.002,
+          release: 0.03,
+        });
+        break;
+      case 'sortPour':
+        playSwoosh(context, volume * 0.72);
+        playTone(context, {
+          type: 'triangle',
+          frequency: 220,
+          duration: 0.12,
+          startVolume: volume * 0.1,
+          endVolume: 0.0001,
+          attack: 0.01,
+          release: 0.08,
+        });
+        break;
+      case 'cardMove':
+        playTone(context, {
+          type: 'triangle',
+          frequency: 330,
+          duration: 0.07,
+          startVolume: volume * 0.14,
+          endVolume: 0.0001,
+          attack: 0.002,
+          release: 0.04,
+        });
+        break;
+      case 'wheelSpin':
+        playSwoosh(context, volume);
+        break;
+      case 'wheelTick':
+        playTone(context, {
+          type: 'square',
+          frequency: 520,
+          duration: 0.025,
+          startVolume: volume * 0.08,
+          endVolume: 0.0001,
+          attack: 0.001,
+          release: 0.015,
+        });
         break;
       default:
         break;

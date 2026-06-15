@@ -6,6 +6,7 @@ import { GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useAudio } from '@/hooks/use-audio';
 import { WHEEL_PHRASES } from '@/lib/arcade/wheel-phrases';
 import { createArcadeSessionId } from '@/lib/arcade/session-id';
 import { cn } from '@/lib/utils';
@@ -71,23 +72,6 @@ function wedgePath(cx: number, cy: number, radius: number, startAngle: number, e
   return `M ${cx} ${cy} L ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${end.x} ${end.y} Z`;
 }
 
-function playTone(frequency: number, duration = 0.08, type: OscillatorType = 'sine') {
-  const AudioContextClass = window.AudioContext || (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-  if (!AudioContextClass) return;
-  const context = new AudioContextClass();
-  const oscillator = context.createOscillator();
-  const gain = context.createGain();
-  oscillator.type = type;
-  oscillator.frequency.value = frequency;
-  gain.gain.setValueAtTime(0.0001, context.currentTime);
-  gain.gain.exponentialRampToValueAtTime(0.06, context.currentTime + 0.01);
-  gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + duration);
-  oscillator.connect(gain);
-  gain.connect(context.destination);
-  oscillator.start();
-  oscillator.stop(context.currentTime + duration + 0.02);
-}
-
 function getSpinVelocity(samples: PointerSample[]) {
   if (samples.length < 2) return 0;
   const recent = samples.slice(-5);
@@ -99,6 +83,7 @@ function getSpinVelocity(samples: PointerSample[]) {
 }
 
 export default function WheelGame() {
+  const { playSfx } = useAudio();
   const pointerSamples = useRef<PointerSample[]>([]);
   const [round, setRound] = useState(() => WHEEL_PHRASES[0]);
   const [guessedLetters, setGuessedLetters] = useState<string[]>([]);
@@ -120,7 +105,7 @@ export default function WheelGame() {
     () => uniqueLetters(round.phrase, true).filter((letter) => !guessedLetters.includes(letter)),
     [guessedLetters, round.phrase],
   );
-  const canSpin = !spinning && !solved && consonantsLeft.length > 0;
+  const canSpin = !spinning && !solved && !currentValue && consonantsLeft.length > 0;
 
   const endTurn = () => {
     if (duelMode) setActivePlayer((player) => (player === 0 ? 1 : 0));
@@ -138,19 +123,20 @@ export default function WheelGame() {
     setCurrentValue(null);
     setStatus(velocity > 0.7 ? 'Hard flick.' : 'Wheel spinning.');
     setRotation(targetRotation);
+    playSfx('wheelSpin');
 
     let ticks = 0;
     const tickTimer = window.setInterval(() => {
       ticks += 1;
-      playTone(420 + (ticks % 4) * 50, 0.025, 'square');
+      playSfx('wheelTick');
       if (ticks >= 12 + Math.round(velocity * 12)) window.clearInterval(tickTimer);
     }, 70);
 
     window.setTimeout(() => {
       setCurrentValue(result);
-      setStatus(`Landed on ${result}. Pick a consonant.`);
+      setStatus('Pick a consonant.');
       setSpinning(false);
-      playTone(660, 0.12, 'triangle');
+      playSfx('wheelLand');
     }, 980 + velocity * 520);
   };
 
@@ -173,10 +159,12 @@ export default function WheelGame() {
     if (solved || spinning || guessedLetters.includes(letter)) return;
     const isVowel = VOWELS.has(letter);
     if (!isVowel && !currentValue) {
+      playSfx('arcadeError');
       setStatus('Flick first.');
       return;
     }
     if (isVowel && bank < 250) {
+      playSfx('arcadeError');
       setStatus('Need 250 for a vowel.');
       return;
     }
@@ -188,7 +176,7 @@ export default function WheelGame() {
       setStatus(`No ${letter}.`);
       setCurrentValue(null);
       endTurn();
-      playTone(180, 0.16, 'sawtooth');
+      playSfx('arcadeError');
       return;
     }
 
@@ -199,22 +187,23 @@ export default function WheelGame() {
     }
     setCurrentValue(null);
     setStatus(matches === 1 ? `${letter} appears once.` : `${letter} appears ${matches} times.`);
-    playTone(720, 0.1, 'triangle');
+    playSfx('arcadeSuccess');
   };
 
   const solve = () => {
     if (guess.trim().toUpperCase() !== round.phrase) {
       setStatus('Incorrect solve.');
       endTurn();
-      playTone(180, 0.16, 'sawtooth');
+      playSfx('arcadeError');
       return;
     }
     setSolved(true);
     setStatus('Solved.');
-    playTone(880, 0.18, 'triangle');
+    playSfx('success');
   };
 
   const reset = () => {
+    playSfx('swoosh');
     setRound(randomPhrase());
     setGuessedLetters([]);
     setBank(0);
@@ -253,14 +242,16 @@ export default function WheelGame() {
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
-              onClick={() => {
-                if (pointerSamples.current.length === 0) spinWheel(0.45);
-              }}
               disabled={!canSpin}
               style={{ touchAction: 'none' }}
               aria-label="Flick wheel"
             >
               <div className="absolute left-1/2 top-[-2px] z-20 h-0 w-0 -translate-x-1/2 border-l-[12px] border-r-[12px] border-b-[20px] border-l-transparent border-r-transparent border-b-slate-950 md:border-l-[18px] md:border-r-[18px] md:border-b-[26px]" />
+              {currentValue ? (
+                <div className="absolute left-1/2 top-6 z-30 -translate-x-1/2 rounded-full bg-slate-950 px-3 py-1 text-xs font-black text-white shadow-lg">
+                  {currentValue}
+                </div>
+              ) : null}
               <svg viewBox="0 0 280 280" className="h-full w-full transition-transform ease-out" style={{ transform: `rotate(${rotation}deg)`, transitionDuration: spinning ? '1300ms' : '200ms' }}>
                 {WHEEL_VALUES.map((value, index) => {
                   const segmentAngle = (Math.PI * 2) / WHEEL_VALUES.length;
@@ -323,7 +314,7 @@ export default function WheelGame() {
               <Button onClick={solve} size="sm">Solve</Button>
             </div>
             <div className="min-h-5 text-center text-xs font-semibold text-slate-600 md:text-sm">
-              {currentValue ? `${currentValue}: ${status}` : status}
+              {status}
             </div>
           </div>
         </div>

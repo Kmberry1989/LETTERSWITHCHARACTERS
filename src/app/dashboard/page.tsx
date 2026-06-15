@@ -250,11 +250,7 @@ export default function DashboardPage() {
 
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr),320px]">
           <div className="space-y-4">
-            <div className="flex items-center justify-between gap-4">
-              <div>
-                <h1 className="text-3xl font-black tracking-tight font-headline sm:text-4xl">Play</h1>
-                <p className="mt-1 text-sm text-slate-500">Jump into a live game, then pick up arcade routes and matches below.</p>
-              </div>
+            <div className="flex items-center justify-end gap-4">
               <div className="hidden gap-2 sm:flex">
                 <Button asChild variant="outline">
                   <Link href="/minigames">

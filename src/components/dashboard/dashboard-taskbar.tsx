@@ -3,12 +3,12 @@
 import { useMemo } from 'react';
 import Link from 'next/link';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Bell, CheckCircle2, ChevronRight, Sparkles } from 'lucide-react';
+import { Bell, CheckCircle2, Sparkles } from 'lucide-react';
 import { useDoc, useMemoFirebase, useUser } from '@/firebase';
 import { doc } from '@/lib/client/document-client';
 import type { UserProfile } from '@/firebase/firestore/use-users';
 import { normalizeDirectThreads } from '@/lib/direct-threads';
-import { normalizeRetentionState, getNextActionHref, getRetentionSummary, MODE_METADATA } from '@/lib/retention';
+import { normalizeRetentionState, getRetentionSummary, MODE_METADATA } from '@/lib/retention';
 import { useDirectThreads } from '@/hooks/use-direct-threads';
 import { useToast } from '@/hooks/use-toast';
 import { Badge } from '@/components/ui/badge';
@@ -39,8 +39,6 @@ export function DashboardTaskbar({ hasUsersTurn, nextTurnHref }: DashboardTaskba
   const retention = useMemo(() => normalizeRetentionState(userProfile?.retention), [userProfile?.retention]);
   const summary = useMemo(() => getRetentionSummary(retention), [retention]);
   const threads = useMemo(() => normalizeDirectThreads(rawThreads), [rawThreads]);
-  const nextActionHref = hasUsersTurn ? nextTurnHref || '/dashboard' : getNextActionHref(retention, false);
-  const nextActionLabel = hasUsersTurn ? 'Your turn' : summary.dailyChallengeCompleted ? 'Open arcade' : MODE_METADATA[summary.dailyChallenge.modeId].title;
   const questPercent = summary.totalQuestGoal > 0 ? Math.round((summary.totalQuestProgress / summary.totalQuestGoal) * 100) : 0;
   const pendingInvites = useMemo(
     () =>
@@ -82,25 +80,7 @@ export function DashboardTaskbar({ hasUsersTurn, nextTurnHref }: DashboardTaskba
       transition={{ duration: 0.32, ease: 'easeOut' }}
       className="glass-panel rounded-[2rem] p-3"
     >
-      <div className="grid gap-3 lg:grid-cols-[1.1fr_0.75fr_0.75fr]">
-        <Link
-          href={nextActionHref}
-          className="group flex items-center justify-between overflow-hidden rounded-[1.55rem] bg-[radial-gradient(circle_at_15%_10%,rgba(255,255,255,.14),transparent_28%),linear-gradient(135deg,#070b1a,#111827)] px-4 py-4 text-white shadow-[inset_0_1px_0_rgba(255,255,255,.16),0_14px_28px_rgba(2,6,23,.16)] transition-transform hover:-translate-y-0.5"
-        >
-          <div>
-            <div className="text-[0.68rem] font-black uppercase tracking-[0.22em] text-white/60">Next</div>
-            <div className="mt-1 flex items-center gap-2 text-lg font-black">
-              {nextActionLabel}
-              <AnimatePresence mode="wait">
-                <motion.span key={nextActionLabel} initial={{ opacity: 0, x: -6 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 6 }}>
-                  <ChevronRight className="h-4 w-4" />
-                </motion.span>
-              </AnimatePresence>
-            </div>
-          </div>
-          <Badge className="rounded-full bg-white/[.14] text-white hover:bg-white/[.14]">{hasUsersTurn ? 'Live' : 'Ready'}</Badge>
-        </Link>
-
+      <div className="grid gap-3 lg:grid-cols-2">
         <Sheet>
           <SheetTrigger asChild>
             <button type="button" className="soft-card rounded-[1.55rem] px-4 py-4 text-left transition hover:-translate-y-0.5">
@@ -179,7 +159,7 @@ export function DashboardTaskbar({ hasUsersTurn, nextTurnHref }: DashboardTaskba
             </SheetHeader>
             <div className="mt-6 space-y-3">
               {hasUsersTurn ? (
-                <Link href={nextActionHref} className="block rounded-[1.25rem] border border-emerald-200 bg-emerald-50 p-4">
+                <Link href={nextTurnHref || '/dashboard'} className="block rounded-[1.25rem] border border-emerald-200 bg-emerald-50 p-4">
                   <div className="flex items-center gap-2 font-black text-emerald-900">
                     <CheckCircle2 className="h-4 w-4" />
                     Your turn is ready

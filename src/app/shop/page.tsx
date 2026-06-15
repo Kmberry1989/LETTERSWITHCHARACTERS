@@ -60,16 +60,10 @@ export default function ShopPage() {
   return (
     <AppLayout>
       <div className="flex-1 space-y-6 p-4 sm:p-8">
-        <div className="glass-panel overflow-hidden rounded-[2rem] p-5 sm:p-6">
+        <div className="glass-panel overflow-hidden rounded-[2rem] p-4 sm:p-5">
           <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
             <div className="space-y-2">
-              <Badge variant="outline" className="rounded-full bg-white/[.65] px-3 py-1 text-[0.68rem] uppercase tracking-[0.18em]">
-                Collectible Finishes
-              </Badge>
-              <h1 className="text-3xl font-black tracking-tight font-headline">Berry Shop</h1>
-              <p className="max-w-2xl text-sm text-slate-500 sm:text-base">
-                Spend berries earned from real matches on tactile tile finishes, then equip them for live play.
-              </p>
+              <h1 className="sr-only">Shop</h1>
               <div className="max-w-2xl pt-2">
                 <ExperienceMeter experience={experience} level={level} className="w-full" />
               </div>
@@ -105,15 +99,15 @@ export default function ShopPage() {
                   <div className="liquid-tray relative aspect-[1.2] overflow-hidden rounded-[1.5rem]">
                     <div className="absolute inset-0 flex items-center justify-center p-5">
                       <div className="relative h-24 w-24 drop-shadow-[0_18px_16px_rgba(15,23,42,0.2)] transition-transform duration-300 group-hover:-translate-y-1 group-hover:scale-105 sm:h-28 sm:w-28">
-                        <Image src={item.assetPath} alt={item.name} fill className={`object-contain ${!isUnlocked ? 'opacity-35 grayscale' : ''}`} />
+                        <Image src={item.assetPath} alt={item.name} fill className={`object-contain ${!isUnlocked ? 'opacity-85 saturate-75' : ''}`} />
                       </div>
                     </div>
                     {!isUnlocked && (
-                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-slate-950/20 backdrop-blur-[2px]">
-                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/30 bg-white/15 shadow-lg">
-                          <Lock className="h-6 w-6 text-white drop-shadow" />
+                      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 bg-white/10 backdrop-blur-[0.5px]">
+                        <div className="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/35 bg-white/25 shadow-lg">
+                          <Lock className="h-6 w-6 text-slate-700/75 drop-shadow" />
                         </div>
-                        <span className="rounded-full bg-white/[.88] px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-slate-900 shadow-sm">
+                        <span className="rounded-full bg-white/[.55] px-3 py-1 text-xs font-black uppercase tracking-[0.18em] text-slate-900 shadow-sm backdrop-blur-[1px]">
                           Unlock at level {item.requiredLevel}
                         </span>
                       </div>

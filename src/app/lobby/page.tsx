@@ -13,7 +13,6 @@ import { useToast } from '@/hooks/use-toast';
 import type { UserProfile } from '@/firebase/firestore/use-users';
 import { resolveAvatarImage } from '@/lib/avatar-catalog';
 import { usePlayableGate } from '@/hooks/use-playable-gate';
-import { Sparkles, Swords, Wand2 } from 'lucide-react';
 
 type LocalTimestamp = Date | string | { toDate: () => Date };
 
@@ -195,21 +194,8 @@ export default function LobbyPage() {
   return (
     <AppLayout>
       <div className="flex-1 space-y-4 p-4 sm:p-8">
-        <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-[linear-gradient(135deg,rgba(255,249,237,0.96),rgba(255,232,214,0.96))] p-6 shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
-          <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-            <div>
-              <p className="inline-flex items-center gap-2 rounded-full bg-white/85 px-4 py-2 text-xs font-black uppercase tracking-[0.24em] text-primary shadow-sm">
-                <Sparkles className="h-4 w-4" />
-                Matchmaking
-              </p>
-              <h1 className="mt-3 text-3xl font-bold tracking-tight font-headline">Game Lobby</h1>
-              <p className="mt-2 max-w-2xl text-muted-foreground">Chat, post an open challenge, or start a game right away.</p>
-            </div>
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-2xl bg-white/80 p-4 shadow-sm"><div className="flex items-center gap-2 font-semibold"><Swords className="h-4 w-4 text-primary" />Open Matches</div><div className="mt-1 text-sm text-muted-foreground">{openChallenges.length} ready to accept</div></div>
-              <div className="rounded-2xl bg-white/80 p-4 shadow-sm"><div className="flex items-center gap-2 font-semibold"><Wand2 className="h-4 w-4 text-primary" />Live Chat</div><div className="mt-1 text-sm text-muted-foreground">{sortedMessages.length} recent lobby messages</div></div>
-            </div>
-          </div>
+        <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-[linear-gradient(135deg,rgba(255,249,237,0.96),rgba(255,232,214,0.96))] p-5 shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
+          <h1 className="text-3xl font-bold tracking-tight font-headline">Lobby</h1>
         </div>
         <div className="grid gap-8 md:grid-cols-3">
           <div className="md:col-span-2">

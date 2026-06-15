@@ -7,6 +7,7 @@ import { GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { useAudio } from '@/hooks/use-audio';
 import { createArcadeSessionId } from '@/lib/arcade/session-id';
 import { cn } from '@/lib/utils';
 
@@ -133,6 +134,7 @@ function getRelativePoint(event: PointerEvent | React.PointerEvent, rect: DOMRec
 }
 
 export default function WordSearchGrid() {
+  const { playSfx } = useAudio();
   const boardRef = useRef<HTMLDivElement | null>(null);
   const [puzzle, setPuzzle] = useState<Puzzle | null>(null);
   const [loading, setLoading] = useState(true);
@@ -153,6 +155,7 @@ export default function WordSearchGrid() {
   }, [puzzle]);
 
   const loadPuzzle = async () => {
+    playSfx('swoosh');
     setLoading(true);
     setFoundWords([]);
     setResolution(null);
@@ -199,6 +202,7 @@ export default function WordSearchGrid() {
 
       const placement = placementByKey.get(sequenceKey(current.cells));
       if (placement && !foundSet.has(placement.word)) {
+        playSfx('arcadeSuccess');
         setFoundWords((value) => [...value, placement.word]);
         setResolution({
           key: `${Date.now()}-success`,
@@ -209,6 +213,7 @@ export default function WordSearchGrid() {
         return;
       }
 
+      playSfx('arcadeError');
       setResolution({
         key: `${Date.now()}-error`,
         cells: current.cells,
@@ -232,6 +237,7 @@ export default function WordSearchGrid() {
 
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
+    playSfx('arcadeSelect');
     setResolution(null);
     setDrag({
       start: cell,

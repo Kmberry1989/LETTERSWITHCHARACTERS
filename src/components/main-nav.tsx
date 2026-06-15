@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils';
 const menuItems = [
   { href: '/dashboard', label: 'Play', icon: Gamepad2 },
   { href: '/minigames', label: 'Arcade', icon: Sparkles },
-  { href: '/lobby', label: 'Match', icon: Swords },
+  { href: '/lobby', label: 'Lobby', icon: Swords },
   { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
   { href: '/shop', label: 'Shop', icon: Store },
   { href: '/profile', label: 'Profile', icon: UserCircle },
