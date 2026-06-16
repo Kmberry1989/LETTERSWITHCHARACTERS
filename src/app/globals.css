@@ -89,6 +89,12 @@
     -webkit-text-size-adjust: 100%;
   }
 
+  html.play-mode-locked {
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+  }
+
   body {
     font-family: "PT Sans", Arial, Helvetica, sans-serif;
     @apply bg-background text-foreground;
@@ -99,6 +105,26 @@
       radial-gradient(circle at 86% 0%, rgba(191, 233, 255, 0.22), transparent 26%),
       radial-gradient(circle at 92% 74%, rgba(191, 245, 220, 0.22), transparent 26%),
       linear-gradient(180deg, rgba(255,255,255,0.78), rgba(244,250,239,0.96));
+  }
+
+  body.play-mode-locked {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  body.play-mode-locked input,
+  body.play-mode-locked textarea,
+  body.play-mode-locked [contenteditable="true"] {
+    user-select: text;
+    -webkit-user-select: text;
+    touch-action: manipulation;
   }
 
   button,

@@ -113,7 +113,7 @@ export default function ExperienceMeter({
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-full border border-white/70 bg-white/85 shadow-[0_10px_30px_rgba(15,23,42,0.12)] backdrop-blur',
+        'relative overflow-hidden rounded-2xl border border-white/70 bg-white/85 shadow-[0_10px_30px_rgba(15,23,42,0.12)] backdrop-blur',
         compact ? 'px-3 py-2' : 'px-4 py-3',
         className
       )}

@@ -161,7 +161,7 @@ function Game() {
   if (gameLoading || isUserLoading || !user || !canPlay) {
     return (
       <AppLayout mode="play">
-        <div className="p-4 space-y-4">
+        <div className="h-[100svh] space-y-4 overflow-hidden p-4 select-none">
           <Skeleton className="h-24 w-full" />
           <Skeleton className="h-[400px] w-full" />
           <Skeleton className="h-32 w-full" />
@@ -173,7 +173,7 @@ function Game() {
   if (!game) {
     return (
       <AppLayout mode="play">
-        <div className="p-4 text-center">
+        <div className="flex h-[100svh] flex-col items-center justify-center overflow-hidden p-4 text-center select-none">
           <h2 className="text-xl font-semibold">Game not found</h2>
           <p className="text-muted-foreground">The game you are looking for does not exist or has been deleted.</p>
           <Button asChild className="mt-4"><a href="/dashboard">Go to Dashboard</a></Button>
@@ -184,7 +184,7 @@ function Game() {
 
   return (
     <AppLayout mode="play">
-      <div className="flex h-[100svh] min-w-0 flex-col items-center overflow-hidden px-1.5 pb-1 pt-12 md:h-auto md:overflow-visible md:p-4">
+      <div className="flex h-[100svh] min-w-0 touch-none select-none flex-col items-center overflow-hidden overscroll-none px-1.5 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-12 md:h-auto md:overflow-visible md:p-4">
         <div className="flex min-h-0 w-full max-w-4xl flex-1 flex-col gap-2 md:gap-4">
           <div className="hidden items-center justify-end md:flex">
             <Dialog open={isPauseOpen} onOpenChange={setIsPauseOpen}>
@@ -260,7 +260,7 @@ function Game() {
             </BoardStage>
           </div>
 
-          <div className="shrink-0 rounded-2xl bg-background/85 p-1 backdrop-blur md:static md:bg-transparent md:p-0 md:backdrop-blur-0">
+          <div className="shrink-0 touch-none rounded-2xl bg-background/85 p-1 backdrop-blur md:static md:bg-transparent md:p-0 md:backdrop-blur-0">
             <TileRack
               tiles={playerTiles}
               selectedTileIndex={selectedTileIndex}

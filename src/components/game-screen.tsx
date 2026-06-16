@@ -1,6 +1,6 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -22,6 +22,22 @@ export function GameScreen({ children, className }: GameScreenProps) {
       {children}
     </div>
   );
+}
+
+export function PlayModeDocumentLock() {
+  useEffect(() => {
+    const html = document.documentElement;
+    const body = document.body;
+    html.classList.add('play-mode-locked');
+    body.classList.add('play-mode-locked');
+
+    return () => {
+      html.classList.remove('play-mode-locked');
+      body.classList.remove('play-mode-locked');
+    };
+  }, []);
+
+  return null;
 }
 
 export function GameBackButton() {

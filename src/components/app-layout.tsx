@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import Image from 'next/image';
 import { AppHeader } from '@/components/app-header';
 import { FloatingDirectMessages } from '@/components/floating-direct-messages';
-import { GameBackButton } from '@/components/game-screen';
+import { GameBackButton, PlayModeDocumentLock } from '@/components/game-screen';
 import { MainNav } from '@/components/main-nav';
 import { MobileBottomNav } from '@/components/mobile-bottom-nav';
 import MusicPlayer from '@/components/profile/music-player';
@@ -46,12 +46,13 @@ export default function AppLayout({ children, mode = 'default' }: AppLayoutProps
         </SidebarContent>
       </Sidebar>
       <SidebarInset className="min-w-0 bg-transparent">
+        {isPlayMode ? <PlayModeDocumentLock /> : null}
         {isPlayMode ? <div className="hidden md:block"><AppHeader /></div> : <AppHeader />}
         <MusicPlayer />
         <main
           className={cn(
             'min-w-0 max-w-full overflow-x-clip',
-            isPlayMode ? 'h-[100svh] overflow-hidden pb-0 md:h-auto md:min-h-0' : 'pb-28 md:pb-0'
+            isPlayMode ? 'h-[100svh] overflow-hidden overscroll-none pb-0 select-none touch-none md:h-auto md:min-h-0' : 'pb-28 md:pb-0'
           )}
         >
           {children}
