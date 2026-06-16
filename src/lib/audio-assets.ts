@@ -19,14 +19,14 @@ export const SFX_FILE_MAP: Record<SfxType, string> = {
   swoosh: '/audio/sfx/rack-shuffle.ogg',
   success: '/audio/sfx/word-success.ogg',
   error: '/audio/sfx/error-buzz.ogg',
-  arcadeSelect: '/audio/sfx/arcade/select.ogg',
-  arcadeSuccess: '/audio/sfx/arcade/success.ogg',
-  arcadeError: '/audio/sfx/arcade/error.ogg',
-  sortPour: '/audio/sfx/arcade/liquid-pour.ogg',
-  cardMove: '/audio/sfx/arcade/card-move.ogg',
-  wheelSpin: '/audio/sfx/arcade/wheel-spin.ogg',
-  wheelTick: '/audio/sfx/arcade/wheel-tick.ogg',
-  wheelLand: '/audio/sfx/arcade/wheel-land.ogg',
+  arcadeSelect: '/audio/sfx/ui-click.ogg',
+  arcadeSuccess: '/audio/sfx/word-success.ogg',
+  arcadeError: '/audio/sfx/error-buzz.ogg',
+  sortPour: '/audio/sfx/rack-shuffle.ogg',
+  cardMove: '/audio/sfx/tile-place.ogg',
+  wheelSpin: '/audio/sfx/rack-shuffle.ogg',
+  wheelTick: '/audio/sfx/ui-click.ogg',
+  wheelLand: '/audio/sfx/turn-ready.ogg',
 };
 
 export const MUSIC_TRACKS = {

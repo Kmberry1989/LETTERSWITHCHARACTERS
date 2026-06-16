@@ -1,0 +1,82 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - list [ref=e11]:
+      - listitem [ref=e12]:
+        - link "Play" [ref=e13] [cursor=pointer]:
+          - /url: /dashboard
+          - generic [ref=e15]: Play
+      - listitem [ref=e16]:
+        - link "Arcade" [ref=e17] [cursor=pointer]:
+          - /url: /minigames
+          - generic [ref=e19]: Arcade
+      - listitem [ref=e20]:
+        - link "Lobby" [ref=e21] [cursor=pointer]:
+          - /url: /lobby
+          - generic [ref=e23]: Lobby
+      - listitem [ref=e24]:
+        - link "Leaderboard" [ref=e25] [cursor=pointer]:
+          - /url: /leaderboard
+          - generic [ref=e27]: Leaderboard
+      - listitem [ref=e28]:
+        - link "Shop" [ref=e29] [cursor=pointer]:
+          - /url: /shop
+          - generic [ref=e31]: Shop
+      - listitem [ref=e32]:
+        - link "Profile" [ref=e33] [cursor=pointer]:
+          - /url: /profile
+          - generic [ref=e35]: Profile
+    - main [ref=e36]:
+      - generic [ref=e38]:
+        - button "Toggle Sidebar" [ref=e40] [cursor=pointer]:
+          - img
+          - generic [ref=e41]: Toggle Sidebar
+        - button "1,250 Lv 1 Berries" [ref=e43] [cursor=pointer]:
+          - generic [ref=e44]:
+            - img
+          - generic [ref=e45]: 1,250
+          - generic [ref=e46]: Lv 1
+          - generic [ref=e47]: Berries
+      - main [ref=e48]:
+        - generic [ref=e50]:
+          - generic [ref=e51]:
+            - generic [ref=e52]: 0 / 6
+            - button "New puzzle" [ref=e53] [cursor=pointer]:
+              - img
+              - generic [ref=e54]: New Puzzle
+          - generic [ref=e55]:
+            - generic [ref=e56]: Guess the hidden five-letter word.
+            - generic [ref=e94]:
+              - generic [ref=e95]:
+                - button "q" [ref=e96] [cursor=pointer]
+                - button "w" [ref=e97] [cursor=pointer]
+                - button "e" [ref=e98] [cursor=pointer]
+                - button "r" [ref=e99] [cursor=pointer]
+                - button "t" [ref=e100] [cursor=pointer]
+                - button "y" [ref=e101] [cursor=pointer]
+                - button "u" [ref=e102] [cursor=pointer]
+                - button "i" [ref=e103] [cursor=pointer]
+                - button "o" [ref=e104] [cursor=pointer]
+                - button "p" [ref=e105] [cursor=pointer]
+              - generic [ref=e106]:
+                - button "a" [ref=e107] [cursor=pointer]
+                - button "s" [ref=e108] [cursor=pointer]
+                - button "d" [ref=e109] [cursor=pointer]
+                - button "f" [ref=e110] [cursor=pointer]
+                - button "g" [ref=e111] [cursor=pointer]
+                - button "h" [ref=e112] [cursor=pointer]
+                - button "j" [ref=e113] [cursor=pointer]
+                - button "k" [ref=e114] [cursor=pointer]
+                - button "l" [ref=e115] [cursor=pointer]
+              - generic [ref=e116]:
+                - button "enter" [ref=e117] [cursor=pointer]
+                - button "z" [ref=e118] [cursor=pointer]
+                - button "x" [ref=e119] [cursor=pointer]
+                - button "c" [ref=e120] [cursor=pointer]
+                - button "v" [ref=e121] [cursor=pointer]
+                - button "b" [ref=e122] [cursor=pointer]
+                - button "n" [ref=e123] [cursor=pointer]
+                - button "m" [ref=e124] [cursor=pointer]
+                - button "Del" [ref=e125] [cursor=pointer]
+  - region "Notifications (F8)":
+    - list
+  - alert [ref=e126]

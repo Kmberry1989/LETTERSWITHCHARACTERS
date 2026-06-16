@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardTitle } from '@/components/ui/card';
 import { MODE_METADATA, type RetentionModeId } from '@/lib/retention';
 
-const arcadeModes = ['word-search', 'word-connect', 'liquid-sort', 'match-sort', 'solitaire', 'wheel'] as const satisfies readonly RetentionModeId[];
+const arcadeModes = ['word-search', 'five-in-six', 'word-connect', 'liquid-sort', 'match-sort', 'solitaire', 'wheel'] as const satisfies readonly RetentionModeId[];
 
 export default function MinigamesPage() {
   return (

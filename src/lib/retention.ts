@@ -3,6 +3,7 @@ import { addDays, differenceInCalendarDays, format, startOfDay } from 'date-fns'
 export const RETENTION_MODES = [
   'word-duel',
   'word-search',
+  'five-in-six',
   'word-connect',
   'liquid-sort',
   'match-sort',
@@ -68,6 +69,7 @@ export const DEFAULT_RETENTION_STATE: RetentionState = {
   modeProgress: {
     'word-duel': createDefaultModeProgress(),
     'word-search': createDefaultModeProgress(),
+    'five-in-six': createDefaultModeProgress(),
     'word-connect': createDefaultModeProgress(),
     'liquid-sort': createDefaultModeProgress(),
     'match-sort': createDefaultModeProgress(),
@@ -96,6 +98,12 @@ export const MODE_METADATA: Record<
     href: '/minigames/word-search',
     accent: 'from-sky-200 via-cyan-100 to-emerald-100',
     iconPath: '/arcade-icons/word-search.png',
+  },
+  'five-in-six': {
+    title: '5 in 6',
+    href: '/minigames/5-in-6',
+    accent: 'from-emerald-200 via-lime-100 to-slate-100',
+    iconPath: '/arcade-icons/five-in-six.png',
   },
   'word-connect': {
     title: 'Word Connect',
