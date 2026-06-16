@@ -1,18 +1,18 @@
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Gamepad2, Sparkles, Store, Swords, Trophy, UserCircle } from 'lucide-react';
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui/sidebar';
 import { cn } from '@/lib/utils';
 
 const menuItems = [
-  { href: '/dashboard', label: 'Play', icon: Gamepad2 },
-  { href: '/minigames', label: 'Arcade', icon: Sparkles },
-  { href: '/lobby', label: 'Lobby', icon: Swords },
-  { href: '/leaderboard', label: 'Leaderboard', icon: Trophy },
-  { href: '/shop', label: 'Shop', icon: Store },
-  { href: '/profile', label: 'Profile', icon: UserCircle },
+  { href: '/dashboard', label: 'Play', iconPath: '/interface/sidebar-icons/play.png' },
+  { href: '/minigames', label: 'Arcade', iconPath: '/interface/sidebar-icons/arcade.png' },
+  { href: '/lobby', label: 'Lobby', iconPath: '/interface/sidebar-icons/lobby.png' },
+  { href: '/leaderboard', label: 'Leaderboard', iconPath: '/interface/sidebar-icons/leaderboard.png' },
+  { href: '/shop', label: 'Shop', iconPath: '/interface/sidebar-icons/shop.png' },
+  { href: '/profile', label: 'Profile', iconPath: '/interface/sidebar-icons/profile.png' },
 ];
 
 function isActivePath(pathname: string, href: string) {
@@ -23,9 +23,8 @@ export function MainNav() {
   const pathname = usePathname();
 
   return (
-    <SidebarMenu className="gap-2 rounded-[1.65rem] bg-white/[.34] p-2">
+      <SidebarMenu className="gap-2 rounded-[1.65rem] bg-white/[.34] p-2">
       {menuItems.map((item) => {
-        const Icon = item.icon;
         const active = isActivePath(pathname, item.href);
         return (
           <SidebarMenuItem key={item.href}>
@@ -46,7 +45,13 @@ export function MainNav() {
                     active && 'bg-white text-emerald-700 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_6px_14px_rgba(35,50,80,.08)]'
                   )}
                 >
-                  <Icon className="h-5 w-5 stroke-[2.35]" />
+                  <Image
+                    src={item.iconPath}
+                    alt=""
+                    width={20}
+                    height={20}
+                    className="h-5 w-5 object-contain"
+                  />
                 </span>
                 <span>{item.label}</span>
               </Link>
