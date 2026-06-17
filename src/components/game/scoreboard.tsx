@@ -22,8 +22,8 @@ type ScoreboardProps = {
 };
 
 const defaultPlayers: Player[] = [
-  { displayName: 'WordWizard', score: 125, avatarId: 'user-1', avatarPosterUrl: '/avatars/posters/aurora-pilot.svg' },
-  { displayName: 'Alex', score: 98, avatarId: 'user-2', avatarPosterUrl: '/avatars/posters/ember-scribe.svg' },
+  { displayName: 'WordWizard', score: 125, avatarId: 'user-1' },
+  { displayName: 'Alex', score: 98, avatarId: 'user-2' },
 ];
 
 export default function Scoreboard({ players = defaultPlayers, isPlayerTurn, currentPlayerName, gameStatus }: ScoreboardProps) {

@@ -22,8 +22,10 @@ export function useCollection<T = any>(memoizedTargetRefOrQuery: (LocalCollectio
   useEffect(() => {
     let cancelled = false;
     let interval: ReturnType<typeof setInterval> | null = null;
+    let pollingDisabled = false;
 
     const load = async (showLoading = false) => {
+      if (pollingDisabled && !showLoading) return;
       if (!memoizedTargetRefOrQuery) {
         setData(null);
         setIsLoading(false);
@@ -48,6 +50,13 @@ export function useCollection<T = any>(memoizedTargetRefOrQuery: (LocalCollectio
         if (cancelled) return;
 
         if (!response.ok) {
+          if (response.status >= 500) {
+            pollingDisabled = true;
+            if (interval) {
+              clearInterval(interval);
+              interval = null;
+            }
+          }
           throw new Error(result?.error || 'Could not load collection.');
         }
 
@@ -57,6 +66,11 @@ export function useCollection<T = any>(memoizedTargetRefOrQuery: (LocalCollectio
         if (!cancelled) {
           setError(err);
           setData(null);
+          pollingDisabled = true;
+          if (interval) {
+            clearInterval(interval);
+            interval = null;
+          }
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -64,7 +78,7 @@ export function useCollection<T = any>(memoizedTargetRefOrQuery: (LocalCollectio
     };
 
     void load(true);
-    interval = setInterval(() => void load(false), 2500);
+    interval = setInterval(() => void load(false), 5000);
 
     return () => {
       cancelled = true;

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getDocument, setDocument, updateDocument } from '@/lib/server/document-store';
+import { getDocument, setDocument, toDocumentStoreError, updateDocument } from '@/lib/server/document-store';
 import { getCurrentUser } from '@/lib/server/auth';
 
 export const dynamic = 'force-dynamic';
@@ -19,44 +19,55 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ collection: string; documentId: string }> }
 ) {
-  const { collection, documentId } = await params;
-  const document = await getDocument(decodeURIComponent(collection), decodeURIComponent(documentId));
+  try {
+    const { collection, documentId } = await params;
+    const document = await getDocument(decodeURIComponent(collection), decodeURIComponent(documentId));
 
-  if (!document) {
-    return NextResponse.json({ error: 'Document not found.' }, { status: 404 });
+    if (!document) {
+      return NextResponse.json({ error: 'Document not found.' }, { status: 404 });
+    }
+
+    return NextResponse.json({ document });
+  } catch (error) {
+    const normalized = toDocumentStoreError(error, 'Could not load document.');
+    const status = 'status' in normalized && typeof normalized.status === 'number' ? normalized.status : 500;
+    return NextResponse.json({ error: normalized.message || 'Could not load document.' }, { status });
   }
-
-  return NextResponse.json({ document });
 }
 
 export async function PUT(
   request: Request,
   { params }: { params: Promise<{ collection: string; documentId: string }> }
 ) {
-  const { collection, documentId } = await params;
-  const accessError = await ensureMutationAccess(decodeURIComponent(collection), decodeURIComponent(documentId));
-  if (accessError) return accessError;
-  const body = await request.json().catch(() => null);
-  const document = await setDocument(
-    decodeURIComponent(collection),
-    decodeURIComponent(documentId),
-    body?.data || {},
-    Boolean(body?.merge)
-  );
+  try {
+    const { collection, documentId } = await params;
+    const accessError = await ensureMutationAccess(decodeURIComponent(collection), decodeURIComponent(documentId));
+    if (accessError) return accessError;
+    const body = await request.json().catch(() => null);
+    const document = await setDocument(
+      decodeURIComponent(collection),
+      decodeURIComponent(documentId),
+      body?.data || {},
+      Boolean(body?.merge)
+    );
 
-  return NextResponse.json({ document });
+    return NextResponse.json({ document });
+  } catch (error) {
+    const normalized = toDocumentStoreError(error, 'Could not save document.');
+    const status = 'status' in normalized && typeof normalized.status === 'number' ? normalized.status : 500;
+    return NextResponse.json({ error: normalized.message || 'Could not save document.' }, { status });
+  }
 }
 
 export async function PATCH(
   request: Request,
   { params }: { params: Promise<{ collection: string; documentId: string }> }
 ) {
-  const { collection, documentId } = await params;
-  const accessError = await ensureMutationAccess(decodeURIComponent(collection), decodeURIComponent(documentId));
-  if (accessError) return accessError;
-  const body = await request.json().catch(() => null);
-
   try {
+    const { collection, documentId } = await params;
+    const accessError = await ensureMutationAccess(decodeURIComponent(collection), decodeURIComponent(documentId));
+    if (accessError) return accessError;
+    const body = await request.json().catch(() => null);
     const document = await updateDocument(
       decodeURIComponent(collection),
       decodeURIComponent(documentId),
@@ -64,7 +75,9 @@ export async function PATCH(
     );
 
     return NextResponse.json({ document });
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message || 'Could not update document.' }, { status: 404 });
+  } catch (error) {
+    const normalized = toDocumentStoreError(error, 'Could not update document.');
+    const status = 'status' in normalized && typeof normalized.status === 'number' ? normalized.status : normalized.message.includes('does not exist') ? 404 : 500;
+    return NextResponse.json({ error: normalized.message || 'Could not update document.' }, { status });
   }
 }

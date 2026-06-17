@@ -21,8 +21,10 @@ export function useDoc<T = any>(memoizedDocRef: LocalDocRef | null | undefined):
   useEffect(() => {
     let cancelled = false;
     let interval: ReturnType<typeof setInterval> | null = null;
+    let pollingDisabled = false;
 
     const load = async (showLoading = false) => {
+      if (pollingDisabled && !showLoading) return;
       if (!memoizedDocRef) {
         setData(null);
         setIsLoading(false);
@@ -43,14 +45,27 @@ export function useDoc<T = any>(memoizedDocRef: LocalDocRef | null | undefined):
 
         if (!response.ok) {
           setData(null);
+          setError(new Error(result?.error || 'Could not load document.'));
+          if (response.status >= 500) {
+            pollingDisabled = true;
+            if (interval) {
+              clearInterval(interval);
+              interval = null;
+            }
+          }
         } else {
           setData(result.document as StateDataType);
+          setError(null);
         }
-        setError(null);
       } catch (err: any) {
         if (!cancelled) {
           setError(err);
           setData(null);
+          pollingDisabled = true;
+          if (interval) {
+            clearInterval(interval);
+            interval = null;
+          }
         }
       } finally {
         if (!cancelled) setIsLoading(false);
@@ -60,7 +75,7 @@ export function useDoc<T = any>(memoizedDocRef: LocalDocRef | null | undefined):
     const refreshActiveDocument = () => void load(false);
 
     void load(true);
-    interval = setInterval(refreshActiveDocument, 1000);
+    interval = setInterval(refreshActiveDocument, 5000);
     window.addEventListener('focus', refreshActiveDocument);
     window.addEventListener('online', refreshActiveDocument);
 

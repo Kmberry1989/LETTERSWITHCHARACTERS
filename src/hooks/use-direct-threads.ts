@@ -25,8 +25,10 @@ export function useDirectThreads(enabled = true): UseDirectThreadsResult {
 
     let cancelled = false;
     let interval: ReturnType<typeof setInterval> | null = null;
+    let pollingDisabled = false;
 
     const load = async (showLoading = false) => {
+      if (pollingDisabled && !showLoading) return;
       if (showLoading) {
         setIsLoading(true);
       }
@@ -37,6 +39,13 @@ export function useDirectThreads(enabled = true): UseDirectThreadsResult {
         if (cancelled) return;
 
         if (!response.ok) {
+          if (response.status >= 500) {
+            pollingDisabled = true;
+            if (interval) {
+              clearInterval(interval);
+              interval = null;
+            }
+          }
           throw new Error(result?.error || 'Could not load direct threads.');
         }
 
@@ -45,6 +54,11 @@ export function useDirectThreads(enabled = true): UseDirectThreadsResult {
       } catch (nextError: any) {
         if (!cancelled) {
           setError(nextError);
+          pollingDisabled = true;
+          if (interval) {
+            clearInterval(interval);
+            interval = null;
+          }
         }
       } finally {
         if (!cancelled) {
@@ -54,7 +68,7 @@ export function useDirectThreads(enabled = true): UseDirectThreadsResult {
     };
 
     void load(true);
-    interval = setInterval(() => void load(false), 2500);
+    interval = setInterval(() => void load(false), 5000);
 
     return () => {
       cancelled = true;

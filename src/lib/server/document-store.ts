@@ -2,10 +2,41 @@ import { prisma } from '@/lib/prisma';
 
 export type JsonRecord = Record<string, any>;
 
+export class DocumentStoreUnavailableError extends Error {
+  status = 503 as const;
+
+  constructor(message: string) {
+    super(message);
+    this.name = 'DocumentStoreUnavailableError';
+  }
+}
+
 function assertDatabaseConfigured() {
   if (!process.env.DATABASE_URL?.trim()) {
-    throw new Error('Document storage requires DATABASE_URL to be configured and the dev server restarted.');
+    throw new DocumentStoreUnavailableError('Document storage is unavailable because DATABASE_URL is not configured.');
   }
+}
+
+export function toDocumentStoreError(error: unknown, fallbackMessage = 'Document storage is unavailable.') {
+  if (error instanceof DocumentStoreUnavailableError) {
+    return error;
+  }
+
+  if (error instanceof Error) {
+    const message = error.message || fallbackMessage;
+    if (
+      message.includes('DATABASE_URL') ||
+      message.includes('Can\'t reach database server') ||
+      message.includes('app_documents') ||
+      message.includes('app_sessions') ||
+      message.includes('Prisma') ||
+      message.includes('database')
+    ) {
+      return new DocumentStoreUnavailableError(fallbackMessage);
+    }
+  }
+
+  return error instanceof Error ? error : new Error(fallbackMessage);
 }
 
 export function newDocumentId() {

@@ -67,5 +67,5 @@ export function resolveAvatarImage(profile?: {
   avatarPosterUrl?: string | null;
   photoURL?: string | null;
 }) {
-  return profile?.avatarPosterUrl || profile?.photoURL || null;
+  return profile?.photoURL || null;
 }
