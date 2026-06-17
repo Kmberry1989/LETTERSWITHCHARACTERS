@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { RefreshCcw } from 'lucide-react';
+import { Coffee, Croissant, CupSoda, Popcorn, Sandwich, Sparkles, SprayCan, Trash2 } from 'lucide-react';
 import { GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
 import { Badge } from '@/components/ui/badge';
@@ -14,31 +15,49 @@ type GoodsId = 'drinks' | 'snacks' | 'clean' | 'breakfast';
 type GoodsItem = {
   id: string;
   kind: GoodsId;
-  emoji: string;
+  tone: string;
+  icon: typeof CupSoda;
+  label: string;
 };
 
-const CATEGORIES: Record<GoodsId, { label: string; emoji: string }> = {
-  drinks: { label: 'Drinks', emoji: '🥤' },
-  snacks: { label: 'Snacks', emoji: '🍿' },
-  clean: { label: 'Clean', emoji: '🧼' },
-  breakfast: { label: 'Morning', emoji: '🥣' },
+const CATEGORIES: Record<GoodsId, { label: string; tone: string; icon: typeof CupSoda }> = {
+  drinks: { label: 'Drinks', tone: 'from-sky-100 via-cyan-50 to-blue-100 text-sky-700', icon: CupSoda },
+  snacks: { label: 'Snacks', tone: 'from-amber-100 via-orange-50 to-yellow-100 text-amber-700', icon: Popcorn },
+  clean: { label: 'Clean', tone: 'from-emerald-100 via-teal-50 to-cyan-100 text-emerald-700', icon: Sparkles },
+  breakfast: { label: 'Morning', tone: 'from-rose-100 via-orange-50 to-amber-100 text-rose-700', icon: Croissant },
 };
 
 const ORDER: GoodsId[] = ['drinks', 'snacks', 'clean', 'breakfast'];
 const START_ITEMS: GoodsItem[] = [
-  { id: 'snacks-1', kind: 'snacks', emoji: '🍟' },
-  { id: 'drinks-1', kind: 'drinks', emoji: '🧃' },
-  { id: 'clean-1', kind: 'clean', emoji: '🧽' },
-  { id: 'breakfast-1', kind: 'breakfast', emoji: '🥣' },
-  { id: 'drinks-2', kind: 'drinks', emoji: '🥤' },
-  { id: 'breakfast-2', kind: 'breakfast', emoji: '🍞' },
-  { id: 'snacks-2', kind: 'snacks', emoji: '🍿' },
-  { id: 'clean-2', kind: 'clean', emoji: '🧼' },
-  { id: 'breakfast-3', kind: 'breakfast', emoji: '🍵' },
-  { id: 'clean-3', kind: 'clean', emoji: '🧴' },
-  { id: 'drinks-3', kind: 'drinks', emoji: '🧋' },
-  { id: 'snacks-3', kind: 'snacks', emoji: '🥨' },
+  { id: 'snacks-1', kind: 'snacks', tone: 'from-amber-100 to-orange-100 text-orange-700', icon: Sandwich, label: 'Chips' },
+  { id: 'drinks-1', kind: 'drinks', tone: 'from-cyan-100 to-sky-100 text-sky-700', icon: CupSoda, label: 'Juice' },
+  { id: 'clean-1', kind: 'clean', tone: 'from-emerald-100 to-teal-100 text-emerald-700', icon: Trash2, label: 'Sponge' },
+  { id: 'breakfast-1', kind: 'breakfast', tone: 'from-rose-100 to-orange-100 text-rose-700', icon: Croissant, label: 'Bowl' },
+  { id: 'drinks-2', kind: 'drinks', tone: 'from-sky-100 to-blue-100 text-blue-700', icon: CupSoda, label: 'Soda' },
+  { id: 'breakfast-2', kind: 'breakfast', tone: 'from-amber-100 to-orange-100 text-amber-700', icon: Croissant, label: 'Toast' },
+  { id: 'snacks-2', kind: 'snacks', tone: 'from-yellow-100 to-amber-100 text-amber-700', icon: Popcorn, label: 'Popcorn' },
+  { id: 'clean-2', kind: 'clean', tone: 'from-teal-100 to-cyan-100 text-teal-700', icon: Sparkles, label: 'Soap' },
+  { id: 'breakfast-3', kind: 'breakfast', tone: 'from-orange-100 to-amber-100 text-orange-700', icon: Coffee, label: 'Tea' },
+  { id: 'clean-3', kind: 'clean', tone: 'from-cyan-100 to-emerald-100 text-cyan-700', icon: SprayCan, label: 'Spray' },
+  { id: 'drinks-3', kind: 'drinks', tone: 'from-indigo-100 to-sky-100 text-indigo-700', icon: CupSoda, label: 'Shake' },
+  { id: 'snacks-3', kind: 'snacks', tone: 'from-orange-100 to-yellow-100 text-orange-700', icon: Sandwich, label: 'Crackers' },
 ];
+
+function GoodsChip({ icon: Icon, tone, label, compact = false }: Pick<GoodsItem, 'icon' | 'tone' | 'label'> & { compact?: boolean }) {
+  return (
+    <span
+      className={cn(
+        'flex aspect-square items-center justify-center rounded-[1rem] border border-white/85 bg-gradient-to-br shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_8px_16px_rgba(35,50,80,.08)]',
+        tone,
+        compact ? 'text-base' : 'text-lg md:text-xl'
+      )}
+      title={label}
+      aria-label={label}
+    >
+      <Icon className={cn(compact ? 'h-4 w-4' : 'h-5 w-5 md:h-6 md:w-6')} />
+    </span>
+  );
+}
 
 function createBins() {
   return ORDER.reduce<Record<GoodsId, GoodsItem[]>>((bins, kind) => {
@@ -121,14 +140,14 @@ export default function MatchSortGame() {
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div className="text-xs font-black uppercase tracking-[0.14em] text-slate-500 md:text-sm">{category.label}</div>
-                    <div className="text-lg">{category.emoji}</div>
+                    <GoodsChip icon={category.icon} tone={category.tone} label={category.label} compact />
                   </div>
                   <div className="mt-2 grid flex-1 grid-cols-3 content-center gap-1 rounded-[0.9rem] bg-slate-50/80 p-1.5">
                     {Array.from({ length: 3 }).map((_, index) => {
                       const item = bins[kind][index];
                       return (
-                        <div key={index} className="flex aspect-square items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white/65 text-2xl md:text-3xl">
-                          {item?.emoji}
+                        <div key={index} className="flex aspect-square items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white/65 p-1">
+                          {item ? <GoodsChip icon={item.icon} tone={item.tone} label={item.label} /> : null}
                         </div>
                       );
                     })}
@@ -151,11 +170,11 @@ export default function MatchSortGame() {
                     setMessage('');
                   }}
                   className={cn(
-                    'flex aspect-square items-center justify-center rounded-xl border bg-white text-2xl shadow-sm transition-all md:text-3xl',
+                    'flex aspect-square items-center justify-center rounded-xl border bg-white p-1 shadow-sm transition-all',
                     selectedItemId === item.id ? 'border-amber-400 ring-4 ring-amber-100' : 'border-slate-200'
                   )}
                 >
-                  {item.emoji}
+                  <GoodsChip icon={item.icon} tone={item.tone} label={item.label} />
                 </button>
               ))}
             </div>
