@@ -164,8 +164,8 @@ const DAILY_ROTATION: Array<{
   {
     modeId: 'match-sort',
     title: 'Snap Sorting',
-    description: 'Cleanly file each object into its matching collection.',
-    targetLabel: 'Complete all category bins',
+    description: 'Stock each toy onto its exact matching shelf with no near-misses.',
+    targetLabel: 'Complete every exact-match shelf',
   },
   {
     modeId: 'solitaire',

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { Suspense, useEffect, useRef, useState } from 'react';
+import React, { Suspense, useEffect, useRef } from 'react';
 
 import { useSearchParams } from 'next/navigation';
 import AppLayout from '@/components/app-layout';
@@ -14,7 +14,6 @@ import { doc } from '@/lib/client/document-client';
 import type { UserProfile } from '@/firebase/firestore/use-users';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -28,17 +27,14 @@ import {
 } from '@/components/ui/alert-dialog';
 import BlankTileDialog from '@/components/game/blank-tile-dialog';
 import ChatWindow from '@/components/game/chat-window';
-import AudioSettings from '@/components/profile/audio-settings';
 import { useGameState } from '@/hooks/use-game-state';
 import { usePlayableGate } from '@/hooks/use-playable-gate';
-import { Pause } from 'lucide-react';
 import { useBerries } from '@/hooks/use-berries';
 import { useToast } from '@/hooks/use-toast';
 import { useTurnNotifications } from '@/hooks/use-turn-notifications';
 
 function Game() {
   const botTurnRequestRef = useRef<string | null>(null);
-  const [isPauseOpen, setIsPauseOpen] = useState(false);
   const searchParams = useSearchParams();
   const gameId = searchParams.get('game');
   const { user, isUserLoading, canPlay } = usePlayableGate();
@@ -184,41 +180,10 @@ function Game() {
 
   return (
     <AppLayout mode="play">
-      <div className="flex h-[100svh] min-w-0 touch-none select-none flex-col items-center overflow-hidden overscroll-none px-1.5 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-12 md:h-auto md:overflow-visible md:p-4">
-        <div className="flex min-h-0 w-full max-w-4xl flex-1 flex-col gap-2 md:gap-4">
-          <div className="hidden items-center justify-end md:flex">
-            <Dialog open={isPauseOpen} onOpenChange={setIsPauseOpen}>
-              <DialogTrigger asChild>
-                <Button variant="outline" className="gap-2 shadow-sm">
-                  <Pause className="h-4 w-4" />
-                  Pause & Audio
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Pause Menu</DialogTitle>
-                  <DialogDescription>
-                    Adjust audio, review the next systems coming online, or step away from the board.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-6 md:grid-cols-[1.25fr_0.75fr]">
-                  <AudioSettings />
-                  <div className="rounded-xl border bg-muted/40 p-4">
-                    <h3 className="mb-3 font-semibold">Meta-board work in progress</h3>
-                    <ul className="space-y-2 text-sm text-muted-foreground">
-                      <li>• Wheel-of-fortune style bonus spaces after matches</li>
-                      <li>• Avatar tokens that move around a long-form board</li>
-                      <li>• Turn rewards from casual solo mini-games</li>
-                      <li>• Penalties, boosts, and event tiles for the overall meta loop</li>
-                    </ul>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-
+      <div className="flex h-full min-h-0 min-w-0 touch-none select-none flex-col items-center overflow-hidden overscroll-none px-1.5 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-12 md:px-4 md:pb-4 md:pt-4">
+        <div className="flex min-h-0 w-full max-w-4xl flex-1 flex-col gap-2 md:gap-3">
           {userPlayerData && opponentPlayerData && (
-            <div className="hidden md:block">
+            <div className="hidden shrink-0 md:block">
               <Scoreboard
                 players={[
                   {
@@ -243,7 +208,7 @@ function Game() {
             </div>
           )}
 
-          <div className="min-h-0 w-full max-w-[860px] flex-1 self-center md:flex-none">
+          <div className="min-h-0 w-full max-w-[860px] flex-1 self-center">
             <BoardStage>
               <BoardChrome boardThemeId={selectedBoardThemeId} boardTintId={selectedBoardTintId} boardColor={selectedBoardColor}>
                 <GameBoard
@@ -260,7 +225,7 @@ function Game() {
             </BoardStage>
           </div>
 
-          <div className="shrink-0 touch-none rounded-2xl bg-background/85 p-1 backdrop-blur md:static md:bg-transparent md:p-0 md:backdrop-blur-0">
+          <div className="shrink-0 touch-none rounded-2xl bg-background/85 p-1 backdrop-blur md:bg-transparent md:p-0 md:backdrop-blur-0">
             <TileRack
               tiles={playerTiles}
               selectedTileIndex={selectedTileIndex}
