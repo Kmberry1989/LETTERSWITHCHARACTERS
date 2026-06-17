@@ -375,11 +375,31 @@ export function resolveBoardAppearance(boardThemeId?: string | null, boardColor?
   const neutralTop = shiftColor(accent, { s: -accent.s * 0.62, l: 30 });
   const neutralBottom = shiftColor(accent, { s: -accent.s * 0.56, l: 16 });
 
-  const dl = createCellGradient(accent, 26, 84, 58, 18);
-  const tl = createCellGradient(accent, 88, 80, 50, 20);
-  const dw = createCellGradient(accent, -18, 82, 54, 22);
-  const tw = createCellGradient(accent, -42, 72, 42, 28);
-  const start = createCellGradient(accent, 44, 76, 48, 24);
+  const dl = {
+    background: 'linear-gradient(180deg, #c7f0ff 0%, #7dd3fc 100%)',
+    text: '#0f3b63',
+    ring: 'rgba(14, 116, 144, 0.42)',
+  };
+  const tl = {
+    background: 'linear-gradient(180deg, #93dcff 0%, #2563eb 100%)',
+    text: '#eff6ff',
+    ring: 'rgba(30, 64, 175, 0.48)',
+  };
+  const dw = {
+    background: 'linear-gradient(180deg, #ffd3ea 0%, #fb7185 100%)',
+    text: '#6b1531',
+    ring: 'rgba(190, 24, 93, 0.4)',
+  };
+  const tw = {
+    background: 'linear-gradient(180deg, #ffb4b4 0%, #dc2626 100%)',
+    text: '#fff7f7',
+    ring: 'rgba(127, 29, 29, 0.48)',
+  };
+  const start = {
+    background: 'linear-gradient(180deg, #fde68a 0%, #f59e0b 100%)',
+    text: '#78350f',
+    ring: 'rgba(180, 83, 9, 0.44)',
+  };
 
   const previewStyle: CSSProperties = {
     background: `linear-gradient(145deg, ${hslString(shiftColor(accent, { s: -18, l: 18 }))} 0%, ${resolvedColor} 55%, ${hslString(shiftColor(accent, { s: -8, l: -10 }))} 100%)`,
