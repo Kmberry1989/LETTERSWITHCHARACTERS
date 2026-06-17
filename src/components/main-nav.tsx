@@ -41,16 +41,16 @@ export function MainNav() {
               <Link href={item.href}>
                 <span
                   className={cn(
-                    'flex h-9 w-9 items-center justify-center rounded-xl bg-white/[.62] shadow-[inset_0_1px_0_rgba(255,255,255,.7)] transition-all',
+                    'flex h-11 w-11 items-center justify-center rounded-xl bg-white/[.62] shadow-[inset_0_1px_0_rgba(255,255,255,.7)] transition-all',
                     active && 'bg-white text-emerald-700 shadow-[inset_0_1px_0_rgba(255,255,255,.9),0_6px_14px_rgba(35,50,80,.08)]'
                   )}
                 >
                   <Image
                     src={item.iconPath}
                     alt=""
-                    width={20}
-                    height={20}
-                    className="h-5 w-5 object-contain"
+                    width={28}
+                    height={28}
+                    className="h-7 w-7 object-contain"
                   />
                 </span>
                 <span>{item.label}</span>

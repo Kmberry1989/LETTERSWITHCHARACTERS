@@ -37,6 +37,13 @@ export default function AppLayout({ children, mode = 'default' }: AppLayoutProps
               sizes="20rem"
               priority
             />
+            <div
+              className="absolute inset-0"
+              style={{
+                background:
+                  'linear-gradient(180deg, hsl(var(--sidebar-accent) / 0.32), hsl(var(--sidebar-primary) / 0.18))',
+              }}
+            />
           </div>
           <div className="relative z-10 flex min-h-full items-center justify-center px-3 py-4 group-data-[collapsible=icon]:px-0">
             <div className="w-full max-w-[12.75rem] group-data-[collapsible=icon]:max-w-none">
@@ -47,7 +54,7 @@ export default function AppLayout({ children, mode = 'default' }: AppLayoutProps
       </Sidebar>
       <SidebarInset className="min-w-0 bg-transparent">
         {isPlayMode ? <PlayModeDocumentLock /> : null}
-        {isPlayMode ? <div className="hidden md:block"><AppHeader /></div> : <AppHeader />}
+        {isPlayMode ? null : <AppHeader />}
         <MusicPlayer />
         <main
           className={cn(
