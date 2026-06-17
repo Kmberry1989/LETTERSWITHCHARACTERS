@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useMemo } from 'react';
+import Image from 'next/image';
 import { addDoc, collection, doc, getDoc, limit, orderBy, query, serverTimestamp } from '@/lib/client/document-client';
 import AppLayout from '@/components/app-layout';
+import { InterfaceOrnament } from '@/components/interface-ornament';
 import LobbyChat, { type LobbyMessage } from '@/components/lobby/lobby-chat';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
@@ -193,9 +195,52 @@ export default function LobbyPage() {
 
   return (
     <AppLayout>
-      <div className="flex-1 space-y-4 p-4 sm:p-8">
-        <div className="overflow-hidden rounded-[2rem] border border-white/70 bg-[linear-gradient(135deg,rgba(255,249,237,0.96),rgba(255,232,214,0.96))] p-5 shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
-          <h1 className="text-3xl font-bold tracking-tight font-headline">Lobby</h1>
+      <div className="flex-1 space-y-6 p-4 sm:p-8">
+        <div className="relative overflow-hidden rounded-[2rem] border border-white/70 shadow-[0_24px_60px_rgba(15,23,42,0.08)]">
+          <div className="absolute inset-0">
+            <Image
+              src="/interface/backgrounds/lobby-confetti.png"
+              alt=""
+              fill
+              priority
+              sizes="(min-width: 1024px) 80vw, 100vw"
+              className="object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(26,21,13,0.8)_0%,rgba(34,26,12,0.46)_42%,rgba(255,247,233,0.08)_100%)]" />
+            <div className="absolute inset-y-0 left-0 w-full bg-[radial-gradient(circle_at_22%_28%,rgba(255,230,145,0.32),transparent_22%),radial-gradient(circle_at_65%_74%,rgba(111,229,241,0.16),transparent_24%)]" />
+          </div>
+          <InterfaceOrnament
+            src="/interface/ornaments/floating-star-large.svg"
+            className="float-orbit left-[4%] top-[8%] hidden h-24 w-24 opacity-95 sm:block md:h-28 md:w-28"
+            priority
+          />
+          <InterfaceOrnament
+            src="/interface/ornaments/floating-star-small.svg"
+            className="glimmer-soft right-[18%] top-[18%] hidden h-16 w-16 opacity-90 md:block"
+          />
+          <InterfaceOrnament
+            src="/interface/ornaments/spark-swish.svg"
+            className="drift-swish right-[-10%] top-[10%] hidden h-20 w-[18rem] opacity-60 md:block"
+          />
+          <InterfaceOrnament
+            src="/interface/ornaments/berry-badge-glow.svg"
+            className="glimmer-soft left-[20%] top-[42%] h-24 w-24 opacity-60"
+          />
+          <div className="relative z-10 flex flex-col gap-5 p-5 sm:p-7 md:min-h-[17rem] md:flex-row md:items-end md:justify-between md:p-8">
+            <div className="max-w-2xl">
+              <p className="text-xs font-black uppercase tracking-[0.32em] text-[#ffd677]">Live Matchmaking</p>
+              <h1 className="mt-3 text-3xl font-bold tracking-tight text-white font-headline sm:text-4xl">Lobby</h1>
+              <p className="mt-3 max-w-xl text-sm leading-6 text-white/82 sm:text-base">
+                Chat with players, post an open challenge, and jump straight into a fresh game when someone accepts.
+              </p>
+            </div>
+            <div className="w-full max-w-sm rounded-[1.6rem] border border-white/18 bg-white/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.24)] backdrop-blur-md">
+              <div className="text-xs font-black uppercase tracking-[0.24em] text-[#ffe39b]">Quick Start</div>
+              <div className="mt-2 text-sm leading-6 text-white/80">
+                Keep an eye on the challenge list. Accepting a live invite opens the game immediately.
+              </div>
+            </div>
+          </div>
         </div>
         <div className="grid gap-8 md:grid-cols-3">
           <div className="md:col-span-2">

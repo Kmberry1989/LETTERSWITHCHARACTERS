@@ -6,6 +6,7 @@ import { UserPlus, UserRound } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { InterfaceOrnament } from '@/components/interface-ornament';
 import { useAuth, type AppUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { getPostLoginRoute } from '@/lib/auth-flow';
@@ -113,25 +114,75 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[radial-gradient(circle_at_top_left,rgba(255,193,7,0.22),transparent_28%),radial-gradient(circle_at_top_right,rgba(56,189,248,0.2),transparent_26%),linear-gradient(180deg,#fff8ef_0%,#ffe6c7_45%,#ffd7d3_100%)] p-4">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#fff7eb] p-4">
       <div className="pointer-events-none absolute inset-0">
-        <div className="absolute left-[10%] top-[12%] h-24 w-24 animate-bounce rounded-full bg-white/35 blur-2xl [animation-duration:5.5s]" />
-        <div className="absolute right-[12%] top-[18%] h-32 w-32 animate-pulse rounded-full bg-pink-300/25 blur-3xl" />
-        <div className="absolute bottom-[10%] left-[18%] h-28 w-28 animate-bounce rounded-full bg-sky-300/25 blur-3xl [animation-duration:7s]" />
+        <Image
+          src="/interface/backgrounds/login-burst.png"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          className="object-cover object-center opacity-95"
+        />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(255,255,255,0.08),transparent_30%),linear-gradient(180deg,rgba(255,252,245,0.1),rgba(255,238,224,0.2)_60%,rgba(255,243,235,0.58)_100%)]" />
+        <InterfaceOrnament
+          src="/interface/ornaments/floating-star-large.svg"
+          className="float-orbit left-[4%] top-[10%] hidden h-28 w-28 md:block lg:h-36 lg:w-36"
+          priority
+        />
+        <InterfaceOrnament
+          src="/interface/ornaments/floating-star-small.svg"
+          className="glimmer-soft right-[7%] top-[14%] h-20 w-20 md:h-24 md:w-24"
+          priority
+        />
+        <InterfaceOrnament
+          src="/interface/ornaments/floating-star-small.svg"
+          className="float-slow bottom-[11%] left-[10%] h-14 w-14 opacity-80 md:h-20 md:w-20"
+        />
+        <InterfaceOrnament
+          src="/interface/ornaments/spark-swish.svg"
+          className="drift-swish -right-[12%] bottom-[8%] h-24 w-[24rem] opacity-75 md:bottom-[10%] md:h-32 md:w-[34rem]"
+        />
+        <div className="absolute left-[9%] top-[11%] h-24 w-24 rounded-full bg-white/20 blur-3xl md:h-28 md:w-28" />
+        <div className="absolute bottom-[13%] right-[14%] h-36 w-36 rounded-full bg-[#6ce6ef]/20 blur-3xl" />
       </div>
-      <Card className="relative w-full max-w-3xl overflow-hidden border-white/60 bg-white/82 shadow-[0_30px_80px_rgba(120,53,15,0.18)] backdrop-blur">
+      <Card className="relative w-full max-w-4xl overflow-hidden border-white/55 bg-white/78 shadow-[0_32px_90px_rgba(120,53,15,0.2)] backdrop-blur-xl">
         <div className="grid items-stretch md:grid-cols-[0.8fr_1fr]">
-          <div className="relative hidden overflow-hidden bg-[linear-gradient(180deg,rgba(255,244,214,0.9),rgba(255,226,214,0.96))] p-8 md:block">
-            <div className="absolute -left-8 top-10 h-40 w-40 rounded-full bg-amber-200/50 blur-3xl" />
-            <div className="absolute bottom-0 right-0 h-52 w-52 rounded-full bg-rose-200/45 blur-3xl" />
-            <div className="relative z-10 flex h-full items-center justify-center">
-              <div className="relative h-36 w-36 overflow-hidden rounded-[2rem] bg-white shadow-xl ring-4 ring-white/60">
+          <div className="relative hidden min-h-[32rem] overflow-hidden md:block">
+            <Image
+              src="/interface/backgrounds/login-burst.png"
+              alt=""
+              fill
+              sizes="(min-width: 768px) 40vw, 0vw"
+              className="object-cover object-left"
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,245,227,0.2),rgba(255,225,214,0.38)_55%,rgba(255,244,236,0.72)_100%)]" />
+            <InterfaceOrnament
+              src="/interface/ornaments/spark-swish.svg"
+              className="drift-swish left-[-8%] top-[16%] h-24 w-[20rem] opacity-80"
+            />
+            <InterfaceOrnament
+              src="/interface/ornaments/floating-star-large.svg"
+              className="float-orbit right-[6%] top-[12%] h-28 w-28"
+            />
+            <InterfaceOrnament
+              src="/interface/ornaments/floating-star-small.svg"
+              className="glimmer-soft bottom-[16%] left-[12%] h-20 w-20"
+            />
+            <div className="relative z-10 flex h-full flex-col justify-between p-8">
+              <div className="max-w-xs rounded-[1.75rem] border border-white/60 bg-white/32 p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] backdrop-blur-md">
+                <p className="text-xs font-black uppercase tracking-[0.32em] text-[#b75d26]">Storybook Lobby</p>
+                <p className="mt-3 text-sm leading-6 text-[#7f4a2a]">
+                  Sign in to jump into matches, chat in the lobby, and keep building your character collection.
+                </p>
+              </div>
+              <div className="relative mx-auto h-44 w-44 overflow-hidden rounded-[2.5rem] bg-white/88 shadow-[0_28px_50px_rgba(202,111,39,0.22)] ring-4 ring-white/70">
                 <Image src="/interface/logo.png" alt="Letters with Characters logo" fill className="object-cover" priority />
               </div>
             </div>
           </div>
-          <div className="p-2">
-            <Card className="w-full border-slate-200/70 shadow-none md:border-0">
+          <div className="p-2 md:p-3">
+            <Card className="w-full border-slate-200/60 bg-white/72 shadow-none backdrop-blur md:border-0 md:bg-white/42">
               <CardHeader className="text-center">
                 <div className="mb-4 flex justify-center md:hidden">
                   <div className="relative h-20 w-20 overflow-hidden rounded-[1.5rem] shadow-lg ring-4 ring-white/70">
@@ -139,97 +190,98 @@ export default function LoginPage() {
                   </div>
                 </div>
                 <CardTitle className="text-2xl font-headline">Letters with Characters</CardTitle>
+                <p className="text-sm text-muted-foreground">Pick a sign-in method and head straight into the clubhouse.</p>
               </CardHeader>
               <CardContent>
-          <form
-            onSubmit={(event) => {
-              event.preventDefault();
-              void handlePasswordAuth('signin');
-            }}
-            className="space-y-4 py-4"
-          >
-            <div className="space-y-2">
-              <Label htmlFor="username">Username</Label>
-              <Input
-                id="username"
-                value={username}
-                onChange={(event) => setUsername(event.target.value.toLowerCase())}
-                placeholder="wordplayer"
-                autoComplete="username"
-                minLength={3}
-                maxLength={24}
-                autoCapitalize="none"
-                autoCorrect="off"
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(event) => setPassword(event.target.value)}
-                placeholder="At least 8 characters"
-                autoComplete="current-password"
-                required
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button type="submit" disabled={isLoading} className="w-full">
-                <UserRound className="mr-2 h-4 w-4" /> Sign In
-              </Button>
-              <Button
-                type="button"
-                variant="secondary"
-                disabled={isLoading}
-                className="w-full"
-                onClick={() => void handlePasswordAuth('signup')}
-              >
-                <UserPlus className="mr-2 h-4 w-4" /> Create Account
-              </Button>
-            </div>
-            <div className="space-y-2">
-              <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                Or continue with
-              </p>
-              <div className="grid gap-2 sm:grid-cols-2">
-                <Button
-                  type="button"
-                  disabled={isLoading}
-                  className="h-12 w-full justify-center gap-3 rounded-xl border border-[#dadce0] bg-white text-[#1f1f1f] shadow-[0_10px_24px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:bg-white hover:text-[#1f1f1f] hover:shadow-[0_16px_30px_rgba(15,23,42,0.12)]"
-                  onClick={() => void handleSocialAuth('google')}
+                <form
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void handlePasswordAuth('signin');
+                  }}
+                  className="space-y-4 py-4"
                 >
-                  <span className="flex h-7 w-7 items-center justify-center rounded-full border border-[#dadce0] bg-white shadow-sm">
-                    <GoogleMark />
-                  </span>
-                  <span className="font-medium">Sign in with Google</span>
-                </Button>
-                <Button
-                  type="button"
-                  disabled={isLoading}
-                  className="h-12 w-full justify-center gap-3 rounded-xl border border-black bg-black text-white shadow-[0_14px_28px_rgba(15,23,42,0.22)] transition hover:-translate-y-0.5 hover:bg-[#111] hover:text-white hover:shadow-[0_18px_34px_rgba(15,23,42,0.28)]"
-                  onClick={() => void handleSocialAuth('apple')}
-                >
-                  <span className="flex h-5 w-5 items-center justify-center text-white">
-                    <AppleMark />
-                  </span>
-                  <span className="font-medium">Sign in with Apple</span>
-                </Button>
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                disabled={isLoading}
-                className="w-full"
-                onClick={() => void handleGuestAuth()}
-              >
-                Continue as Guest
-              </Button>
-            </div>
-          </form>
+                  <div className="space-y-2">
+                    <Label htmlFor="username">Username</Label>
+                    <Input
+                      id="username"
+                      value={username}
+                      onChange={(event) => setUsername(event.target.value.toLowerCase())}
+                      placeholder="wordplayer"
+                      autoComplete="username"
+                      minLength={3}
+                      maxLength={24}
+                      autoCapitalize="none"
+                      autoCorrect="off"
+                      required
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="password">Password</Label>
+                    <Input
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(event) => setPassword(event.target.value)}
+                      placeholder="At least 8 characters"
+                      autoComplete="current-password"
+                      required
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button type="submit" disabled={isLoading} className="w-full">
+                      <UserRound className="mr-2 h-4 w-4" /> Sign In
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      disabled={isLoading}
+                      className="w-full"
+                      onClick={() => void handlePasswordAuth('signup')}
+                    >
+                      <UserPlus className="mr-2 h-4 w-4" /> Create Account
+                    </Button>
+                  </div>
+                  <div className="space-y-2">
+                    <p className="text-center text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                      Or continue with
+                    </p>
+                    <div className="grid gap-2 sm:grid-cols-2">
+                      <Button
+                        type="button"
+                        disabled={isLoading}
+                        className="h-12 w-full justify-center gap-3 rounded-xl border border-[#dadce0] bg-white text-[#1f1f1f] shadow-[0_10px_24px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:bg-white hover:text-[#1f1f1f] hover:shadow-[0_16px_30px_rgba(15,23,42,0.12)]"
+                        onClick={() => void handleSocialAuth('google')}
+                      >
+                        <span className="flex h-7 w-7 items-center justify-center rounded-full border border-[#dadce0] bg-white shadow-sm">
+                          <GoogleMark />
+                        </span>
+                        <span className="font-medium">Sign in with Google</span>
+                      </Button>
+                      <Button
+                        type="button"
+                        disabled={isLoading}
+                        className="h-12 w-full justify-center gap-3 rounded-xl border border-black bg-black text-white shadow-[0_14px_28px_rgba(15,23,42,0.22)] transition hover:-translate-y-0.5 hover:bg-[#111] hover:text-white hover:shadow-[0_18px_34px_rgba(15,23,42,0.28)]"
+                        onClick={() => void handleSocialAuth('apple')}
+                      >
+                        <span className="flex h-5 w-5 items-center justify-center text-white">
+                          <AppleMark />
+                        </span>
+                        <span className="font-medium">Sign in with Apple</span>
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={isLoading}
+                      className="w-full"
+                      onClick={() => void handleGuestAuth()}
+                    >
+                      Continue as Guest
+                    </Button>
+                  </div>
+                </form>
               </CardContent>
             </Card>
           </div>

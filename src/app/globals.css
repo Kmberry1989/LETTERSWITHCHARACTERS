@@ -3,6 +3,26 @@
 @tailwind utilities;
 
 @layer base {
+  @keyframes ornament-float {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(0deg); }
+    50% { transform: translate3d(0, -12px, 0) rotate(4deg); }
+  }
+
+  @keyframes ornament-orbit {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(-6deg) scale(1); }
+    50% { transform: translate3d(10px, -16px, 0) rotate(6deg) scale(1.03); }
+  }
+
+  @keyframes ornament-glimmer {
+    0%, 100% { opacity: 0.72; transform: scale(0.96); }
+    50% { opacity: 1; transform: scale(1.04); }
+  }
+
+  @keyframes ornament-swish {
+    0%, 100% { transform: translate3d(0, 0, 0) rotate(-4deg); opacity: 0.58; }
+    50% { transform: translate3d(-12px, 8px, 0) rotate(2deg); opacity: 0.9; }
+  }
+
   :root {
     --background: 88 35% 96%;
     --foreground: 222 84% 4.9%;
@@ -134,6 +154,23 @@
 }
 
 @layer components {
+  .float-slow {
+    animation: ornament-float 8s ease-in-out infinite;
+  }
+
+  .float-orbit {
+    animation: ornament-orbit 11s ease-in-out infinite;
+  }
+
+  .glimmer-soft {
+    animation: ornament-glimmer 5.5s ease-in-out infinite;
+  }
+
+  .drift-swish {
+    transform-origin: center;
+    animation: ornament-swish 9s ease-in-out infinite;
+  }
+
   .glass-panel {
     background: rgba(255, 255, 255, 0.68);
     border: 1px solid rgba(215, 226, 238, 0.78);

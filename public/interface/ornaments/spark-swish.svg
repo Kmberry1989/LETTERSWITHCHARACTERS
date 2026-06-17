@@ -1,0 +1,18 @@
+<svg width="1024" height="256" viewBox="0 0 1024 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="trail" x1="44" y1="189" x2="906" y2="47" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFD35E" stop-opacity="0"/>
+      <stop offset="0.18" stop-color="#FFD35E" stop-opacity="0.78"/>
+      <stop offset="0.54" stop-color="#6EE7F5" stop-opacity="0.92"/>
+      <stop offset="0.82" stop-color="#FF90B3" stop-opacity="0.78"/>
+      <stop offset="1" stop-color="#FF90B3" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="blur" x="0" y="0" width="1024" height="256" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feGaussianBlur stdDeviation="10"/>
+    </filter>
+  </defs>
+  <path d="M56 184C196 166 300 108 391 89C525 60 647 91 788 69C853 59 899 47 968 24" stroke="url(#trail)" stroke-width="22" stroke-linecap="round" filter="url(#blur)"/>
+  <path d="M72 182C208 164 307 111 392 93C530 65 654 98 790 76C851 66 899 54 956 35" stroke="url(#trail)" stroke-width="10" stroke-linecap="round"/>
+  <path d="M430 72L438 92L458 100L438 108L430 128L422 108L402 100L422 92L430 72Z" fill="#FFF8C9"/>
+  <path d="M781 56L787 70L801 76L787 82L781 96L775 82L761 76L775 70L781 56Z" fill="#FFF8C9"/>
+</svg>

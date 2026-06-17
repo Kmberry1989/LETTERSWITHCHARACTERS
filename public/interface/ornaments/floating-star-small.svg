@@ -1,0 +1,16 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="smallGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(128 128) rotate(90) scale(112)">
+      <stop stop-color="#FFF9CE" stop-opacity="0.92"/>
+      <stop offset="0.55" stop-color="#FFE48B" stop-opacity="0.4"/>
+      <stop offset="1" stop-color="#FFE48B" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="smallStar" x1="72" y1="64" x2="176" y2="196" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFDF1"/>
+      <stop offset="0.58" stop-color="#FFD775"/>
+      <stop offset="1" stop-color="#FFB965"/>
+    </linearGradient>
+  </defs>
+  <circle cx="128" cy="128" r="112" fill="url(#smallGlow)"/>
+  <path d="M128 48L146.6 95.4L197.4 99.4L158.5 132.2L171.3 181.4L128 154.2L84.7 181.4L97.5 132.2L58.6 99.4L109.4 95.4L128 48Z" fill="url(#smallStar)" stroke="#F2A23D" stroke-width="8" stroke-linejoin="round"/>
+</svg>

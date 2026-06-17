@@ -1,0 +1,11 @@
+<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="berryGlow" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(128 128) rotate(90) scale(118)">
+      <stop stop-color="#FFDB83" stop-opacity="0.95"/>
+      <stop offset="0.36" stop-color="#FF7A8C" stop-opacity="0.52"/>
+      <stop offset="0.72" stop-color="#78E7F2" stop-opacity="0.34"/>
+      <stop offset="1" stop-color="#78E7F2" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <circle cx="128" cy="128" r="118" fill="url(#berryGlow)"/>
+</svg>

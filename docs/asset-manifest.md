@@ -45,6 +45,10 @@ The app references these paths directly. Missing files are intentional during de
 | `public/interface/ornaments/floating-star-small.png` | Animated hero/lobby decoration | `256x256` |
 | `public/interface/ornaments/spark-swish.png` | Word-play celebratory streak | `1024x256` |
 | `public/interface/ornaments/berry-badge-glow.png` | Berry counter glow effect | `256x256` |
+| `public/interface/ornaments/floating-star-large.svg` | Implemented runtime star ornament used on login/lobby | `512x512` |
+| `public/interface/ornaments/floating-star-small.svg` | Implemented runtime small star ornament used on login/lobby | `256x256` |
+| `public/interface/ornaments/spark-swish.svg` | Implemented runtime swish accent used on login/lobby | `1024x256` |
+| `public/interface/ornaments/berry-badge-glow.svg` | Implemented runtime glow accent for hero highlights | `256x256` |
 
 ## Board Visuals
 
