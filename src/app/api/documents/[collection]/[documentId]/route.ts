@@ -130,7 +130,7 @@ export async function PUT(
       collection,
       documentId,
       sanitizedData,
-      Boolean(body?.merge)
+      collection === 'users' ? true : Boolean(body?.merge)
     );
 
     return NextResponse.json({ document });
