@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { doc } from '@/lib/client/document-client';
 import { useToast } from '@/hooks/use-toast';
 import { useAudio } from '@/hooks/use-audio';
@@ -28,6 +28,8 @@ export function useGameState(gameId: string | null, user: any, game: any, equipp
     const [selectedPendingTileKey, setSelectedPendingTileKey] = useState<string | null>(null);
     const [shuffleTick, setShuffleTick] = useState(0);
     const [replenishedTileIndexes, setReplenishedTileIndexes] = useState<number[]>([]);
+    const previousTurnRef = useRef(false);
+    const hasSeenTurnRef = useRef(false);
 
     const isPlayerTurn = user && game ? game.currentTurn === user.uid : false;
     const opponentUid = useMemo(() => game?.players.find((p: string) => p !== user?.uid), [game, user]);
@@ -35,6 +37,21 @@ export function useGameState(gameId: string | null, user: any, game: any, equipp
     const optimisticBoardSignature = useMemo(() => JSON.stringify(optimisticBoard || {}), [optimisticBoard]);
     const localPlacementActive = pendingTiles.length > 0 || blankTileDialog.isOpen || draggedTileIndex !== null || selectedTileIndex !== null;
     const activeTileSetId = equippedTileSetId || (user && game?.playerData?.[user.uid]?.equippedTileSetId ? game.playerData[user.uid].equippedTileSetId : undefined);
+
+    useEffect(() => {
+        if (!user || !gameId) {
+            hasSeenTurnRef.current = false;
+            previousTurnRef.current = false;
+            return;
+        }
+
+        if (hasSeenTurnRef.current && isPlayerTurn && !previousTurnRef.current) {
+            playSfx('turnReady');
+        }
+
+        hasSeenTurnRef.current = true;
+        previousTurnRef.current = isPlayerTurn;
+    }, [gameId, isPlayerTurn, playSfx, user]);
 
     useEffect(() => {
         if (!game || !user) {

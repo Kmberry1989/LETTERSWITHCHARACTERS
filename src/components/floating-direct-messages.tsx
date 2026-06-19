@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { MessageSquare, Plus, Send, Swords } from 'lucide-react';
@@ -16,6 +16,7 @@ import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useAudio } from '@/hooks/use-audio';
 import { cn } from '@/lib/utils';
 
 function formatThreadTime(thread: DirectThread) {
@@ -165,9 +166,12 @@ export function FloatingDirectMessages() {
   const { user } = useUser();
   const { users } = useUsers();
   const { toast } = useToast();
+  const { playSfx } = useAudio();
   const { data: rawThreads, refresh } = useDirectThreads(Boolean(user));
   const [open, setOpen] = useState(false);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+  const previousUnreadCountRef = useRef(0);
+  const hasSeenUnreadRef = useRef(false);
 
   const threads = useMemo(() => normalizeDirectThreads(rawThreads), [rawThreads]);
   const activeThread = useMemo(
@@ -257,6 +261,21 @@ export function FloatingDirectMessages() {
     if (!open || !activeThread?.id || !user) return;
     if (getThreadUnreadCount(activeThread, user.uid) > 0) void markRead(activeThread.id);
   }, [activeThread, open, user]);
+
+  useEffect(() => {
+    if (!user) {
+      hasSeenUnreadRef.current = false;
+      previousUnreadCountRef.current = 0;
+      return;
+    }
+
+    if (hasSeenUnreadRef.current && unreadMessageCount > previousUnreadCountRef.current) {
+      playSfx('lobbyNotification');
+    }
+
+    hasSeenUnreadRef.current = true;
+    previousUnreadCountRef.current = unreadMessageCount;
+  }, [playSfx, unreadMessageCount, user]);
 
   if (!user) return null;
 

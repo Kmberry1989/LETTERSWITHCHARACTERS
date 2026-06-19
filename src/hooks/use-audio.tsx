@@ -272,6 +272,8 @@ export function AudioProvider({ children }: { children: ReactNode }) {
       case 'success':
       case 'arcadeSuccess':
       case 'wheelLand':
+      case 'lobbyNotification':
+      case 'turnReady':
         playSuccess(context, volume);
         break;
       case 'error':
