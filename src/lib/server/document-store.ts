@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 
 export type JsonRecord = Record<string, any>;
@@ -43,8 +44,20 @@ export function newDocumentId() {
   return crypto.randomUUID();
 }
 
-export function serializeForJson<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value));
+export function serializeForJson(value: unknown): Prisma.InputJsonValue {
+  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+}
+
+function serializeDocumentRecord(value: JsonRecord): Prisma.InputJsonObject {
+  const serialized = serializeForJson(value);
+
+  if (!serialized || Array.isArray(serialized) || typeof serialized !== 'object') {
+    throw new Error('Document store values must serialize to a JSON object.');
+  }
+
+  const nextData = { ...(serialized as Prisma.InputJsonObject) };
+  delete nextData.id;
+  return nextData;
 }
 
 export async function getDocument<T = JsonRecord>(collection: string, documentId: string) {
@@ -65,8 +78,7 @@ export async function getDocument<T = JsonRecord>(collection: string, documentId
 export async function setDocument(collection: string, documentId: string, data: JsonRecord, merge = false) {
   assertDatabaseConfigured();
   const existing = merge ? await getDocument(collection, documentId) : null;
-  const nextData = serializeForJson({ ...(merge && existing ? existing : {}), ...data });
-  delete nextData.id;
+  const nextData = serializeDocumentRecord({ ...(merge && existing ? existing : {}), ...data });
 
   await prisma.appDocument.upsert({
     where: {
@@ -95,8 +107,7 @@ export async function updateDocument(collection: string, documentId: string, pat
     throw new Error(`${collection}/${documentId} does not exist.`);
   }
 
-  const nextData = serializeForJson(applyDottedPatch(existing, patch));
-  delete nextData.id;
+  const nextData = serializeDocumentRecord(applyDottedPatch(existing, patch));
 
   await prisma.appDocument.update({
     where: {
