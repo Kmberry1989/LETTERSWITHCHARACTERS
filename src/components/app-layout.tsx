@@ -44,6 +44,7 @@ export default function AppLayout({ children, mode = 'default' }: AppLayoutProps
                   'linear-gradient(180deg, hsl(var(--sidebar-accent) / 0.32), hsl(var(--sidebar-primary) / 0.18))',
               }}
             />
+            <div className="sidebar-pattern-overlay absolute inset-0" />
           </div>
           <div className="relative z-10 flex min-h-full items-center justify-center px-3 py-4 group-data-[collapsible=icon]:px-0">
             <div className="w-full max-w-[12.75rem] group-data-[collapsible=icon]:max-w-none">

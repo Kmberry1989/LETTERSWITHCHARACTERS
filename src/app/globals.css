@@ -218,9 +218,47 @@
     backdrop-filter: blur(18px) saturate(1.2);
   }
 
+  .page-shell {
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.74);
+    border-radius: 2rem;
+    padding: 1rem;
+    background:
+      radial-gradient(circle at top left, rgba(255,255,255,0.86), transparent 24%),
+      radial-gradient(circle at 88% 14%, rgba(255,201,71,0.18), transparent 18%),
+      linear-gradient(135deg, rgba(255,255,255,0.74), rgba(244,250,239,0.66)),
+      repeating-linear-gradient(135deg, rgba(191,233,255,0.12) 0 14px, rgba(255,255,255,0.06) 14px 28px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 24px 48px rgba(35, 50, 80, 0.08);
+    backdrop-filter: blur(14px) saturate(1.05);
+  }
+
+  .game-screen-pattern {
+    position: relative;
+    overflow: hidden;
+    border-radius: 2rem;
+    background:
+      radial-gradient(circle at 14% 8%, rgba(255,201,71,0.16), transparent 20%),
+      radial-gradient(circle at 82% 12%, rgba(191,233,255,0.16), transparent 18%),
+      radial-gradient(circle at 72% 80%, rgba(191,245,220,0.16), transparent 18%),
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.22) 0 10px, rgba(255,255,255,0.08) 10px 20px),
+      linear-gradient(180deg, rgba(255,255,255,0.44), rgba(245,249,240,0.34));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.68);
+  }
+
+  .sidebar-pattern-overlay {
+    background:
+      radial-gradient(circle at 20% 18%, rgba(255,255,255,0.2), transparent 18%),
+      radial-gradient(circle at 82% 28%, rgba(255,201,71,0.14), transparent 16%),
+      repeating-linear-gradient(165deg, rgba(255,255,255,0.12) 0 11px, rgba(255,255,255,0.02) 11px 22px);
+    mix-blend-mode: screen;
+    opacity: 0.72;
+  }
+
   .board-cell-dl {
     background: var(--board-cell-dl-bg);
     color: var(--board-cell-dl-text);
+    --board-cell-text-shadow: var(--board-cell-dl-shadow);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.65),
       0 2px 8px rgba(15, 23, 42, 0.12),
@@ -229,6 +267,7 @@
   .board-cell-tl {
     background: var(--board-cell-tl-bg);
     color: var(--board-cell-tl-text);
+    --board-cell-text-shadow: var(--board-cell-tl-shadow);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.65),
       0 2px 8px rgba(15, 23, 42, 0.12),
@@ -237,6 +276,7 @@
   .board-cell-dw {
     background: var(--board-cell-dw-bg);
     color: var(--board-cell-dw-text);
+    --board-cell-text-shadow: var(--board-cell-dw-shadow);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.7),
       0 2px 8px rgba(15, 23, 42, 0.14),
@@ -245,6 +285,7 @@
   .board-cell-tw {
     background: var(--board-cell-tw-bg);
     color: var(--board-cell-tw-text);
+    --board-cell-text-shadow: var(--board-cell-tw-shadow);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.55),
       0 2px 10px rgba(15, 23, 42, 0.18),
@@ -253,9 +294,16 @@
   .board-cell-start {
     background: var(--board-cell-start-bg);
     color: var(--board-cell-start-text);
+    --board-cell-text-shadow: var(--board-cell-start-shadow);
     box-shadow:
       inset 0 1px 0 rgba(255, 255, 255, 0.75),
       0 2px 10px rgba(15, 23, 42, 0.18),
       0 0 0 2px var(--board-cell-start-ring);
+  }
+
+  @media (min-width: 768px) {
+    .page-shell {
+      padding: 1.25rem;
+    }
   }
 }

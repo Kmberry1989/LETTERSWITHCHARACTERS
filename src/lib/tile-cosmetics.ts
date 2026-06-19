@@ -1,6 +1,7 @@
 import generatedTileCosmetics from '@/lib/generated/tile-cosmetics.generated.json';
 
 export type TileRarity = 'starter' | 'common' | 'rare' | 'epic' | 'legendary';
+export type TileReadabilityTone = 'light' | 'dark';
 
 export type TileCosmetic = {
   id: string;
@@ -11,6 +12,7 @@ export type TileCosmetic = {
   assetPath: string;
   rarity: TileRarity;
   requiredLevel: number;
+  readabilityTone: TileReadabilityTone;
 };
 
 export const STARTER_TILE_SET_ID = 'tile-minimalist';
@@ -21,7 +23,57 @@ export const XP_TO_NEXT_LEVEL_BASE = 180;
 export const XP_TO_NEXT_LEVEL_GROWTH = 40;
 export const XP_TO_NEXT_LEVEL_ACCELERATION = 5;
 
-export const TILE_COSMETICS = generatedTileCosmetics as TileCosmetic[];
+const TILE_READABILITY_TONES: Record<string, TileReadabilityTone> = {
+  'tile-minimalist': 'dark',
+  'tile-aged-papyrus': 'dark',
+  'tile-ancient-rune': 'light',
+  'tile-ancient-runes': 'light',
+  'tile-arctic-ice': 'dark',
+  'tile-art-glass': 'dark',
+  'tile-autumn-leaves': 'light',
+  'tile-basket-weave': 'dark',
+  'tile-blueprint-grid': 'dark',
+  'tile-candy-land': 'dark',
+  'tile-captains-desk': 'light',
+  'tile-carbon-fiber': 'light',
+  'tile-cherry-blossom': 'dark',
+  'tile-circuit-board': 'light',
+  'tile-compass-rose': 'dark',
+  'tile-copper-circuit': 'light',
+  'tile-coral-reef': 'dark',
+  'tile-cozy-library': 'light',
+  'tile-cracked-lava': 'light',
+  'tile-curtain-call': 'light',
+  'tile-deep-space': 'light',
+  'tile-fish-pond': 'dark',
+  'tile-floral': 'dark',
+  'tile-gilded-age': 'light',
+  'tile-gummy-candy': 'dark',
+  'tile-holographic': 'dark',
+  'tile-honeycomb': 'dark',
+  'tile-jellyfish': 'light',
+  'tile-lollipop-guild': 'dark',
+  'tile-lush-jungle': 'light',
+  'tile-moon-terrain': 'light',
+  'tile-neon-cityscape': 'light',
+  'tile-new-wave': 'dark',
+  'tile-opal-shine': 'dark',
+  'tile-opalescent-glass': 'dark',
+  'tile-peacock-feather': 'light',
+  'tile-pirates-map': 'dark',
+  'tile-polished-chrome': 'light',
+  'tile-purple-crystal': 'light',
+  'tile-snowed-in': 'dark',
+  'tile-stained-glass': 'light',
+  'tile-stitched-felt': 'light',
+  'tile-winter-chill': 'dark',
+  'tile-zen-garden': 'dark',
+};
+
+export const TILE_COSMETICS = (generatedTileCosmetics as Omit<TileCosmetic, 'readabilityTone'>[]).map((tileSet) => ({
+  ...tileSet,
+  readabilityTone: TILE_READABILITY_TONES[tileSet.id] || 'dark',
+}));
 
 export const TILE_COSMETICS_BY_ID = Object.fromEntries(
   TILE_COSMETICS.map((tileSet) => [tileSet.id, tileSet])

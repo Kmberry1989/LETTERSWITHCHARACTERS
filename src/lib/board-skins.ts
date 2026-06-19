@@ -379,26 +379,31 @@ export function resolveBoardAppearance(boardThemeId?: string | null, boardColor?
     background: 'linear-gradient(180deg, #c7f0ff 0%, #7dd3fc 100%)',
     text: '#0f3b63',
     ring: 'rgba(14, 116, 144, 0.42)',
+    shadow: '0 1px 0 rgba(255,255,255,0.82), 0 0 8px rgba(255,255,255,0.3)',
   };
   const tl = {
     background: 'linear-gradient(180deg, #93dcff 0%, #2563eb 100%)',
     text: '#eff6ff',
     ring: 'rgba(30, 64, 175, 0.48)',
+    shadow: '0 1px 0 rgba(15,23,42,0.55), 0 0 8px rgba(15,23,42,0.28)',
   };
   const dw = {
     background: 'linear-gradient(180deg, #ffd3ea 0%, #fb7185 100%)',
     text: '#6b1531',
     ring: 'rgba(190, 24, 93, 0.4)',
+    shadow: '0 1px 0 rgba(255,255,255,0.76), 0 0 8px rgba(255,255,255,0.28)',
   };
   const tw = {
     background: 'linear-gradient(180deg, #ffb4b4 0%, #dc2626 100%)',
     text: '#fff7f7',
     ring: 'rgba(127, 29, 29, 0.48)',
+    shadow: '0 1px 0 rgba(69,10,10,0.7), 0 0 8px rgba(69,10,10,0.3)',
   };
   const start = {
     background: 'linear-gradient(180deg, #fde68a 0%, #f59e0b 100%)',
     text: '#78350f',
     ring: 'rgba(180, 83, 9, 0.44)',
+    shadow: '0 1px 0 rgba(255,255,255,0.82), 0 0 8px rgba(255,244,214,0.34)',
   };
 
   const previewStyle: CSSProperties = {
@@ -420,18 +425,23 @@ export function resolveBoardAppearance(boardThemeId?: string | null, boardColor?
     '--board-cell-dl-bg': dl.background,
     '--board-cell-dl-text': dl.text,
     '--board-cell-dl-ring': dl.ring,
+    '--board-cell-dl-shadow': dl.shadow,
     '--board-cell-tl-bg': tl.background,
     '--board-cell-tl-text': tl.text,
     '--board-cell-tl-ring': tl.ring,
+    '--board-cell-tl-shadow': tl.shadow,
     '--board-cell-dw-bg': dw.background,
     '--board-cell-dw-text': dw.text,
     '--board-cell-dw-ring': dw.ring,
+    '--board-cell-dw-shadow': dw.shadow,
     '--board-cell-tw-bg': tw.background,
     '--board-cell-tw-text': tw.text,
     '--board-cell-tw-ring': tw.ring,
+    '--board-cell-tw-shadow': tw.shadow,
     '--board-cell-start-bg': start.background,
     '--board-cell-start-text': start.text,
     '--board-cell-start-ring': start.ring,
+    '--board-cell-start-shadow': start.shadow,
   };
 
   return {

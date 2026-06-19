@@ -180,8 +180,8 @@ function Game() {
 
   return (
     <AppLayout mode="play">
-      <div className="flex h-full min-h-0 min-w-0 touch-none select-none flex-col items-center overflow-hidden overscroll-none px-1.5 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-12 md:px-4 md:pb-4 md:pt-4">
-        <div className="flex min-h-0 w-full max-w-4xl flex-1 flex-col gap-2 md:gap-3">
+      <div className="game-screen-pattern flex h-full min-h-0 min-w-0 touch-none select-none flex-col items-center overflow-hidden overscroll-none px-1.5 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-12 md:px-5 md:pb-5 md:pt-5">
+        <div className="flex min-h-0 w-full max-w-6xl flex-1 flex-col gap-2 md:gap-4">
           {userPlayerData && opponentPlayerData && (
             <div className="hidden shrink-0 md:block">
               <Scoreboard
@@ -208,7 +208,7 @@ function Game() {
             </div>
           )}
 
-          <div className="min-h-0 w-full max-w-[860px] flex-1 self-center">
+          <div className="min-h-0 w-full max-w-[1040px] flex-1 self-center">
             <BoardStage>
               <BoardChrome boardThemeId={selectedBoardThemeId} boardTintId={selectedBoardTintId} boardColor={selectedBoardColor}>
                 <GameBoard

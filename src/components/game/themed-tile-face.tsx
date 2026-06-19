@@ -23,16 +23,17 @@ export function ThemedTileFace({
   className,
   interactive = false,
   showScore = true,
-  textTone = 'dark',
+  textTone,
 }: ThemedTileFaceProps) {
   const tileSet = getTileCosmetic(tileSetId);
   const isQuestionMark = letter === ' ' || letter === '';
-  const usesLightText = textTone === 'light';
+  const resolvedTextTone = textTone === 'light' || textTone === 'dark' ? textTone : tileSet.readabilityTone;
+  const usesLightText = resolvedTextTone === 'light';
   const primaryTextClass = usesLightText ? 'text-white' : 'text-slate-950';
-  const accentTextClass = isBlank ? (usesLightText ? 'text-rose-200' : 'text-red-700') : primaryTextClass;
+  const accentTextClass = isBlank ? (usesLightText ? 'text-rose-100' : 'text-rose-700') : primaryTextClass;
   const textOutline = usesLightText
-    ? '0 1px 0 rgba(0,0,0,0.85), 1px 0 0 rgba(0,0,0,0.55), -1px 0 0 rgba(0,0,0,0.55), 0 -1px 0 rgba(0,0,0,0.55)'
-    : '0 1px 0 rgba(255,255,255,0.9), 1px 0 0 rgba(255,255,255,0.6), -1px 0 0 rgba(255,255,255,0.6), 0 -1px 0 rgba(255,255,255,0.6)';
+    ? '0 1px 0 rgba(0,0,0,0.92), 0 0 8px rgba(0,0,0,0.55), 1px 0 0 rgba(0,0,0,0.72), -1px 0 0 rgba(0,0,0,0.72), 0 -1px 0 rgba(0,0,0,0.72)'
+    : '0 1px 0 rgba(255,255,255,0.96), 0 0 8px rgba(255,255,255,0.52), 1px 0 0 rgba(255,255,255,0.74), -1px 0 0 rgba(255,255,255,0.74), 0 -1px 0 rgba(255,255,255,0.74)';
 
   return (
     <motion.div
@@ -69,14 +70,14 @@ export function ThemedTileFace({
       />
       <div className="pointer-events-none absolute inset-0 rounded-[0.2rem] ring-1 ring-black/10 sm:rounded-sm" />
       <span
-        className={cn('relative text-[clamp(0.58rem,48cqw,1.65rem)] font-black leading-none', accentTextClass)}
+        className={cn('relative text-[clamp(0.68rem,52cqw,1.92rem)] font-black leading-none', accentTextClass)}
         style={{ textShadow: textOutline }}
       >
         {isQuestionMark ? '?' : letter}
       </span>
       {showScore ? (
         <span
-          className={cn('absolute bottom-[7%] right-[8%] text-[clamp(0.3rem,18cqw,0.68rem)] font-bold leading-none', primaryTextClass)}
+          className={cn('absolute bottom-[7%] right-[8%] text-[clamp(0.35rem,20cqw,0.8rem)] font-black leading-none', primaryTextClass)}
           style={{ textShadow: textOutline }}
         >
           {score}

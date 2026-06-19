@@ -15,7 +15,7 @@ export function GameScreen({ children, className }: GameScreenProps) {
   return (
     <div
       className={cn(
-        'mx-auto flex h-[100svh] w-full max-w-6xl min-w-0 flex-col overflow-hidden px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-[max(0.5rem,env(safe-area-inset-top))] md:px-5 md:py-4',
+        'mx-auto flex h-[100svh] w-full max-w-7xl min-w-0 flex-col overflow-hidden px-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-[max(0.5rem,env(safe-area-inset-top))] md:px-6 md:py-5',
         className
       )}
     >
