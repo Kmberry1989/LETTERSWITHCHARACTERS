@@ -45,7 +45,7 @@ function Tile({
       onDragStartCapture={onDragStart}
       onDragEnd={onDragEnd}
       className={cn(
-        "relative flex aspect-square w-full min-w-0 max-w-14 cursor-pointer select-none items-center justify-center rounded-md border-b-4 border-black/20 bg-[#f8e8c7] shadow-[0_8px_18px_rgba(0,0,0,0.14)] transition-all duration-150 ease-in-out md:max-w-[4.85rem]",
+        "relative flex aspect-square w-full min-w-0 max-w-none cursor-pointer select-none items-center justify-center rounded-md border-b-4 border-black/20 bg-[#f8e8c7] shadow-[0_8px_18px_rgba(0,0,0,0.14)] transition-all duration-150 ease-in-out md:max-w-[4.85rem]",
         isSelected && !isExchanging && "ring-2 ring-primary ring-offset-2 shadow-lg",
         isExchangeSelected && "ring-2 ring-destructive ring-offset-2 shadow-lg",
         isExchanging && !isExchangeSelected && "opacity-60",
@@ -74,7 +74,7 @@ function EmptySlot({ onDrop, onDragOver }: { onDrop: (e: React.DragEvent) => voi
   return <div
     onDrop={onDrop}
     onDragOver={onDragOver}
-    className="aspect-square w-full min-w-0 max-w-14 rounded-md bg-black/10 md:max-w-[4.85rem]"
+    className="aspect-square w-full min-w-0 max-w-none rounded-md bg-black/10 md:max-w-[4.85rem]"
     />;
 }
 
@@ -132,14 +132,14 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
 
   return (
     <Card className="overflow-hidden border-2 border-[#a07e56] bg-[#c4a27a] shadow-sm">
-      <CardContent className="p-2 sm:p-4 md:p-5">
-        <div className="flex flex-col items-center gap-2 sm:gap-4 md:gap-5">
+      <CardContent className="p-1.5 sm:p-4 md:p-5">
+        <div className="flex flex-col items-center gap-1.5 sm:gap-4 md:gap-5">
             <motion.div
               key={shuffleTick}
               initial={shuffleTick > 0 ? { opacity: 0.88, y: -8 } : false}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.35, ease: 'easeOut' }}
-              className="grid w-full grid-cols-7 items-center justify-center gap-1 px-1 sm:gap-2 md:gap-3 md:px-3"
+              className="grid w-full grid-cols-7 items-center justify-center gap-0.5 px-0.5 sm:gap-2 md:gap-3 md:px-3"
             >
               <AnimatePresence initial={false}>
               {tiles.map((tile, i) => (
@@ -200,29 +200,29 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
                  </div>
             ) : (
                 <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 md:gap-5">
-                    <div className="flex gap-2">
-                        <Button variant="secondary" size="sm" onClick={onShuffle} className="shadow-sm md:h-11 md:px-5 md:text-base">
+                    <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
+                        <Button variant="secondary" size="sm" onClick={onShuffle} className="h-10 px-3 text-[0.94rem] shadow-sm md:h-11 md:px-5 md:text-base">
                         <Shuffle className="mr-1 h-4 w-4" />
                         Shuffle
                         </Button>
-                        <Button variant="secondary" size="sm" onClick={onRecall} className="shadow-sm md:h-11 md:px-5 md:text-base">
+                        <Button variant="secondary" size="sm" onClick={onRecall} className="h-10 px-3 text-[0.94rem] shadow-sm md:h-11 md:px-5 md:text-base">
                         <RotateCcw className="mr-1 h-4 w-4" />
                         Recall
                         </Button>
-                        <Button variant="secondary" size="sm" onClick={onChatClick} className="shadow-sm md:h-11 md:px-5 md:text-base">
+                        <Button variant="secondary" size="sm" onClick={onChatClick} className="h-10 px-3 text-[0.94rem] shadow-sm md:h-11 md:px-5 md:text-base">
                         <MessageCircle className="mr-1 h-4 w-4" />
                         Chat
                         </Button>
                     </div>
-                     <div className="flex gap-2">
-                        <Button variant="outline" size="sm" onClick={onToggleExchange} disabled={!isPlayerTurn || isSubmitting} className="bg-background/50 shadow-sm md:h-11 md:px-5 md:text-base">
+                     <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
+                        <Button variant="outline" size="sm" onClick={onToggleExchange} disabled={!isPlayerTurn || isSubmitting} className="h-10 bg-background/50 px-3 text-[0.94rem] shadow-sm md:h-11 md:px-5 md:text-base">
                             <ArrowRightLeft className="mr-1 h-4 w-4" />
                             Exchange
                         </Button>
-                        <Button variant="outline" size="sm" onClick={triggerPassDialog} disabled={!isPlayerTurn || isSubmitting} className="bg-background/50 shadow-sm md:h-11 md:px-5 md:text-base">
+                        <Button variant="outline" size="sm" onClick={triggerPassDialog} disabled={!isPlayerTurn || isSubmitting} className="h-10 bg-background/50 px-3 text-[0.94rem] shadow-sm md:h-11 md:px-5 md:text-base">
                             Pass
                         </Button>
-                        <Button size="sm" onClick={onPlay} disabled={!isPlayerTurn || isSubmitting} className="w-24 shadow-sm md:h-11 md:w-32 md:text-base">
+                        <Button size="sm" onClick={onPlay} disabled={!isPlayerTurn || isSubmitting} className="h-10 w-24 text-[0.94rem] shadow-sm md:h-11 md:w-32 md:text-base">
                         {isSubmitting ? <Loader className="animate-spin" /> : 'PLAY'}
                         </Button>
                     </div>

@@ -180,8 +180,8 @@ function Game() {
 
   return (
     <AppLayout mode="play">
-      <div className="game-screen-pattern flex h-full min-h-0 min-w-0 touch-none select-none flex-col items-center overflow-hidden overscroll-none px-1.5 pb-[max(0.25rem,env(safe-area-inset-bottom))] pt-12 md:px-5 md:pb-5 md:pt-5">
-        <div className="flex min-h-0 w-full max-w-6xl flex-1 flex-col gap-2 md:gap-4">
+      <div className="game-screen-pattern flex h-full min-h-0 min-w-0 touch-none select-none flex-col items-center overflow-hidden overscroll-none px-1 pb-[max(0.2rem,env(safe-area-inset-bottom))] pt-11 md:px-5 md:pb-5 md:pt-5">
+        <div className="flex min-h-0 w-full max-w-6xl flex-1 flex-col gap-1.5 md:gap-4">
           {userPlayerData && opponentPlayerData && (
             <div className="hidden shrink-0 md:block">
               <Scoreboard
@@ -208,7 +208,7 @@ function Game() {
             </div>
           )}
 
-          <div className="min-h-0 w-full max-w-[1040px] flex-1 self-center">
+          <div className="min-h-0 w-full max-w-[min(100%,calc(100svh-12.8rem))] flex-1 self-center md:max-w-[1040px]">
             <BoardStage>
               <BoardChrome boardThemeId={selectedBoardThemeId} boardTintId={selectedBoardTintId} boardColor={selectedBoardColor}>
                 <GameBoard
@@ -225,7 +225,7 @@ function Game() {
             </BoardStage>
           </div>
 
-          <div className="shrink-0 touch-none rounded-2xl bg-background/85 p-1 backdrop-blur md:bg-transparent md:p-0 md:backdrop-blur-0">
+          <div className="shrink-0 w-full max-w-[min(100%,42rem)] touch-none rounded-2xl bg-background/85 p-0.5 backdrop-blur md:max-w-none md:bg-transparent md:p-0 md:backdrop-blur-0">
             <TileRack
               tiles={playerTiles}
               selectedTileIndex={selectedTileIndex}
