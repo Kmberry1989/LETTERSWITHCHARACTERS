@@ -214,8 +214,8 @@ export default function FiveInSixGame() {
 
   return (
     <GameScreen>
-      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden rounded-[1.4rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(242,247,255,0.94))] p-2 shadow-[0_20px_60px_rgba(59,130,246,0.12)] md:gap-3 md:p-4">
-        <div className="ml-11 flex min-h-10 items-center justify-end gap-2 md:ml-0 md:min-h-9 md:justify-between">
+      <div className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-hidden rounded-[1.4rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(242,247,255,0.94))] p-2 shadow-[0_20px_60px_rgba(59,130,246,0.12)] md:gap-3 md:p-4">
+        <div className="ml-11 flex min-h-10 flex-wrap items-center justify-end gap-2 md:ml-0 md:min-h-9 md:flex-nowrap md:justify-between">
           <Badge variant="secondary" className="rounded-full px-3 py-1">
             {triesUsed} / {MAX_TRIES}
           </Badge>
@@ -223,17 +223,17 @@ export default function FiveInSixGame() {
             <RefreshCcw className="h-4 w-4 md:mr-2" />
             <span className="hidden md:inline">New Puzzle</span>
           </Button>
-          {gameOver ? <ArcadeSessionStatus sessionId={sessionId} modeId="five-in-six" score={score} completed /> : null}
+          {gameOver ? <ArcadeSessionStatus sessionId={sessionId} modeId="five-in-six" score={score} completed className="w-full md:w-auto" /> : null}
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col justify-between gap-2 md:gap-2.5">
-          <div className="min-h-5 text-center text-xs font-semibold text-slate-600 md:text-sm">
+        <div className="flex min-h-0 flex-1 flex-col justify-between gap-1.5 md:gap-2.5">
+          <div className="min-h-4 text-center text-[0.7rem] font-semibold text-slate-600 md:min-h-5 md:text-sm">
             {gameOver ? (won ? 'Solved.' : `Answer: ${targetWord.toUpperCase()}`) : message || 'Guess the hidden five-letter word.'}
           </div>
 
-          <div className="mx-auto grid w-full max-w-[18rem] grid-rows-6 gap-1 md:max-w-[18.5rem]">
+          <div className="mx-auto grid w-full max-w-[min(18rem,calc(100svh-22rem),calc(100vw-2.75rem))] grid-rows-6 gap-1 md:max-w-[18.5rem] md:gap-1.5">
             {guesses.map((row, rowIndex) => (
-              <div key={`row-${rowIndex}`} className="grid grid-cols-5 gap-1">
+              <div key={`row-${rowIndex}`} className="grid grid-cols-5 gap-1 md:gap-1.5">
                 {row.map((letter, tileIndex) => {
                   const state = rowStates[rowIndex][tileIndex];
                   const isActiveRow = rowIndex === currentRow && !gameOver;
@@ -241,7 +241,7 @@ export default function FiveInSixGame() {
                     <div
                       key={`tile-${rowIndex}-${tileIndex}`}
                       className={cn(
-                        'flex aspect-square items-center justify-center rounded-xl border-2 text-xl font-black uppercase transition-colors md:text-[1.65rem]',
+                        'flex aspect-square items-center justify-center rounded-lg border-2 text-[clamp(1rem,5.6vw,1.35rem)] font-black uppercase transition-colors md:rounded-xl md:text-[1.65rem]',
                         state === 'correct' && 'border-emerald-500 bg-emerald-500 text-white',
                         state === 'present' && 'border-amber-400 bg-amber-400 text-white',
                         state === 'absent' && 'border-slate-500 bg-slate-500 text-white',
@@ -258,7 +258,7 @@ export default function FiveInSixGame() {
             ))}
           </div>
 
-          <div className="mx-auto flex w-full max-w-xl flex-col gap-1.5">
+          <div className="mx-auto flex w-full max-w-[min(100%,22rem)] flex-col gap-1 md:max-w-xl md:gap-1.5">
             {KEYBOARD_ROWS.map((row) => (
               <div key={row.join('-')} className="flex justify-center gap-1">
                 {row.map((key) => {
@@ -269,8 +269,8 @@ export default function FiveInSixGame() {
                       type="button"
                       onClick={() => handleKeyPress(key)}
                       className={cn(
-                        'flex h-10 items-center justify-center rounded-lg border border-transparent px-2.5 text-sm font-black uppercase shadow-sm transition-colors md:h-12',
-                        key === 'enter' || key === 'backspace' ? 'min-w-[3.75rem] md:min-w-[4.5rem]' : 'min-w-[2rem] flex-1 md:min-w-[2.35rem]',
+                        'flex h-9 items-center justify-center rounded-lg border border-transparent px-1.5 text-[0.7rem] font-black uppercase shadow-sm transition-colors md:h-12 md:px-2.5 md:text-sm',
+                        key === 'enter' || key === 'backspace' ? 'min-w-[3.2rem] md:min-w-[4.5rem]' : 'min-w-[1.75rem] flex-1 md:min-w-[2.35rem]',
                         keyState === 'correct' && 'bg-emerald-500 text-white',
                         keyState === 'present' && 'bg-amber-400 text-white',
                         keyState === 'absent' && 'bg-slate-500 text-white',
