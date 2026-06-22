@@ -6,13 +6,13 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import type { Tile as TileType } from '@/lib/game/types';
-import { ArrowRightLeft, Loader, MessageCircle, RotateCcw, Shuffle, X } from 'lucide-react';
+import { ArrowRightLeft, Check, Loader, MessageCircle, Play, RotateCcw, Shuffle, SkipForward, X } from 'lucide-react';
 import { ThemedTileFace } from '@/components/game/themed-tile-face';
 
 function Tile({
   tile,
   isSelected,
-  onPointerDown,
+  onSelect,
   onDragStart,
   onDragEnd,
   canDrag,
@@ -23,7 +23,7 @@ function Tile({
 }: {
   tile: TileType;
   isSelected: boolean;
-  onPointerDown: () => void;
+  onSelect: () => void;
   onDragStart: (e: React.DragEvent) => void;
   onDragEnd: () => void;
   canDrag: boolean;
@@ -41,7 +41,7 @@ function Tile({
       exit={{ opacity: 0, y: 18, scale: 0.86 }}
       transition={{ type: 'spring', stiffness: 420, damping: 32, mass: 0.8 }}
       draggable={canDrag}
-      onPointerDown={onPointerDown}
+      onClick={onSelect}
       onDragStartCapture={onDragStart}
       onDragEnd={onDragEnd}
       className={cn(
@@ -76,6 +76,38 @@ function EmptySlot({ onDrop, onDragOver }: { onDrop: (e: React.DragEvent) => voi
     onDragOver={onDragOver}
     className="aspect-square w-full min-w-0 max-w-none rounded-md bg-black/10 md:max-w-[4.85rem]"
     />;
+}
+
+function CompactActionButton({
+  label,
+  children,
+  className,
+  badge,
+  ...props
+}: React.ComponentProps<typeof Button> & {
+  label: string;
+  badge?: React.ReactNode;
+}) {
+  return (
+    <Button
+      size="icon"
+      title={label}
+      aria-label={label}
+      className={cn(
+        'relative h-10 w-10 shrink-0 rounded-xl shadow-sm md:h-11 md:w-11',
+        className
+      )}
+      {...props}
+    >
+      {children}
+      {badge ? (
+        <span className="absolute -right-1 -top-1 flex min-w-4 items-center justify-center rounded-full bg-slate-950 px-1 text-[0.62rem] font-black leading-none text-white">
+          {badge}
+        </span>
+      ) : null}
+      <span className="sr-only">{label}</span>
+    </Button>
+  );
 }
 
 
@@ -154,7 +186,7 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
                     <Tile
                       tile={tile}
                       isSelected={selectedTileIndex === i}
-                      onPointerDown={() => {
+                      onSelect={() => {
                         if (!canMoveTiles && !isExchanging) return;
                         onTileSelect(i);
                       }}
@@ -183,49 +215,58 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
               </AnimatePresence>
             </motion.div>
             {isExchanging ? (
-                 <div className="flex gap-4">
-                    <Button variant="secondary" size="sm" onClick={onToggleExchange} className="shadow-sm">
-                        <X className="mr-1 h-4 w-4" />
-                        Cancel
-                    </Button>
-                    <Button
-                        size="sm"
-                        onClick={triggerExchangeDialog}
-                        disabled={exchangeSelection.length === 0 || isSubmitting}
-                        className="shadow-sm w-48"
-                        variant="destructive"
+                 <div className="flex w-full items-center justify-center gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <CompactActionButton variant="secondary" onClick={onToggleExchange} label="Cancel exchange">
+                      <X className="h-4.5 w-4.5" />
+                    </CompactActionButton>
+                    <CompactActionButton
+                      variant="destructive"
+                      onClick={triggerExchangeDialog}
+                      disabled={exchangeSelection.length === 0 || isSubmitting}
+                      className="h-10 w-10 md:h-11 md:w-11"
+                      label={`Confirm exchange of ${exchangeSelection.length} tile${exchangeSelection.length === 1 ? '' : 's'}`}
+                      badge={exchangeSelection.length > 0 ? exchangeSelection.length : undefined}
                     >
-                        {isSubmitting ? <Loader className="animate-spin" /> : `Exchange ${exchangeSelection.length} Tiles`}
-                    </Button>
+                      {isSubmitting ? <Loader className="h-4.5 w-4.5 animate-spin" /> : <Check className="h-4.5 w-4.5" />}
+                    </CompactActionButton>
                  </div>
             ) : (
-                <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 md:gap-5">
-                    <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
-                        <Button variant="secondary" size="sm" onClick={onShuffle} className="h-10 px-3 text-[0.94rem] shadow-sm md:h-11 md:px-5 md:text-base">
-                        <Shuffle className="mr-1 h-4 w-4" />
-                        Shuffle
-                        </Button>
-                        <Button variant="secondary" size="sm" onClick={onRecall} className="h-10 px-3 text-[0.94rem] shadow-sm md:h-11 md:px-5 md:text-base">
-                        <RotateCcw className="mr-1 h-4 w-4" />
-                        Recall
-                        </Button>
-                        <Button variant="secondary" size="sm" onClick={onChatClick} className="h-10 px-3 text-[0.94rem] shadow-sm md:h-11 md:px-5 md:text-base">
-                        <MessageCircle className="mr-1 h-4 w-4" />
-                        Chat
-                        </Button>
-                    </div>
-                     <div className="flex flex-wrap justify-center gap-1.5 sm:gap-2">
-                        <Button variant="outline" size="sm" onClick={onToggleExchange} disabled={!isPlayerTurn || isSubmitting} className="h-10 bg-background/50 px-3 text-[0.94rem] shadow-sm md:h-11 md:px-5 md:text-base">
-                            <ArrowRightLeft className="mr-1 h-4 w-4" />
-                            Exchange
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={triggerPassDialog} disabled={!isPlayerTurn || isSubmitting} className="h-10 bg-background/50 px-3 text-[0.94rem] shadow-sm md:h-11 md:px-5 md:text-base">
-                            Pass
-                        </Button>
-                        <Button size="sm" onClick={onPlay} disabled={!isPlayerTurn || isSubmitting} className="h-10 w-24 text-[0.94rem] shadow-sm md:h-11 md:w-32 md:text-base">
-                        {isSubmitting ? <Loader className="animate-spin" /> : 'PLAY'}
-                        </Button>
-                    </div>
+                <div className="flex w-full items-center gap-1.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    <CompactActionButton variant="secondary" onClick={onShuffle} label="Shuffle rack">
+                      <Shuffle className="h-4.5 w-4.5" />
+                    </CompactActionButton>
+                    <CompactActionButton variant="secondary" onClick={onRecall} label="Recall tiles">
+                      <RotateCcw className="h-4.5 w-4.5" />
+                    </CompactActionButton>
+                    <CompactActionButton variant="secondary" onClick={onChatClick} label="Open chat">
+                      <MessageCircle className="h-4.5 w-4.5" />
+                    </CompactActionButton>
+                    <CompactActionButton
+                      variant="outline"
+                      onClick={onToggleExchange}
+                      disabled={!isPlayerTurn || isSubmitting}
+                      className="bg-background/60"
+                      label="Exchange tiles"
+                    >
+                      <ArrowRightLeft className="h-4.5 w-4.5" />
+                    </CompactActionButton>
+                    <CompactActionButton
+                      variant="outline"
+                      onClick={triggerPassDialog}
+                      disabled={!isPlayerTurn || isSubmitting}
+                      className="bg-background/60"
+                      label="Pass turn"
+                    >
+                      <SkipForward className="h-4.5 w-4.5" />
+                    </CompactActionButton>
+                    <CompactActionButton
+                      onClick={onPlay}
+                      disabled={!isPlayerTurn || isSubmitting}
+                      className="bg-emerald-600 text-white hover:bg-emerald-600/90"
+                      label="Play word"
+                    >
+                      {isSubmitting ? <Loader className="h-4.5 w-4.5 animate-spin" /> : <Play className="h-4.5 w-4.5 fill-current" />}
+                    </CompactActionButton>
                 </div>
             )}
         </div>

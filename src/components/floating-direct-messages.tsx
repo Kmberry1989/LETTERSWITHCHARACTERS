@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { MessageSquare, Plus, Send, Swords } from 'lucide-react';
+import { ChevronLeft, MessageSquare, Plus, Send, Swords } from 'lucide-react';
 import { useUser, useUsers } from '@/firebase';
 import type { DirectThread } from '@/lib/direct-threads';
 import { getThreadCounterpartId, getThreadUnreadCount, normalizeDirectThreads } from '@/lib/direct-threads';
@@ -170,6 +170,7 @@ export function FloatingDirectMessages() {
   const { data: rawThreads, refresh } = useDirectThreads(Boolean(user));
   const [open, setOpen] = useState(false);
   const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
+  const [mobilePane, setMobilePane] = useState<'list' | 'detail'>('list');
   const previousUnreadCountRef = useRef(0);
   const hasSeenUnreadRef = useRef(false);
 
@@ -206,6 +207,7 @@ export function FloatingDirectMessages() {
     if (!response.ok) throw new Error(result?.error || 'Could not open direct messages.');
     await refresh();
     setActiveThreadId(result.thread.id);
+    setMobilePane('detail');
     setOpen(true);
   };
 
@@ -263,6 +265,12 @@ export function FloatingDirectMessages() {
   }, [activeThread, open, user]);
 
   useEffect(() => {
+    if (!open) {
+      setMobilePane('list');
+    }
+  }, [open]);
+
+  useEffect(() => {
     if (!user) {
       hasSeenUnreadRef.current = false;
       previousUnreadCountRef.current = 0;
@@ -310,14 +318,19 @@ export function FloatingDirectMessages() {
             </div>
           </SheetHeader>
           <div className="grid h-[calc(100dvh-5.75rem)] min-h-0 gap-0 lg:grid-cols-[330px_minmax(0,1fr)]">
-            <div className="min-h-0 border-b border-white/[.72] bg-white/[.38] p-4 backdrop-blur-xl lg:border-b-0 lg:border-r">
+            <div
+              className={cn(
+                'min-h-0 border-b border-white/[.72] bg-white/[.38] p-4 backdrop-blur-xl lg:border-b-0 lg:border-r',
+                mobilePane === 'detail' ? 'hidden lg:block' : 'block'
+              )}
+            >
               <Tabs defaultValue="threads" className="flex h-full min-h-0 flex-col">
                 <TabsList className="grid w-full grid-cols-2 rounded-2xl bg-white/[.72] p-1.5">
                   <TabsTrigger value="threads" className="rounded-xl font-black">Threads</TabsTrigger>
                   <TabsTrigger value="players" className="rounded-xl font-black">Players</TabsTrigger>
                 </TabsList>
                 <TabsContent value="threads" className="mt-4 min-h-0 flex-1">
-                  <ScrollArea className="h-[34vh] lg:h-full">
+                  <ScrollArea className="h-full">
                     <div className="space-y-2 pr-2">
                       {threads.map((thread) => {
                         const counterpartId = getThreadCounterpartId(thread, user.uid);
@@ -335,6 +348,7 @@ export function FloatingDirectMessages() {
                             )}
                             onClick={() => {
                               setActiveThreadId(thread.id);
+                              setMobilePane('detail');
                               void markRead(thread.id);
                             }}
                           >
@@ -360,7 +374,7 @@ export function FloatingDirectMessages() {
                   </ScrollArea>
                 </TabsContent>
                 <TabsContent value="players" className="mt-4 min-h-0 flex-1">
-                  <ScrollArea className="h-[34vh] lg:h-full">
+                  <ScrollArea className="h-full">
                     <div className="space-y-2 pr-2">
                       {suggestedPlayers.map((player) => (
                         <button
@@ -384,7 +398,32 @@ export function FloatingDirectMessages() {
                 </TabsContent>
               </Tabs>
             </div>
-            <div className="min-h-0 min-w-0 p-4">
+            <div
+              className={cn(
+                'min-h-0 min-w-0 p-4',
+                mobilePane === 'list' ? 'hidden lg:block' : 'block'
+              )}
+            >
+              <div className="mb-3 flex items-center gap-2 lg:hidden">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  className="h-10 w-10 rounded-full bg-white/[.78]"
+                  onClick={() => setMobilePane('list')}
+                  aria-label="Back to threads"
+                >
+                  <ChevronLeft className="h-5 w-5" />
+                </Button>
+                <div className="min-w-0">
+                  <div className="truncate text-sm font-black text-slate-950">
+                    {activeThread
+                      ? activeThread.participantMeta[getThreadCounterpartId(activeThread, user.uid)]?.displayName || 'Conversation'
+                      : 'Conversation'}
+                  </div>
+                  <div className="text-xs text-slate-500">Back to threads and players</div>
+                </div>
+              </div>
               <MessageComposer
                 activeThread={activeThread}
                 currentUserId={user.uid}
