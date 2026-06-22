@@ -146,17 +146,12 @@ export default function LoginPage() {
         <div className="absolute left-[9%] top-[11%] h-24 w-24 rounded-full bg-white/20 blur-3xl md:h-28 md:w-28" />
         <div className="absolute bottom-[13%] right-[14%] h-36 w-36 rounded-full bg-[#6ce6ef]/20 blur-3xl" />
       </div>
-      <Card className="relative w-full max-w-4xl overflow-hidden border-white/55 bg-white/78 shadow-[0_32px_90px_rgba(120,53,15,0.2)] backdrop-blur-xl">
+      <Card className="relative w-full max-w-4xl overflow-hidden rounded-[2rem] border border-white/60 bg-white/68 shadow-[0_32px_90px_rgba(120,53,15,0.2)] backdrop-blur-xl">
         <div className="grid items-stretch md:grid-cols-[0.8fr_1fr]">
-          <div className="relative hidden min-h-[32rem] overflow-hidden md:block">
-            <Image
-              src="/interface/backgrounds/login-burst.png"
-              alt=""
-              fill
-              sizes="(min-width: 768px) 40vw, 0vw"
-              className="object-cover object-left"
-            />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(255,245,227,0.2),rgba(255,225,214,0.38)_55%,rgba(255,244,236,0.72)_100%)]" />
+          <div className="relative hidden min-h-[32rem] overflow-hidden border-r border-white/50 bg-gradient-to-br from-white/45 via-white/25 to-orange-100/35 md:block">
+            <div className="absolute inset-0 rounded-none ring-1 ring-inset ring-white/55" />
+            <div className="absolute left-8 top-8 h-32 w-32 rounded-full bg-white/45 blur-3xl" />
+            <div className="absolute bottom-12 right-8 h-36 w-36 rounded-full bg-orange-200/35 blur-3xl" />
             <InterfaceOrnament
               src="/interface/ornaments/spark-swish.svg"
               className="drift-swish left-[-8%] top-[16%] h-24 w-[20rem] opacity-80"
@@ -182,7 +177,7 @@ export default function LoginPage() {
             </div>
           </div>
           <div className="p-2 md:p-3">
-            <Card className="w-full border-slate-200/60 bg-white/72 shadow-none backdrop-blur md:border-0 md:bg-white/42">
+            <Card className="w-full rounded-[1.5rem] border border-white/70 bg-white/50 shadow-none backdrop-blur-xl md:bg-white/35">
               <CardHeader className="text-center">
                 <div className="mb-4 flex justify-center md:hidden">
                   <div className="relative h-20 w-20 overflow-hidden rounded-[1.5rem] shadow-lg ring-4 ring-white/70">
