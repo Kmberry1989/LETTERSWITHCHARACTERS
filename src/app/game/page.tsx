@@ -242,6 +242,7 @@ function Game() {
               onDragStart={handleDragStart}
               onDragEnd={handleDragEnd}
               onDrop={handleDrop}
+              onBoardPlace={handleBoardDrop}
               tileSetId={equippedTileSetId}
               shuffleTick={shuffleTick}
               replenishedTileIndexes={replenishedTileIndexes}

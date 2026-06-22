@@ -21,7 +21,25 @@ type GameBoardProps = {
   selectedPendingTileKey?: string | null;
 };
 
-function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; children?: React.ReactNode; onClick?: () => void, onDrop?: (e: React.DragEvent) => void, onDragOver?: (e: React.DragEvent) => void }) {
+function Cell({
+  type,
+  children,
+  onClick,
+  onDrop,
+  onDragOver,
+  row,
+  col,
+  isPlaceable,
+}: {
+  type: string;
+  children?: React.ReactNode;
+  onClick?: () => void;
+  onDrop?: (e: React.DragEvent) => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  row: number;
+  col: number;
+  isPlaceable: boolean;
+}) {
   const classMap: { [key: string]: string } = {
     'DL': 'board-cell-dl',
     'TL': 'board-cell-tl',
@@ -44,6 +62,10 @@ function Cell({ type, children, onClick, onDrop, onDragOver }: { type: string; c
         !canInteract && 'cursor-not-allowed',
       )}
       data-board-interactive="true"
+      data-board-cell="true"
+      data-board-row={row}
+      data-board-col={col}
+      data-board-cell-placeable={isPlaceable ? 'true' : 'false'}
       onClick={canInteract ? onClick : undefined}
       onDrop={canInteract ? onDrop : undefined}
       onDragOver={canInteract ? onDragOver : undefined}
@@ -166,6 +188,9 @@ const GameBoard = ({
               <Cell 
                 key={`${rowIndex}-${colIndex}`} 
                 type={cellType}
+                row={rowIndex}
+                col={colIndex}
+                isPlaceable={canPlace}
                 onClick={canPlace && onCellClick ? () => onCellClick(rowIndex, colIndex) : undefined}
                 onDrop={canPlace && onDrop ? (e) => handleDrop(e, rowIndex, colIndex) : undefined}
                 onDragOver={canPlace && onDrop ? handleDragOver : undefined}

@@ -15,6 +15,10 @@ function Tile({
   onSelect,
   onDragStart,
   onDragEnd,
+  onPointerDown,
+  onPointerMove,
+  onPointerUp,
+  onPointerCancel,
   canDrag,
   isExchanging,
   isExchangeSelected,
@@ -26,6 +30,10 @@ function Tile({
   onSelect: () => void;
   onDragStart: (e: React.DragEvent) => void;
   onDragEnd: () => void;
+  onPointerDown?: (event: React.PointerEvent<HTMLDivElement>) => void;
+  onPointerMove?: (event: React.PointerEvent<HTMLDivElement>) => void;
+  onPointerUp?: (event: React.PointerEvent<HTMLDivElement>) => void;
+  onPointerCancel?: (event: React.PointerEvent<HTMLDivElement>) => void;
   canDrag: boolean;
   isExchanging: boolean;
   isExchangeSelected: boolean;
@@ -44,6 +52,10 @@ function Tile({
       onClick={onSelect}
       onDragStartCapture={onDragStart}
       onDragEnd={onDragEnd}
+      onPointerDown={onPointerDown}
+      onPointerMove={onPointerMove}
+      onPointerUp={onPointerUp}
+      onPointerCancel={onPointerCancel}
       className={cn(
         "relative flex aspect-square w-full min-w-0 max-w-none cursor-pointer select-none items-center justify-center rounded-md border-b-4 border-black/20 bg-[#f8e8c7] shadow-[0_8px_18px_rgba(0,0,0,0.14)] transition-all duration-150 ease-in-out md:max-w-[4.85rem]",
         isSelected && !isExchanging && "ring-2 ring-primary ring-offset-2 shadow-lg",
@@ -124,6 +136,7 @@ type TileRackProps = {
   onDragStart: (tile: TileType, index: number) => void;
   onDragEnd: () => void;
   onDrop: (index: number) => void;
+  onBoardPlace: (row: number, col: number, index: number) => void;
   onChatClick: () => void;
   onPlay: () => void;
   onToggleExchange: () => void;
@@ -132,12 +145,110 @@ type TileRackProps = {
   replenishedTileIndexes?: number[];
 };
 
-export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSubmitting, isExchanging, exchangeSelection, onTileSelect, onRecall, onShuffle, onDragStart, onDragEnd, onDrop, onChatClick, onPlay, onToggleExchange, tileSetId, shuffleTick, replenishedTileIndexes = [] }: TileRackProps) {
+type TouchDragState = {
+  index: number;
+  tile: TileType;
+  tileSetId?: string | null;
+  x: number;
+  y: number;
+};
+
+export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSubmitting, isExchanging, exchangeSelection, onTileSelect, onRecall, onShuffle, onDragStart, onDragEnd, onDrop, onBoardPlace, onChatClick, onPlay, onToggleExchange, tileSetId, shuffleTick, replenishedTileIndexes = [] }: TileRackProps) {
   const canMoveTiles = isPlayerTurn && !isSubmitting && !isExchanging;
+  const [touchDrag, setTouchDrag] = React.useState<TouchDragState | null>(null);
+  const touchSessionRef = React.useRef<{
+    pointerId: number;
+    index: number;
+    tile: TileType;
+    tileSetId?: string | null;
+    startX: number;
+    startY: number;
+    dragging: boolean;
+  } | null>(null);
+  const suppressClickRef = React.useRef(false);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
+  };
+
+  const handleTouchPointerDown = (event: React.PointerEvent<HTMLDivElement>, tile: TileType, index: number) => {
+    if (event.pointerType === 'mouse' || !canMoveTiles) return;
+    touchSessionRef.current = {
+      pointerId: event.pointerId,
+      index,
+      tile,
+      tileSetId,
+      startX: event.clientX,
+      startY: event.clientY,
+      dragging: false,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+  };
+
+  const handleTouchPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
+    const session = touchSessionRef.current;
+    if (!session || session.pointerId !== event.pointerId) return;
+
+    const deltaX = event.clientX - session.startX;
+    const deltaY = event.clientY - session.startY;
+    const movedFarEnough = Math.hypot(deltaX, deltaY) > 14;
+
+    if (!session.dragging && movedFarEnough) {
+      session.dragging = true;
+      onDragStart(session.tile, session.index);
+    }
+
+    if (!session.dragging) return;
+
+    event.preventDefault();
+    setTouchDrag({
+      index: session.index,
+      tile: session.tile,
+      tileSetId: session.tileSetId,
+      x: event.clientX,
+      y: event.clientY,
+    });
+  };
+
+  const finishTouchInteraction = (clientX: number, clientY: number, wasDragging: boolean) => {
+    const session = touchSessionRef.current;
+    if (!session) return;
+
+    if (wasDragging) {
+      suppressClickRef.current = true;
+      const target = document.elementFromPoint(clientX, clientY) as HTMLElement | null;
+      const boardCell = target?.closest<HTMLElement>('[data-board-cell-placeable="true"]');
+      if (boardCell) {
+        const row = Number(boardCell.dataset.boardRow);
+        const col = Number(boardCell.dataset.boardCol);
+        if (!Number.isNaN(row) && !Number.isNaN(col)) {
+          onBoardPlace(row, col, session.index);
+        }
+      } else {
+        const rackSlot = target?.closest<HTMLElement>('[data-rack-slot-index]');
+        const slotIndex = rackSlot ? Number(rackSlot.dataset.rackSlotIndex) : Number.NaN;
+        if (!Number.isNaN(slotIndex)) {
+          onDrop(slotIndex);
+        }
+      }
+      onDragEnd();
+    }
+
+    setTouchDrag(null);
+    touchSessionRef.current = null;
+  };
+
+  const handleTouchPointerUp = (event: React.PointerEvent<HTMLDivElement>) => {
+    const session = touchSessionRef.current;
+    if (!session || session.pointerId !== event.pointerId) return;
+    finishTouchInteraction(event.clientX, event.clientY, session.dragging);
+  };
+
+  const handleTouchPointerCancel = (event: React.PointerEvent<HTMLDivElement>) => {
+    const session = touchSessionRef.current;
+    if (!session || session.pointerId !== event.pointerId) return;
+    finishTouchInteraction(event.clientX, event.clientY, session.dragging);
   };
 
   const triggerPassDialog = () => {
@@ -179,6 +290,7 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
                   layout
                   key={getTileRenderKey(tile, i)}
                   className="min-w-0"
+                  data-rack-slot-index={i}
                   onDrop={(e) => { e.preventDefault(); onDrop(i); }}
                   onDragOver={handleDragOver}
                 >
@@ -187,6 +299,10 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
                       tile={tile}
                       isSelected={selectedTileIndex === i}
                       onSelect={() => {
+                        if (suppressClickRef.current) {
+                          suppressClickRef.current = false;
+                          return;
+                        }
                         if (!canMoveTiles && !isExchanging) return;
                         onTileSelect(i);
                       }}
@@ -206,6 +322,10 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
                       isExchangeSelected={exchangeSelection.includes(i)}
                       tileSetId={tileSetId}
                       isNew={replenishedTileIndexes.includes(i)}
+                      onPointerDown={(event) => handleTouchPointerDown(event, tile, i)}
+                      onPointerMove={handleTouchPointerMove}
+                      onPointerUp={handleTouchPointerUp}
+                      onPointerCancel={handleTouchPointerCancel}
                     />
                   ) : (
                     <EmptySlot onDrop={(e) => { e.preventDefault(); onDrop(i); }} onDragOver={handleDragOver} />
@@ -271,6 +391,24 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
             )}
         </div>
       </CardContent>
+      {touchDrag ? (
+        <div className="pointer-events-none fixed inset-0 z-[70]">
+          <div
+            className="absolute h-[4.5rem] w-[4.5rem] -translate-x-1/2 -translate-y-1/2 rotate-3 opacity-95"
+            style={{ left: touchDrag.x, top: touchDrag.y }}
+          >
+            <div className="relative flex h-full w-full items-center justify-center rounded-xl border-b-4 border-black/20 bg-[#f8e8c7] shadow-[0_16px_26px_rgba(15,23,42,0.28)]">
+              <ThemedTileFace
+                tileSetId={touchDrag.tileSetId}
+                letter={touchDrag.tile.letter}
+                score={touchDrag.tile.score}
+                isBlank={touchDrag.tile.letter === ' '}
+                showScore
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
     </Card>
   );
 }
