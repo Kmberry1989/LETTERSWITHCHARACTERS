@@ -132,7 +132,7 @@ function MessageComposer({
           })}
         </div>
       </ScrollArea>
-      <div className="border-t border-white/[.72] bg-white/[.62] p-4 backdrop-blur-xl">
+      <div className="border-t border-white/[.72] bg-white/[.62] p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur-xl">
         <div className="mb-3 flex gap-2">
           <Button variant="outline" className="rounded-full" disabled={sending} onClick={() => void handleInvite()}>
             <Swords className="mr-2 h-4 w-4" />
@@ -153,7 +153,7 @@ function MessageComposer({
             disabled={sending}
             className="h-11 rounded-2xl border-white/[.72] bg-white/[.82] shadow-sm"
           />
-          <Button onClick={() => void handleSend()} disabled={sending || !text.trim()} size="icon" aria-label="Send message">
+          <Button onClick={() => void handleSend()} disabled={sending || !text.trim()} size="icon" aria-label="Send message" className="shrink-0">
             <Send className="h-4 w-4" />
           </Button>
         </div>
@@ -304,9 +304,9 @@ export function FloatingDirectMessages() {
           ) : null}
         </motion.button>
       </SheetTrigger>
-      <SheetContent side="right" className="w-screen max-w-[100vw] overflow-hidden border-l-white/[.72] bg-[linear-gradient(135deg,rgba(255,255,255,.94),rgba(241,249,236,.9))] p-0 sm:w-[calc(100vw-1rem)] sm:max-w-5xl">
-        <div className="flex h-full flex-col">
-          <SheetHeader className="border-b border-white/[.72] bg-white/[.58] p-5 pr-14 text-left backdrop-blur-xl sm:p-6">
+      <SheetContent side="right" className="h-[100svh] max-h-[100svh] w-screen max-w-[100vw] overflow-hidden border-l-white/[.72] bg-[linear-gradient(135deg,rgba(255,255,255,.94),rgba(241,249,236,.9))] p-0 sm:w-[calc(100vw-1rem)] sm:max-w-5xl">
+        <div className="flex h-full min-h-0 flex-col">
+          <SheetHeader className="shrink-0 border-b border-white/[.72] bg-white/[.58] p-5 pr-14 text-left backdrop-blur-xl sm:p-6">
             <div className="flex items-center gap-3">
               <div className="icon-badge h-12 w-12">
                 <MessageSquare className="h-5 w-5 text-emerald-700" />
@@ -317,7 +317,7 @@ export function FloatingDirectMessages() {
               </div>
             </div>
           </SheetHeader>
-          <div className="grid h-[calc(100dvh-5.75rem)] min-h-0 gap-0 lg:grid-cols-[330px_minmax(0,1fr)]">
+          <div className="grid min-h-0 flex-1 gap-0 overflow-hidden lg:grid-cols-[330px_minmax(0,1fr)]">
             <div
               className={cn(
                 'min-h-0 border-b border-white/[.72] bg-white/[.38] p-4 backdrop-blur-xl lg:border-b-0 lg:border-r',
@@ -400,7 +400,7 @@ export function FloatingDirectMessages() {
             </div>
             <div
               className={cn(
-                'min-h-0 min-w-0 p-4',
+                'min-h-0 min-w-0 overflow-hidden p-4 pb-[calc(1rem+env(safe-area-inset-bottom))] lg:pb-4',
                 mobilePane === 'list' ? 'hidden lg:block' : 'block'
               )}
             >
