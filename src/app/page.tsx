@@ -5,9 +5,10 @@ import Image from 'next/image';
 import { UserPlus, UserRound } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { InterfaceOrnament } from '@/components/interface-ornament';
-import { useAuth, type AppUser } from '@/firebase';
+import { useAuth, useUser, type AppUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { getPostLoginRoute } from '@/lib/auth-flow';
 import { Input } from '@/components/ui/input';
@@ -16,11 +17,11 @@ import { Label } from '@/components/ui/label';
 export default function LoginPage() {
   const router = useRouter();
   const auth = useAuth();
+  const { user, userError } = useUser();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const user = auth.currentUser;
 
   useEffect(() => {
     if (user) {
@@ -136,6 +137,12 @@ export default function LoginPage() {
                 <p className="text-xs text-muted-foreground sm:text-sm">Pick a sign-in method and head straight into the clubhouse.</p>
               </CardHeader>
               <CardContent className="px-5 pb-5 sm:px-6">
+                {userError ? (
+                  <Alert variant="destructive" className="mb-4 border-destructive/40 bg-destructive/5">
+                    <AlertTitle>Authentication unavailable</AlertTitle>
+                    <AlertDescription>{userError.message || 'Could not load the sign-in service.'}</AlertDescription>
+                  </Alert>
+                ) : null}
                 <form onSubmit={(event) => { event.preventDefault(); void handlePasswordAuth('signin'); }} className="space-y-3 py-2">
                   <div className="space-y-1.5">
                     <Label htmlFor="username">Username</Label>

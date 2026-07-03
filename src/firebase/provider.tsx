@@ -162,6 +162,9 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
     try {
       const response = await fetch('/api/auth/session', { cache: 'no-store' });
       const data = await response.json().catch(() => null);
+      if (!response.ok) {
+        throw new Error(data?.error || 'Could not load the current session.');
+      }
       setUserAuthState({ user: withTokenGetter(data?.user), isUserLoading: false, userError: null });
     } catch (error: any) {
       setUserAuthState({ user: null, isUserLoading: false, userError: error });
