@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils';
 import type { Tile as TileType } from '@/lib/game/types';
 import { ArrowRightLeft, Check, Loader, MessageCircle, Play, RotateCcw, Shuffle, SkipForward, X } from 'lucide-react';
 import { ThemedTileFace } from '@/components/game/themed-tile-face';
+import { useMobileGestures } from '@/components/game/mobile-gesture-context';
 
 function Tile({
   tile,
@@ -155,6 +156,7 @@ type TouchDragState = {
 
 export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSubmitting, isExchanging, exchangeSelection, onTileSelect, onRecall, onShuffle, onDragStart, onDragEnd, onDrop, onBoardPlace, onChatClick, onPlay, onToggleExchange, tileSetId, shuffleTick, replenishedTileIndexes = [] }: TileRackProps) {
   const canMoveTiles = isPlayerTurn && !isSubmitting && !isExchanging;
+  const { owner, beginRackDrag, endRackDrag, isViewportGestureActive } = useMobileGestures();
   const [touchDrag, setTouchDrag] = React.useState<TouchDragState | null>(null);
   const touchSessionRef = React.useRef<{
     pointerId: number;
@@ -173,7 +175,7 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
   };
 
   const handleTouchPointerDown = (event: React.PointerEvent<HTMLDivElement>, tile: TileType, index: number) => {
-    if (event.pointerType === 'mouse' || !canMoveTiles) return;
+    if (event.pointerType === 'mouse' || !canMoveTiles || isViewportGestureActive) return;
     touchSessionRef.current = {
       pointerId: event.pointerId,
       index,
@@ -189,12 +191,20 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
   const handleTouchPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     const session = touchSessionRef.current;
     if (!session || session.pointerId !== event.pointerId) return;
+    if (owner === 'board-pan' || owner === 'board-pinch') {
+      touchSessionRef.current = null;
+      setTouchDrag(null);
+      return;
+    }
 
     const deltaX = event.clientX - session.startX;
     const deltaY = event.clientY - session.startY;
-    const movedFarEnough = Math.hypot(deltaX, deltaY) > 14;
+    const movedFarEnough = Math.hypot(deltaX, deltaY) > 10;
 
     if (!session.dragging && movedFarEnough) {
+      if (!beginRackDrag()) {
+        return;
+      }
       session.dragging = true;
       onDragStart(session.tile, session.index);
     }
@@ -233,6 +243,7 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
         }
       }
       onDragEnd();
+      endRackDrag();
     }
 
     setTouchDrag(null);
@@ -290,6 +301,7 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
                   layout
                   key={getTileRenderKey(tile, i)}
                   className="min-w-0"
+                  data-rack-interactive="true"
                   data-rack-slot-index={i}
                   onDrop={(e) => { e.preventDefault(); onDrop(i); }}
                   onDragOver={handleDragOver}

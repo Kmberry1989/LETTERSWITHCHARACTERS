@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import type { Tile, PlacedTile } from '@/lib/game/types';
 import { BOARD_LAYOUT } from '@/lib/game/constants';
 import { ThemedTileFace } from '@/components/game/themed-tile-face';
+import { useMobileGestures } from '@/components/game/mobile-gesture-context';
 
 export const boardLayout = BOARD_LAYOUT;
 
@@ -157,6 +158,7 @@ const GameBoard = ({
   ownerTileSetIds,
   selectedPendingTileKey,
 }: GameBoardProps) => {
+  const { shouldSuppressBoardTap } = useMobileGestures();
   const allTiles = { ...placedTiles };
   const pendingKeys = new Set<string>();
 
@@ -169,6 +171,13 @@ const GameBoard = ({
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
     e.dataTransfer.dropEffect = 'move';
+  };
+
+  const runBoardTap = (handler?: () => void) => {
+    if (!handler || shouldSuppressBoardTap()) {
+      return;
+    }
+    handler();
   };
 
   const handleDrop = (e: React.DragEvent, row: number, col: number) => {
@@ -204,7 +213,7 @@ const GameBoard = ({
                 row={rowIndex}
                 col={colIndex}
                 isPlaceable={canPlace}
-                onClick={canPlace && onCellClick ? () => onCellClick(rowIndex, colIndex) : undefined}
+                onClick={canPlace && onCellClick ? () => runBoardTap(() => onCellClick(rowIndex, colIndex)) : undefined}
                 onDrop={canPlace && onDrop ? (e) => handleDrop(e, rowIndex, colIndex) : undefined}
                 onDragOver={canPlace && onDrop ? handleDragOver : undefined}
               >
@@ -217,7 +226,7 @@ const GameBoard = ({
                     ownerTileSetIds={ownerTileSetIds}
                     onClick={
                       isPending && onPendingTileSelect
-                        ? () => onPendingTileSelect({ ...tile, row: rowIndex, col: colIndex })
+                        ? () => runBoardTap(() => onPendingTileSelect({ ...tile, row: rowIndex, col: colIndex }))
                         : undefined
                     }
                     onDragStart={

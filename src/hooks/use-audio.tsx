@@ -214,6 +214,35 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     });
   }, []);
 
+  useEffect(() => {
+    const attemptResume = () => {
+      const context = getAudioContext();
+      if (context?.state === 'suspended') {
+        void context.resume();
+      }
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        attemptResume();
+      }
+    };
+
+    window.addEventListener('focus', attemptResume);
+    window.addEventListener('pageshow', attemptResume);
+    window.addEventListener('pointerdown', attemptResume, { passive: true });
+    window.addEventListener('keydown', attemptResume);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('focus', attemptResume);
+      window.removeEventListener('pageshow', attemptResume);
+      window.removeEventListener('pointerdown', attemptResume);
+      window.removeEventListener('keydown', attemptResume);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   const playSfx = useCallback((type: SfxType) => {
     if (isMuted) return;
     const volume = Math.max(0.0001, (masterVolume / 100) * (sfxVolume / 100));

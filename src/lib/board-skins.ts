@@ -376,28 +376,28 @@ export function resolveBoardAppearance(boardThemeId?: string | null, boardColor?
   const neutralBottom = shiftColor(accent, { s: -accent.s * 0.56, l: 16 });
 
   const dl = {
-    background: 'linear-gradient(180deg, #c7f0ff 0%, #7dd3fc 100%)',
-    text: '#0a3557',
-    ring: 'rgba(14, 116, 144, 0.42)',
-    shadow: '0 1px 0 rgba(255,255,255,0.88), 0 0 9px rgba(255,255,255,0.34)',
+    background: 'linear-gradient(180deg, #cfe9ff 0%, #5ea9ea 100%)',
+    text: '#ffffff',
+    ring: 'rgba(56, 119, 186, 0.42)',
+    shadow: '0 1px 0 rgba(20,47,84,0.44), 0 0 9px rgba(255,255,255,0.22)',
   };
   const tl = {
-    background: 'linear-gradient(180deg, #93dcff 0%, #2563eb 100%)',
-    text: '#f8fbff',
-    ring: 'rgba(30, 64, 175, 0.48)',
-    shadow: '0 1px 0 rgba(15,23,42,0.68), 0 0 9px rgba(15,23,42,0.34)',
+    background: 'linear-gradient(180deg, #d8efaf 0%, #9ec45d 100%)',
+    text: '#ffffff',
+    ring: 'rgba(111, 144, 54, 0.44)',
+    shadow: '0 1px 0 rgba(55,79,20,0.42), 0 0 9px rgba(255,255,255,0.2)',
   };
   const dw = {
-    background: 'linear-gradient(180deg, #ffd3ea 0%, #fb7185 100%)',
-    text: '#5f102b',
-    ring: 'rgba(190, 24, 93, 0.4)',
-    shadow: '0 1px 0 rgba(255,255,255,0.82), 0 0 9px rgba(255,255,255,0.3)',
+    background: 'linear-gradient(180deg, #ffd9d0 0%, #e98a6c 100%)',
+    text: '#ffffff',
+    ring: 'rgba(195, 110, 77, 0.42)',
+    shadow: '0 1px 0 rgba(104,47,24,0.38), 0 0 9px rgba(255,255,255,0.22)',
   };
   const tw = {
-    background: 'linear-gradient(180deg, #ffb4b4 0%, #dc2626 100%)',
-    text: '#fffdfd',
-    ring: 'rgba(127, 29, 29, 0.48)',
-    shadow: '0 1px 0 rgba(69,10,10,0.76), 0 0 10px rgba(69,10,10,0.34)',
+    background: 'linear-gradient(180deg, #ffc493 0%, #ee9b5d 100%)',
+    text: '#ffffff',
+    ring: 'rgba(198, 120, 61, 0.46)',
+    shadow: '0 1px 0 rgba(111,55,20,0.4), 0 0 10px rgba(255,255,255,0.18)',
   };
   const start = {
     background: 'linear-gradient(180deg, #fde68a 0%, #f59e0b 100%)',

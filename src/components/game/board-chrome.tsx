@@ -45,7 +45,7 @@ export default function BoardChrome({
   const skin = appearance.skin;
 
   return (
-    <div className={cn('relative rounded-[0.82rem] p-1 sm:rounded-[1.1rem] sm:p-2.5 md:p-3.5', className)} style={appearance.boardVars}>
+    <div className={cn('relative h-full w-full rounded-[0.82rem] p-1 sm:rounded-[1.1rem] sm:p-2.5 md:p-3.5', className)} style={appearance.boardVars}>
       <Layer {...skin.shadow} className="translate-y-3 scale-[1.02] blur-xl opacity-60" />
       <Layer {...skin.cloth} />
       <div
