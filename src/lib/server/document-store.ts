@@ -12,6 +12,10 @@ export class DocumentStoreUnavailableError extends Error {
   }
 }
 
+function createDocumentStoreError(message: string) {
+  return new DocumentStoreUnavailableError(message);
+}
+
 function assertDatabaseConfigured() {
   if (!process.env.DATABASE_URL?.trim()) {
     throw new DocumentStoreUnavailableError('Document storage is unavailable because DATABASE_URL is not configured.');
@@ -25,15 +29,33 @@ export function toDocumentStoreError(error: unknown, fallbackMessage = 'Document
 
   if (error instanceof Error) {
     const message = error.message || fallbackMessage;
+    if (message.includes('DATABASE_URL')) {
+      return createDocumentStoreError(`${fallbackMessage} DATABASE_URL is missing or the dev server needs to be restarted after env changes.`);
+    }
+
     if (
-      message.includes('DATABASE_URL') ||
       message.includes('Can\'t reach database server') ||
-      message.includes('app_documents') ||
-      message.includes('app_sessions') ||
-      message.includes('Prisma') ||
-      message.includes('database')
+      message.includes('ECONNREFUSED') ||
+      message.includes('ENOTFOUND')
     ) {
-      return new DocumentStoreUnavailableError(fallbackMessage);
+      return createDocumentStoreError(`${fallbackMessage} The database server could not be reached. Check DATABASE_URL host, port, and network access.`);
+    }
+
+    if (
+      message.includes('password authentication failed') ||
+      message.includes('tenant/user') ||
+      message.includes('authentication failed') ||
+      message.includes('SCRAM')
+    ) {
+      return createDocumentStoreError(`${fallbackMessage} The database credentials were rejected. Check the username, password, and pooler connection string in DATABASE_URL.`);
+    }
+
+    if (message.includes('app_documents') || message.includes('app_sessions') || message.includes('app_credentials')) {
+      return createDocumentStoreError(`${fallbackMessage} Required Prisma tables are missing. Run npm run db:push.`);
+    }
+
+    if (message.includes('Prisma') || message.includes('database')) {
+      return createDocumentStoreError(fallbackMessage);
     }
   }
 

@@ -105,6 +105,15 @@ function withTokenGetter(user: any): AppUser | null {
   };
 }
 
+async function ensureSessionBackendAvailable() {
+  const response = await fetch('/api/auth/session', { cache: 'no-store' });
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(data?.error || 'Authentication is unavailable.');
+  }
+}
+
 async function signInWithSocialProvider(mode: 'google' | 'apple') {
   const [{ initializeApp, getApp }, { getAuth, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithRedirect }] = await Promise.all([
     import('firebase/app'),
@@ -235,6 +244,8 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
   const auth = useMemo<LocalAuth>(() => ({
     currentUser: userAuthState.user,
     signIn: async (payload: SignInPayload) => {
+      await ensureSessionBackendAvailable();
+
       let sessionPayload: Record<string, unknown> = payload ? { ...payload } : {};
 
       if (payload?.mode === 'google' || payload?.mode === 'apple') {

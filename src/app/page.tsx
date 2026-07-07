@@ -22,6 +22,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const isAuthUnavailable = Boolean(userError);
 
   useEffect(() => {
     if (user) {
@@ -146,24 +147,24 @@ export default function LoginPage() {
                 <form onSubmit={(event) => { event.preventDefault(); void handlePasswordAuth('signin'); }} className="space-y-3 py-2">
                   <div className="space-y-1.5">
                     <Label htmlFor="username">Username</Label>
-                    <Input id="username" value={username} onChange={(event) => setUsername(event.target.value.toLowerCase())} placeholder="wordplayer" autoComplete="username" minLength={3} maxLength={24} autoCapitalize="none" autoCorrect="off" required />
+                    <Input id="username" value={username} onChange={(event) => setUsername(event.target.value.toLowerCase())} placeholder="wordplayer" autoComplete="username" minLength={3} maxLength={24} autoCapitalize="none" autoCorrect="off" required disabled={isLoading || isAuthUnavailable} />
                   </div>
                   <div className="space-y-1.5">
                     <Label htmlFor="password">Password</Label>
-                    <Input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="At least 8 characters" autoComplete="current-password" required />
+                    <Input id="password" type="password" value={password} onChange={(event) => setPassword(event.target.value)} placeholder="At least 8 characters" autoComplete="current-password" required disabled={isLoading || isAuthUnavailable} />
                   </div>
                   <div className="flex gap-2">
-                    <Button type="submit" disabled={isLoading} className="w-full"><UserRound className="mr-2 h-4 w-4" /> Sign In</Button>
-                    <Button type="button" variant="secondary" disabled={isLoading} className="w-full" onClick={() => void handlePasswordAuth('signup')}><UserPlus className="mr-2 h-4 w-4" /> Create Account</Button>
+                    <Button type="submit" disabled={isLoading || isAuthUnavailable} className="w-full"><UserRound className="mr-2 h-4 w-4" /> Sign In</Button>
+                    <Button type="button" variant="secondary" disabled={isLoading || isAuthUnavailable} className="w-full" onClick={() => void handlePasswordAuth('signup')}><UserPlus className="mr-2 h-4 w-4" /> Create Account</Button>
                   </div>
                   <div className="space-y-2">
                     <p className="text-center text-[0.68rem] font-semibold uppercase tracking-[0.2em] text-muted-foreground">Or continue with</p>
                     <div className="grid gap-2 sm:grid-cols-2">
-                      <Button type="button" disabled={isLoading} className="h-11 w-full rounded-xl border border-[#dadce0] bg-white text-[#1f1f1f] shadow-[0_10px_24px_rgba(15,23,42,0.08)] hover:bg-white hover:text-[#1f1f1f]" onClick={() => void handleSocialAuth('google')}>Sign in with Google</Button>
-                      <Button type="button" disabled={isLoading} className="h-11 w-full rounded-xl border border-black bg-black text-white shadow-[0_14px_28px_rgba(15,23,42,0.22)] hover:bg-[#111] hover:text-white" onClick={() => void handleSocialAuth('apple')}>Sign in with Apple</Button>
+                      <Button type="button" disabled={isLoading || isAuthUnavailable} className="h-11 w-full rounded-xl border border-[#dadce0] bg-white text-[#1f1f1f] shadow-[0_10px_24px_rgba(15,23,42,0.08)] hover:bg-white hover:text-[#1f1f1f]" onClick={() => void handleSocialAuth('google')}>Sign in with Google</Button>
+                      <Button type="button" disabled={isLoading || isAuthUnavailable} className="h-11 w-full rounded-xl border border-black bg-black text-white shadow-[0_14px_28px_rgba(15,23,42,0.22)] hover:bg-[#111] hover:text-white" onClick={() => void handleSocialAuth('apple')}>Sign in with Apple</Button>
                     </div>
                   </div>
-                  <Button type="button" variant="outline" disabled={isLoading} className="w-full" onClick={() => void handleGuestAuth()}>Continue as Guest</Button>
+                  <Button type="button" variant="outline" disabled={isLoading || isAuthUnavailable} className="w-full" onClick={() => void handleGuestAuth()}>Continue as Guest</Button>
                 </form>
               </CardContent>
             </Card>
