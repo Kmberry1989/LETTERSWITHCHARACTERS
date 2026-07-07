@@ -1,6 +1,4 @@
-import { cookies } from 'next/headers';
-import { prisma } from '@/lib/prisma';
-import { getDocument, setDocument } from '@/lib/server/document-store';
+import type { User as SupabaseAuthUser } from '@supabase/supabase-js';
 import {
   normalizeOwnedTileSetIds,
   resolveEquippedTileSetId,
@@ -12,6 +10,10 @@ import { DEFAULT_PLAYER_STATS } from '@/lib/player-stats';
 import { DEFAULT_NOTIFICATION_PREFERENCES } from '@/lib/notifications';
 import { DEFAULT_RETENTION_STATE } from '@/lib/retention';
 import { getDefaultBoardTintId, resolveBoardColor } from '@/lib/board-skins';
+import { getDocument, setDocument } from '@/lib/server/document-store';
+import { createBackendClient } from '@/lib/supabase/config';
+import { createClient as createServerSupabaseClient } from '@/lib/supabase/server';
+import { isGeneratedAuthEmail, mapSupabaseProviderToAppProvider } from '@/lib/auth-identity';
 
 export type AppUser = {
   uid: string;
@@ -34,113 +36,55 @@ export type AppUser = {
   level?: number;
 };
 
-const SESSION_COOKIE = 'lwc_session';
-const SESSION_DAYS = 30;
-
-function assertDatabaseConfigured() {
-  if (!process.env.DATABASE_URL?.trim()) {
-    throw new Error('Authentication storage requires DATABASE_URL to be configured and the dev server restarted.');
-  }
-}
-
-function sessionExpiry() {
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + SESSION_DAYS);
-  return expiresAt;
-}
-
-export async function createSession(user: AppUser) {
-  assertDatabaseConfigured();
-  const token = crypto.randomUUID();
-  const expiresAt = sessionExpiry();
-
-  await prisma.appSession.create({
-    data: {
-      token,
-      userId: user.uid,
-      expiresAt,
-    },
-  });
-
-  const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    expires: expiresAt,
-  });
-
-  return token;
-}
-
-export async function destroySession(token?: string | null) {
-  assertDatabaseConfigured();
-  const cookieStore = await cookies();
-  const activeToken = token || cookieStore.get(SESSION_COOKIE)?.value;
-
-  if (activeToken) {
-    await prisma.appSession.deleteMany({ where: { token: activeToken } });
+function getProfileDisplayName(authUser: SupabaseAuthUser, profile: Record<string, any> | null) {
+  if (typeof profile?.displayName === 'string' && profile.displayName.trim()) {
+    return profile.displayName;
   }
 
-  cookieStore.delete(SESSION_COOKIE);
+  const metadata = authUser.user_metadata || {};
+  const preferred =
+    metadata.display_name ||
+    metadata.full_name ||
+    metadata.name ||
+    metadata.username ||
+    (typeof authUser.email === 'string' ? authUser.email.split('@')[0] : null);
+
+  return typeof preferred === 'string' && preferred.trim() ? preferred : 'Player';
 }
 
-export async function getUserByToken(token?: string | null): Promise<AppUser | null> {
-  assertDatabaseConfigured();
-  if (!token) return null;
-
-  const session = await prisma.appSession.findUnique({ where: { token } });
-  if (!session || session.expiresAt <= new Date()) {
-    if (session) await prisma.appSession.delete({ where: { token } }).catch(() => null);
+function toPublicEmail(authUser: SupabaseAuthUser) {
+  if (!authUser.email || isGeneratedAuthEmail(authUser.email)) {
     return null;
   }
 
-  const profile = await getDocument<any>('users', session.userId);
-  if (!profile) return null;
+  return authUser.email;
+}
 
+function isAnonymousUser(authUser: SupabaseAuthUser) {
+  return authUser.is_anonymous || authUser.app_metadata?.provider === 'anonymous';
+}
+
+export function makeUser(overrides: Partial<AppUser> & Pick<AppUser, 'uid'>): AppUser {
   return {
-    uid: profile.uid || session.userId,
-    email: profile.email || null,
-    displayName: profile.displayName || profile.email || 'Player',
-    photoURL: profile.photoURL || null,
-    isAnonymous: profile.isAnonymous || false,
-    providerId: profile.providerId || (profile.isAnonymous ? 'guest' : 'password'),
-    avatarPresetId: profile.avatarPresetId || null,
-    avatarModelUrl: profile.avatarModelUrl || null,
-    avatarPosterUrl: profile.avatarPosterUrl || null,
-    avatarConfiguredAt: profile.avatarConfiguredAt || null,
-    onboardingCompletedAt: profile.onboardingCompletedAt || null,
-    boardThemeId: profile.boardThemeId || 'board-green',
-    boardTintId: profile.boardTintId || getDefaultBoardTintId(profile.boardThemeId || 'board-green'),
-    boardColor: resolveBoardColor(profile.boardThemeId || 'board-green', profile.boardColor || null, profile.boardTintId || null),
-    berries: typeof profile.berries === 'number' ? profile.berries : STARTER_BERRIES,
-    experience: typeof profile.experience === 'number' ? profile.experience : 0,
-    level: getLevelForExperience(typeof profile.experience === 'number' ? profile.experience : 0),
+    uid: overrides.uid,
+    email: overrides.email ?? null,
+    displayName: overrides.displayName ?? overrides.email ?? 'Player',
+    photoURL: overrides.photoURL ?? null,
+    isAnonymous: overrides.isAnonymous ?? false,
+    providerId: overrides.providerId ?? (overrides.isAnonymous ? 'guest' : 'password'),
+    avatarPresetId: overrides.avatarPresetId ?? null,
+    avatarModelUrl: overrides.avatarModelUrl ?? null,
+    avatarPosterUrl: overrides.avatarPosterUrl ?? null,
+    avatarConfiguredAt: overrides.avatarConfiguredAt ?? null,
+    onboardingCompletedAt: overrides.onboardingCompletedAt ?? null,
   };
 }
 
-export async function getCurrentUser() {
-  const cookieStore = await cookies();
-  return getUserByToken(cookieStore.get(SESSION_COOKIE)?.value);
-}
-
-export async function getCurrentSessionToken() {
-  const cookieStore = await cookies();
-  return cookieStore.get(SESSION_COOKIE)?.value || null;
-}
-
-export async function verifyBearerToken(request: Request) {
-  const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) return null;
-  return getUserByToken(authHeader.slice('Bearer '.length));
-}
-
 export async function upsertUserProfile(user: AppUser) {
-  assertDatabaseConfigured();
   const existing = await getDocument<any>('users', user.uid);
   const equippedTileSetId = resolveEquippedTileSetId(existing?.tileSetId, existing?.equippedTileSetId);
   const ownedTileSetIds = normalizeOwnedTileSetIds(existing?.ownedTileSetIds || [existing?.tileSetId || STARTER_TILE_SET_ID]);
+
   return setDocument(
     'users',
     user.uid,
@@ -179,18 +123,96 @@ export async function upsertUserProfile(user: AppUser) {
   );
 }
 
-export function makeUser(overrides: Partial<AppUser> & Pick<AppUser, 'uid'>): AppUser {
+async function hydrateUserFromAuthUser(authUser: SupabaseAuthUser, accessToken?: string | null): Promise<AppUser> {
+  const existingProfile = await getDocument<any>('users', authUser.id);
+  const providerId = mapSupabaseProviderToAppProvider(authUser.app_metadata?.provider);
+  const email = toPublicEmail(authUser);
+  const baseUser = makeUser({
+    uid: authUser.id,
+    email,
+    displayName: getProfileDisplayName(authUser, existingProfile),
+    photoURL: typeof authUser.user_metadata?.avatar_url === 'string' ? authUser.user_metadata.avatar_url : null,
+    isAnonymous: isAnonymousUser(authUser),
+    providerId,
+    avatarPresetId: existingProfile?.avatarPresetId ?? null,
+    avatarModelUrl: existingProfile?.avatarModelUrl ?? null,
+    avatarPosterUrl: existingProfile?.avatarPosterUrl ?? null,
+    avatarConfiguredAt: existingProfile?.avatarConfiguredAt ?? null,
+    onboardingCompletedAt: existingProfile?.onboardingCompletedAt ?? null,
+  });
+
+  const profile = await upsertUserProfile(baseUser);
+
   return {
-    uid: overrides.uid,
-    email: overrides.email ?? null,
-    displayName: overrides.displayName ?? overrides.email ?? 'Player',
-    photoURL: overrides.photoURL ?? null,
-    isAnonymous: overrides.isAnonymous ?? false,
-    providerId: overrides.providerId ?? (overrides.isAnonymous ? 'guest' : 'password'),
-    avatarPresetId: overrides.avatarPresetId ?? null,
-    avatarModelUrl: overrides.avatarModelUrl ?? null,
-    avatarPosterUrl: overrides.avatarPosterUrl ?? null,
-    avatarConfiguredAt: overrides.avatarConfiguredAt ?? null,
-    onboardingCompletedAt: overrides.onboardingCompletedAt ?? null,
+    uid: profile.uid || authUser.id,
+    email: profile.email ?? email,
+    displayName: profile.displayName || baseUser.displayName || 'Player',
+    photoURL: profile.photoURL || baseUser.photoURL || null,
+    isAnonymous: Boolean(profile.isAnonymous ?? baseUser.isAnonymous),
+    providerId: profile.providerId || baseUser.providerId,
+    avatarPresetId: profile.avatarPresetId || null,
+    avatarModelUrl: profile.avatarModelUrl || null,
+    avatarPosterUrl: profile.avatarPosterUrl || null,
+    avatarConfiguredAt: profile.avatarConfiguredAt || null,
+    onboardingCompletedAt: profile.onboardingCompletedAt || null,
+    boardThemeId: profile.boardThemeId || 'board-green',
+    boardTintId: profile.boardTintId || getDefaultBoardTintId(profile.boardThemeId || 'board-green'),
+    boardColor: resolveBoardColor(profile.boardThemeId || 'board-green', profile.boardColor || null, profile.boardTintId || null),
+    berries: typeof profile.berries === 'number' ? profile.berries : STARTER_BERRIES,
+    experience: typeof profile.experience === 'number' ? profile.experience : 0,
+    level: getLevelForExperience(typeof profile.experience === 'number' ? profile.experience : 0),
+    getIdToken: accessToken ? async () => accessToken : undefined,
   };
+}
+
+export async function getCurrentUser() {
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.auth.getUser();
+
+  if (error) {
+    throw error;
+  }
+
+  if (!data.user) {
+    return null;
+  }
+
+  const session = await supabase.auth.getSession();
+  const accessToken = session.data.session?.access_token || null;
+  return hydrateUserFromAuthUser(data.user, accessToken);
+}
+
+export async function getCurrentSessionToken() {
+  const supabase = await createServerSupabaseClient();
+  const { data, error } = await supabase.auth.getSession();
+
+  if (error) {
+    throw error;
+  }
+
+  return data.session?.access_token || null;
+}
+
+export async function verifyBearerToken(request: Request) {
+  const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
+  if (!authHeader?.startsWith('Bearer ')) return null;
+
+  const token = authHeader.slice('Bearer '.length);
+  const supabase = createBackendClient();
+  const { data, error } = await supabase.auth.getUser(token);
+
+  if (error || !data.user) {
+    return null;
+  }
+
+  return hydrateUserFromAuthUser(data.user, token);
+}
+
+export async function destroySession() {
+  const supabase = await createServerSupabaseClient();
+  const { error } = await supabase.auth.signOut();
+
+  if (error) {
+    throw error;
+  }
 }

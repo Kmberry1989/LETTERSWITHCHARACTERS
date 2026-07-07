@@ -1,10 +1,10 @@
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
-import { firebaseConfig } from '@/firebase/config';
+import type { Provider as SupabaseProvider } from '@supabase/supabase-js';
 import { resolveBoardColor } from '@/lib/board-skins';
-
-const FIREBASE_CLIENT_APP_NAME = 'letters-with-characters-client';
+import { createClient as createSupabaseClient } from '@/lib/supabase/client';
+import { normalizeUsername, usernameToAuthEmail } from '@/lib/auth-identity';
 
 export type AppUser = {
   uid: string;
@@ -98,6 +98,7 @@ function withTokenGetter(user: any): AppUser | null {
     token: user.token,
     getIdToken: async () => {
       if (user.token) return user.token;
+
       const response = await fetch('/api/auth/session', { cache: 'no-store' });
       const data = await response.json().catch(() => null);
       return data?.user?.token || '';
@@ -105,59 +106,27 @@ function withTokenGetter(user: any): AppUser | null {
   };
 }
 
-async function ensureSessionBackendAvailable() {
+async function loadCurrentUser() {
   const response = await fetch('/api/auth/session', { cache: 'no-store' });
   const data = await response.json().catch(() => null);
 
   if (!response.ok) {
-    throw new Error(data?.error || 'Authentication is unavailable.');
+    throw new Error(data?.error || 'Could not load the current session.');
   }
+
+  return withTokenGetter(data?.user);
 }
 
-async function signInWithSocialProvider(mode: 'google' | 'apple') {
-  const [{ initializeApp, getApp }, { getAuth, GoogleAuthProvider, OAuthProvider, signInWithPopup, signInWithRedirect }] = await Promise.all([
-    import('firebase/app'),
-    import('firebase/auth'),
-  ]);
-
-  if (!firebaseConfig.apiKey || !firebaseConfig.appId || !firebaseConfig.authDomain) {
-    throw new Error('Firebase web configuration is incomplete.');
+function getOAuthRedirectUrl() {
+  if (typeof window === 'undefined') {
+    return undefined;
   }
 
-  let app;
-  try {
-    app = getApp(FIREBASE_CLIENT_APP_NAME);
-  } catch {
-    app = initializeApp(firebaseConfig, FIREBASE_CLIENT_APP_NAME);
-  }
+  return `${window.location.origin}/auth/callback?next=/`;
+}
 
-  const provider = mode === 'google' ? new GoogleAuthProvider() : new OAuthProvider('apple.com');
-
-  if (mode === 'google') {
-    provider.setCustomParameters({ prompt: 'select_account' });
-  } else {
-    provider.addScope('email');
-    provider.addScope('name');
-  }
-
-  try {
-    const credential = await signInWithPopup(getAuth(app), provider);
-
-    return {
-      mode,
-      uid: credential.user.uid,
-      email: credential.user.email,
-      displayName: credential.user.displayName,
-      photoURL: credential.user.photoURL,
-    };
-  } catch (error: any) {
-    if (error?.code === 'auth/popup-blocked' || error?.code === 'auth/web-storage-unsupported') {
-      await signInWithRedirect(getAuth(app), provider);
-      throw new Error(`Redirecting to ${mode === 'apple' ? 'Apple' : 'Google'} sign-in...`);
-    }
-
-    throw error;
-  }
+function getProviderLabel(mode: 'google' | 'apple') {
+  return mode === 'apple' ? 'Apple' : 'Google';
 }
 
 export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) => {
@@ -166,15 +135,12 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
     isUserLoading: true,
     userError: null,
   });
+  const supabase = useMemo(() => createSupabaseClient(), []);
 
   const refresh = async () => {
     try {
-      const response = await fetch('/api/auth/session', { cache: 'no-store' });
-      const data = await response.json().catch(() => null);
-      if (!response.ok) {
-        throw new Error(data?.error || 'Could not load the current session.');
-      }
-      setUserAuthState({ user: withTokenGetter(data?.user), isUserLoading: false, userError: null });
+      const user = await loadCurrentUser();
+      setUserAuthState({ user, isUserLoading: false, userError: null });
     } catch (error: any) {
       setUserAuthState({ user: null, isUserLoading: false, userError: error });
     }
@@ -182,121 +148,122 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
 
   useEffect(() => {
     void refresh();
-  }, []);
 
-  useEffect(() => {
-    let isMounted = true;
-
-    const completeRedirectSignIn = async () => {
-      try {
-        const [{ initializeApp, getApp }, { getAuth, getRedirectResult }] = await Promise.all([
-          import('firebase/app'),
-          import('firebase/auth'),
-        ]);
-
-        if (!firebaseConfig.apiKey || !firebaseConfig.appId || !firebaseConfig.authDomain) {
-          return;
-        }
-
-        let app;
-        try {
-          app = getApp(FIREBASE_CLIENT_APP_NAME);
-        } catch {
-          app = initializeApp(firebaseConfig, FIREBASE_CLIENT_APP_NAME);
-        }
-
-        const credential = await getRedirectResult(getAuth(app));
-        if (!credential || !isMounted) return;
-
-        const providerId = credential.providerId === 'apple.com' ? 'apple' : 'google';
-        const response = await fetch('/api/auth/session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            mode: providerId,
-            uid: credential.user.uid,
-            email: credential.user.email,
-            displayName: credential.user.displayName,
-            photoURL: credential.user.photoURL,
-          }),
-        });
-
-        const data = await response.json().catch(() => null);
-        if (!response.ok) {
-          throw new Error(data?.error || 'Could not complete sign in.');
-        }
-
-        setUserAuthState({ user: withTokenGetter(data.user), isUserLoading: false, userError: null });
-      } catch (error: any) {
-        if (!isMounted) return;
-        if (error?.code === 'auth/no-auth-event') return;
-        setUserAuthState((state) => ({ ...state, userError: error, isUserLoading: false }));
-      }
-    };
-
-    void completeRedirectSignIn();
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      void refresh();
+    });
 
     return () => {
-      isMounted = false;
+      subscription.unsubscribe();
     };
-  }, []);
+  }, [supabase]);
 
-  const auth = useMemo<LocalAuth>(() => ({
-    currentUser: userAuthState.user,
-    signIn: async (payload: SignInPayload) => {
-      await ensureSessionBackendAvailable();
+  const auth = useMemo<LocalAuth>(
+    () => ({
+      currentUser: userAuthState.user,
+      signIn: async (payload: SignInPayload) => {
+        if (payload?.mode === 'google' || payload?.mode === 'apple') {
+          const provider = payload.mode as SupabaseProvider;
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider,
+            options: {
+              redirectTo: getOAuthRedirectUrl(),
+            },
+          });
 
-      let sessionPayload: Record<string, unknown> = payload ? { ...payload } : {};
+          if (error) {
+            throw new Error(error.message || `${getProviderLabel(payload.mode)} sign-in failed.`);
+          }
 
-      if (payload?.mode === 'google' || payload?.mode === 'apple') {
-        try {
-          sessionPayload = await signInWithSocialProvider(payload.mode);
-        } catch (error: any) {
-          const providerLabel = payload.mode === 'apple' ? 'Apple' : 'Google';
-          if (error?.code === 'auth/popup-closed-by-user') {
-            throw new Error(`${providerLabel} sign-in was canceled.`);
-          }
-          if (error?.code === 'auth/popup-blocked') {
-            throw new Error(`${providerLabel} sign-in popup was blocked by the browser.`);
-          }
-          if (error?.message?.startsWith('Redirecting to')) {
-            throw error;
-          }
-          throw new Error(error?.message || `${providerLabel} sign-in failed.`);
+          throw new Error(`Redirecting to ${getProviderLabel(payload.mode)} sign-in...`);
         }
-      }
 
-      const response = await fetch('/api/auth/session', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sessionPayload),
-      });
+        if (payload?.mode === 'guest') {
+          const { error } = await supabase.auth.signInAnonymously({
+            options: {
+              data: {
+                display_name: payload.displayName?.trim() || 'Guest Player',
+              },
+            },
+          });
 
-      const data = await response.json().catch(() => null);
-      if (!response.ok) {
-        throw new Error(data?.error || 'Could not sign in.');
-      }
+          if (error) {
+            throw new Error(error.message || 'Guest sign-in failed.');
+          }
 
-      const user = withTokenGetter(data.user);
-      setUserAuthState({ user, isUserLoading: false, userError: null });
-      return user!;
-    },
-    signOut: async () => {
-      await fetch('/api/auth/session', { method: 'DELETE' });
-      setUserAuthState({ user: null, isUserLoading: false, userError: null });
-    },
-    refresh,
-  }), [userAuthState.user]);
+          const user = await loadCurrentUser();
+          setUserAuthState({ user, isUserLoading: false, userError: null });
+          return user!;
+        }
 
-  const contextValue = useMemo((): FirebaseContextState => ({
-    areServicesAvailable: true,
-    firebaseApp: null,
-    firestore: null,
-    auth,
-    user: userAuthState.user,
-    isUserLoading: userAuthState.isUserLoading,
-    userError: userAuthState.userError,
-  }), [auth, userAuthState]);
+        const username = normalizeUsername(payload?.username || '');
+        const password = String(payload?.password || '');
+
+        if (!username || !password) {
+          throw new Error('Username and password are required.');
+        }
+
+        if (payload?.action === 'signup') {
+          const { data, error } = await supabase.auth.signUp({
+            email: usernameToAuthEmail(username),
+            password,
+            options: {
+              data: {
+                username,
+                display_name: payload.displayName?.trim() || username,
+              },
+            },
+          });
+
+          if (error) {
+            throw new Error(error.message || 'Could not create the account.');
+          }
+
+          if (!data.session) {
+            throw new Error('Account created, but email confirmation is still required in Supabase Auth.');
+          }
+        } else {
+          const { error } = await supabase.auth.signInWithPassword({
+            email: usernameToAuthEmail(username),
+            password,
+          });
+
+          if (error) {
+            throw new Error(error.message || 'Could not sign in.');
+          }
+        }
+
+        const user = await loadCurrentUser();
+        setUserAuthState({ user, isUserLoading: false, userError: null });
+        return user!;
+      },
+      signOut: async () => {
+        const { error } = await supabase.auth.signOut();
+        if (error) {
+          throw new Error(error.message || 'Could not sign out.');
+        }
+
+        setUserAuthState({ user: null, isUserLoading: false, userError: null });
+      },
+      refresh,
+    }),
+    [supabase, userAuthState.user]
+  );
+
+  const contextValue = useMemo(
+    (): FirebaseContextState => ({
+      areServicesAvailable: true,
+      firebaseApp: null,
+      firestore: null,
+      auth,
+      user: userAuthState.user,
+      isUserLoading: userAuthState.isUserLoading,
+      userError: userAuthState.userError,
+    }),
+    [auth, userAuthState]
+  );
 
   return <FirebaseContext.Provider value={contextValue}>{children}</FirebaseContext.Provider>;
 };

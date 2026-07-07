@@ -1,7 +1,13 @@
-import { Prisma } from '@prisma/client';
-import { prisma } from '@/lib/prisma';
+import { createBackendClient } from '@/lib/supabase/config';
 
 export type JsonRecord = Record<string, any>;
+
+type AppDocumentRow = {
+  collection: string;
+  documentId: string;
+  data: JsonRecord;
+  updatedAt?: string;
+};
 
 export class DocumentStoreUnavailableError extends Error {
   status = 503 as const;
@@ -16,10 +22,35 @@ function createDocumentStoreError(message: string) {
   return new DocumentStoreUnavailableError(message);
 }
 
-function assertDatabaseConfigured() {
-  if (!process.env.DATABASE_URL?.trim()) {
-    throw new DocumentStoreUnavailableError('Document storage is unavailable because DATABASE_URL is not configured.');
+function getDocumentStoreClient() {
+  return createBackendClient();
+}
+
+function normalizeSupabaseError(error: { message?: string; code?: string } | null | undefined, fallbackMessage: string) {
+  const message = error?.message || fallbackMessage;
+
+  if (
+    message.includes('NEXT_PUBLIC_SUPABASE_URL') ||
+    message.includes('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY') ||
+    message.includes('Supabase client env is missing')
+  ) {
+    return createDocumentStoreError(`${fallbackMessage} Supabase env is missing or the dev server needs to be restarted after env changes.`);
   }
+
+  if (
+    message.includes('Failed to fetch') ||
+    message.includes('fetch failed') ||
+    message.includes('network') ||
+    error?.code === 'ECONNRESET'
+  ) {
+    return createDocumentStoreError(`${fallbackMessage} The Supabase API could not be reached. Check network access and project status.`);
+  }
+
+  if (message.includes('permission denied') || message.includes('JWT') || message.includes('row-level security')) {
+    return new Error(`${fallbackMessage} The Supabase API rejected this request due to permissions or auth configuration.`);
+  }
+
+  return createDocumentStoreError(fallbackMessage);
 }
 
 export function toDocumentStoreError(error: unknown, fallbackMessage = 'Document storage is unavailable.') {
@@ -28,122 +59,103 @@ export function toDocumentStoreError(error: unknown, fallbackMessage = 'Document
   }
 
   if (error instanceof Error) {
-    const message = error.message || fallbackMessage;
-    if (message.includes('DATABASE_URL')) {
-      return createDocumentStoreError(`${fallbackMessage} DATABASE_URL is missing or the dev server needs to be restarted after env changes.`);
-    }
-
-    if (
-      message.includes('Can\'t reach database server') ||
-      message.includes('ECONNREFUSED') ||
-      message.includes('ENOTFOUND')
-    ) {
-      return createDocumentStoreError(`${fallbackMessage} The database server could not be reached. Check DATABASE_URL host, port, and network access.`);
-    }
-
-    if (
-      message.includes('password authentication failed') ||
-      message.includes('tenant/user') ||
-      message.includes('authentication failed') ||
-      message.includes('SCRAM')
-    ) {
-      return createDocumentStoreError(`${fallbackMessage} The database credentials were rejected. Check the username, password, and pooler connection string in DATABASE_URL.`);
-    }
-
-    if (message.includes('app_documents') || message.includes('app_sessions') || message.includes('app_credentials')) {
-      return createDocumentStoreError(`${fallbackMessage} Required Prisma tables are missing. Run npm run db:push.`);
-    }
-
-    if (message.includes('Prisma') || message.includes('database')) {
-      return createDocumentStoreError(fallbackMessage);
-    }
+    return normalizeSupabaseError({ message: error.message }, fallbackMessage);
   }
 
-  return error instanceof Error ? error : new Error(fallbackMessage);
+  return new Error(fallbackMessage);
 }
 
 export function newDocumentId() {
   return crypto.randomUUID();
 }
 
-export function serializeForJson(value: unknown): Prisma.InputJsonValue {
-  return JSON.parse(JSON.stringify(value)) as Prisma.InputJsonValue;
+export function serializeForJson(value: unknown) {
+  return JSON.parse(JSON.stringify(value));
 }
 
-function serializeDocumentRecord(value: JsonRecord): Prisma.InputJsonObject {
+function serializeDocumentRecord(value: JsonRecord): JsonRecord {
   const serialized = serializeForJson(value);
 
   if (!serialized || Array.isArray(serialized) || typeof serialized !== 'object') {
     throw new Error('Document store values must serialize to a JSON object.');
   }
 
-  const nextData = { ...(serialized as Prisma.InputJsonObject) };
+  const nextData = { ...(serialized as JsonRecord) };
   delete nextData.id;
   return nextData;
 }
 
-export async function getDocument<T = JsonRecord>(collection: string, documentId: string) {
-  assertDatabaseConfigured();
-  const doc = await prisma.appDocument.findUnique({
-    where: {
-      collection_documentId: {
-        collection,
-        documentId,
-      },
-    },
-  });
+function mapDocumentRow<T = JsonRecord>(row: AppDocumentRow | null) {
+  if (!row) return null;
+  return { id: row.documentId, ...(row.data as T) } as T & { id: string };
+}
 
-  if (!doc) return null;
-  return { id: doc.documentId, ...(doc.data as T) } as T & { id: string };
+export async function getDocument<T = JsonRecord>(collection: string, documentId: string) {
+  const supabase = getDocumentStoreClient();
+  const { data, error } = await supabase
+    .from('app_documents')
+    .select('collection, documentId, data, updatedAt')
+    .eq('collection', collection)
+    .eq('documentId', documentId)
+    .maybeSingle();
+
+  if (error) {
+    throw normalizeSupabaseError(error, 'Document storage is unavailable.');
+  }
+
+  return mapDocumentRow<T>((data as AppDocumentRow | null) ?? null);
 }
 
 export async function setDocument(collection: string, documentId: string, data: JsonRecord, merge = false) {
-  assertDatabaseConfigured();
   const existing = merge ? await getDocument(collection, documentId) : null;
   const nextData = serializeDocumentRecord({ ...(merge && existing ? existing : {}), ...data });
+  const supabase = getDocumentStoreClient();
 
-  await prisma.appDocument.upsert({
-    where: {
-      collection_documentId: {
+  const { data: saved, error } = await supabase
+    .from('app_documents')
+    .upsert(
+      {
         collection,
         documentId,
+        data: nextData,
       },
-    },
-    create: {
-      collection,
-      documentId,
-      data: nextData,
-    },
-    update: {
-      data: nextData,
-    },
-  });
+      {
+        onConflict: 'collection,documentId',
+      }
+    )
+    .select('collection, documentId, data, updatedAt')
+    .single();
 
-  return { id: documentId, ...nextData };
+  if (error) {
+    throw normalizeSupabaseError(error, 'Document storage is unavailable.');
+  }
+
+  return mapDocumentRow(saved as AppDocumentRow)!;
 }
 
 export async function updateDocument(collection: string, documentId: string, patch: JsonRecord) {
-  assertDatabaseConfigured();
   const existing = await getDocument(collection, documentId);
   if (!existing) {
     throw new Error(`${collection}/${documentId} does not exist.`);
   }
 
   const nextData = serializeDocumentRecord(applyDottedPatch(existing, patch));
-
-  await prisma.appDocument.update({
-    where: {
-      collection_documentId: {
-        collection,
-        documentId,
-      },
-    },
-    data: {
+  const supabase = getDocumentStoreClient();
+  const { data, error } = await supabase
+    .from('app_documents')
+    .update({
       data: nextData,
-    },
-  });
+    })
+    .eq('collection', collection)
+    .eq('documentId', documentId)
+    .select('collection, documentId, data, updatedAt')
+    .single();
 
-  return { id: documentId, ...nextData };
+  if (error) {
+    throw normalizeSupabaseError(error, 'Document storage is unavailable.');
+  }
+
+  return mapDocumentRow(data as AppDocumentRow)!;
 }
 
 export async function addDocument(collection: string, data: JsonRecord) {
@@ -152,14 +164,24 @@ export async function addDocument(collection: string, data: JsonRecord) {
 }
 
 export async function listDocuments<T = JsonRecord>(collection: string, options?: { limit?: number; orderBy?: string; direction?: 'asc' | 'desc' }) {
-  assertDatabaseConfigured();
-  const docs = await prisma.appDocument.findMany({
-    where: { collection },
-    orderBy: { updatedAt: options?.direction || 'desc' },
-    take: options?.limit,
-  });
+  const supabase = getDocumentStoreClient();
+  let query = supabase
+    .from('app_documents')
+    .select('collection, documentId, data, updatedAt')
+    .eq('collection', collection)
+    .order('updatedAt', { ascending: options?.direction === 'asc' });
 
-  const results = docs.map((doc) => ({ id: doc.documentId, ...(doc.data as T) }));
+  if (options?.limit) {
+    query = query.limit(options.limit);
+  }
+
+  const { data, error } = await query.returns<AppDocumentRow[]>();
+
+  if (error) {
+    throw normalizeSupabaseError(error, 'Document storage is unavailable.');
+  }
+
+  const results = (data || []).map((doc: AppDocumentRow) => mapDocumentRow<T>(doc)!);
 
   if (!options?.orderBy) return results;
 

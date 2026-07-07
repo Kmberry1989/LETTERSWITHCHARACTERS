@@ -1,5 +1,5 @@
-import { getUserByToken } from '@/lib/server/auth';
 import { addDocument, getDocument, listDocuments, setDocument, updateDocument } from '@/lib/server/document-store';
+import { createBackendClient } from '@/lib/supabase/config';
 
 function makeSnapshot(collection: string, documentId: string, data: any | null) {
   return {
@@ -20,11 +20,19 @@ export function getAdminApp() {
 export function getAdminAuth() {
   return {
     async verifyIdToken(token: string) {
-      const user = await getUserByToken(token);
-      if (!user) {
+      const supabase = createBackendClient();
+      const { data, error } = await supabase.auth.getUser(token);
+      if (error || !data.user) {
         throw new Error('Invalid or expired session token.');
       }
-      return { uid: user.uid, email: user.email, name: user.displayName, picture: user.photoURL };
+
+      const profile = await getDocument<any>('users', data.user.id);
+      return {
+        uid: data.user.id,
+        email: profile?.email ?? data.user.email ?? null,
+        name: profile?.displayName ?? data.user.user_metadata?.display_name ?? data.user.email ?? 'Player',
+        picture: profile?.photoURL ?? data.user.user_metadata?.avatar_url ?? null,
+      };
     },
   };
 }
@@ -59,7 +67,7 @@ export function getAdminFirestore() {
               return {
                 async get() {
                   const docs = await listDocuments(collectionName, { orderBy: field, direction, limit: count });
-                  return { docs: docs.map((doc) => makeSnapshot(collectionName, doc.id, doc)) };
+                  return { docs: docs.map((doc: Record<string, any> & { id: string }) => makeSnapshot(collectionName, doc.id, doc)) };
                 },
               };
             },
