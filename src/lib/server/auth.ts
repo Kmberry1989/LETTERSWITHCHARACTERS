@@ -64,6 +64,14 @@ function isAnonymousUser(authUser: SupabaseAuthUser) {
   return authUser.is_anonymous || authUser.app_metadata?.provider === 'anonymous';
 }
 
+function isMissingAuthSessionError(error: { name?: string; status?: number; message?: string } | null | undefined) {
+  return (
+    error?.name === 'AuthSessionMissingError' ||
+    error?.status === 400 ||
+    error?.message === 'Auth session missing!'
+  );
+}
+
 export function makeUser(overrides: Partial<AppUser> & Pick<AppUser, 'uid'>): AppUser {
   return {
     uid: overrides.uid,
@@ -170,6 +178,9 @@ export async function getCurrentUser() {
   const { data, error } = await supabase.auth.getUser();
 
   if (error) {
+    if (isMissingAuthSessionError(error)) {
+      return null;
+    }
     throw error;
   }
 
