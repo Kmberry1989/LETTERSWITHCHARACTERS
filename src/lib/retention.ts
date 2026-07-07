@@ -9,6 +9,7 @@ export const RETENTION_MODES = [
   'match-sort',
   'solitaire',
   'wheel',
+  'claw-crane',
 ] as const;
 
 export type RetentionModeId = (typeof RETENTION_MODES)[number];
@@ -75,6 +76,7 @@ export const DEFAULT_RETENTION_STATE: RetentionState = {
     'match-sort': createDefaultModeProgress(),
     solitaire: createDefaultModeProgress(),
     wheel: createDefaultModeProgress(),
+    'claw-crane': createDefaultModeProgress(),
   },
 };
 
@@ -135,6 +137,12 @@ export const MODE_METADATA: Record<
     accent: 'from-emerald-200 via-lime-100 to-yellow-100',
     iconPath: '/arcade-icons/wheel.png',
   },
+  'claw-crane': {
+    title: 'Claw Crane',
+    href: '/minigames/claw-crane',
+    accent: 'from-rose-200 via-amber-100 to-sky-100',
+    iconPath: '/arcade-icons/claw-crane.svg',
+  },
 };
 
 const DAILY_ROTATION: Array<{
@@ -179,6 +187,12 @@ const DAILY_ROTATION: Array<{
     description: 'Solve a fresh phrase before the wheel cools down.',
     targetLabel: 'Solve the phrase',
   },
+  {
+    modeId: 'claw-crane',
+    title: 'Prize Snatch',
+    description: 'Time one clean drop and pull a plush reward out of the crane cabinet.',
+    targetLabel: 'Catch 1 prize',
+  },
 ];
 
 const QUEST_ROTATION: QuestDefinition[][] = [
@@ -190,7 +204,7 @@ const QUEST_ROTATION: QuestDefinition[][] = [
   [
     defineQuest('q-any-session', 'Quick Drop-In', 'Play any 2 sessions across the arcade.', 'any', 2, 20, 30),
     defineQuest('q-liquid', 'Cool Head', 'Finish 1 liquid sorting run.', 'liquid-sort', 1, 25, 35),
-    defineQuest('q-solitaire', 'Longer Lane', 'Play 1 solitaire session.', 'solitaire', 1, 30, 45),
+    defineQuest('q-claw', 'Lucky Grab', 'Catch 1 crane prize.', 'claw-crane', 1, 30, 45),
   ],
   [
     defineQuest('q-any-session', 'Daily Warmup', 'Play any 2 sessions across the arcade.', 'any', 2, 20, 30),
