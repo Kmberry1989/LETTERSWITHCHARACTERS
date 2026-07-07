@@ -2,6 +2,9 @@
   "name": "nextn",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "22.x"
+  },
   "scripts": {
     "generate:tiles": "node scripts/generate-tile-catalog.mjs",
     "predev": "npm run generate:tiles",

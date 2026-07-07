@@ -4,6 +4,7 @@ import React, { DependencyList, createContext, useContext, ReactNode, useMemo, u
 import type { Provider as SupabaseProvider } from '@supabase/supabase-js';
 import { resolveBoardColor } from '@/lib/board-skins';
 import { createClient as createSupabaseClient } from '@/lib/supabase/client';
+import { hasSupabaseEnv } from '@/lib/supabase/config';
 import { normalizeUsername, usernameToAuthEmail } from '@/lib/auth-identity';
 
 export type AppUser = {
@@ -130,14 +131,24 @@ function getProviderLabel(mode: 'google' | 'apple') {
 }
 
 export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) => {
+  const authAvailable = hasSupabaseEnv();
   const [userAuthState, setUserAuthState] = useState<UserAuthState>({
     user: null,
-    isUserLoading: true,
-    userError: null,
+    isUserLoading: authAvailable,
+    userError: authAvailable ? null : new Error('Authentication is unavailable because Supabase env vars are not configured.'),
   });
-  const supabase = useMemo(() => createSupabaseClient(), []);
+  const supabase = useMemo(() => (authAvailable ? createSupabaseClient() : null), [authAvailable]);
 
   const refresh = async () => {
+    if (!authAvailable) {
+      setUserAuthState({
+        user: null,
+        isUserLoading: false,
+        userError: new Error('Authentication is unavailable because Supabase env vars are not configured.'),
+      });
+      return;
+    }
+
     try {
       const user = await loadCurrentUser();
       setUserAuthState({ user, isUserLoading: false, userError: null });
@@ -147,6 +158,10 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
   };
 
   useEffect(() => {
+    if (!supabase) {
+      return;
+    }
+
     void refresh();
 
     const {
@@ -164,6 +179,10 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
     () => ({
       currentUser: userAuthState.user,
       signIn: async (payload: SignInPayload) => {
+        if (!supabase) {
+          throw new Error('Authentication is unavailable because Supabase env vars are not configured.');
+        }
+
         if (payload?.mode === 'google' || payload?.mode === 'apple') {
           const provider = payload.mode as SupabaseProvider;
           const { error } = await supabase.auth.signInWithOAuth({
@@ -240,6 +259,10 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
         return user!;
       },
       signOut: async () => {
+        if (!supabase) {
+          throw new Error('Authentication is unavailable because Supabase env vars are not configured.');
+        }
+
         const { error } = await supabase.auth.signOut();
         if (error) {
           throw new Error(error.message || 'Could not sign out.');
@@ -254,7 +277,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
 
   const contextValue = useMemo(
     (): FirebaseContextState => ({
-      areServicesAvailable: true,
+      areServicesAvailable: authAvailable,
       firebaseApp: null,
       firestore: null,
       auth,
@@ -262,7 +285,7 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
       isUserLoading: userAuthState.isUserLoading,
       userError: userAuthState.userError,
     }),
-    [auth, userAuthState]
+    [auth, authAvailable, userAuthState]
   );
 
   return <FirebaseContext.Provider value={contextValue}>{children}</FirebaseContext.Provider>;
