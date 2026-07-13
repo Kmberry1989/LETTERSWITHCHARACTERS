@@ -1,4 +1,4 @@
-import { createBackendClient } from '@/lib/supabase/config';
+import { prisma } from '@/lib/prisma';
 
 export type JsonRecord = Record<string, any>;
 
@@ -6,7 +6,7 @@ type AppDocumentRow = {
   collection: string;
   documentId: string;
   data: JsonRecord;
-  updatedAt?: string;
+  updatedAt?: Date;
 };
 
 export class DocumentStoreUnavailableError extends Error {
@@ -22,32 +22,32 @@ function createDocumentStoreError(message: string) {
   return new DocumentStoreUnavailableError(message);
 }
 
-function getDocumentStoreClient() {
-  return createBackendClient();
-}
-
-function normalizeSupabaseError(error: { message?: string; code?: string } | null | undefined, fallbackMessage: string) {
+function normalizeDatabaseError(error: { message?: string; code?: string } | null | undefined, fallbackMessage: string) {
   const message = error?.message || fallbackMessage;
 
-  if (
-    message.includes('NEXT_PUBLIC_SUPABASE_URL') ||
-    message.includes('NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY') ||
-    message.includes('Supabase client env is missing')
-  ) {
-    return createDocumentStoreError(`${fallbackMessage} Supabase env is missing or the dev server needs to be restarted after env changes.`);
+  if (message.includes('DATABASE_URL')) {
+    return createDocumentStoreError(`${fallbackMessage} DATABASE_URL is missing or the server needs to be restarted after env changes.`);
   }
 
   if (
-    message.includes('Failed to fetch') ||
-    message.includes('fetch failed') ||
-    message.includes('network') ||
-    error?.code === 'ECONNRESET'
+    message.includes("Can't reach database server") ||
+    message.includes('ECONNREFUSED') ||
+    message.includes('ENOTFOUND') ||
+    message.includes('timed out')
   ) {
-    return createDocumentStoreError(`${fallbackMessage} The Supabase API could not be reached. Check network access and project status.`);
+    return createDocumentStoreError(`${fallbackMessage} The database could not be reached. Check the connection target and network access.`);
   }
 
-  if (message.includes('permission denied') || message.includes('JWT') || message.includes('row-level security')) {
-    return new Error(`${fallbackMessage} The Supabase API rejected this request due to permissions or auth configuration.`);
+  if (
+    message.includes('Authentication failed against database server') ||
+    message.includes('password authentication failed') ||
+    message.includes('permission denied')
+  ) {
+    return createDocumentStoreError(`${fallbackMessage} The database rejected the configured credentials or permissions.`);
+  }
+
+  if (error?.code === 'P2021' || message.includes('does not exist')) {
+    return createDocumentStoreError(`${fallbackMessage} The expected document storage tables are missing.`);
   }
 
   return createDocumentStoreError(fallbackMessage);
@@ -59,10 +59,10 @@ export function toDocumentStoreError(error: unknown, fallbackMessage = 'Document
   }
 
   if (error instanceof Error) {
-    return normalizeSupabaseError({ message: error.message }, fallbackMessage);
+    return normalizeDatabaseError(error as Error & { code?: string }, fallbackMessage);
   }
 
-  return new Error(fallbackMessage);
+  return createDocumentStoreError(fallbackMessage);
 }
 
 export function newDocumentId() {
@@ -91,46 +91,60 @@ function mapDocumentRow<T = JsonRecord>(row: AppDocumentRow | null) {
 }
 
 export async function getDocument<T = JsonRecord>(collection: string, documentId: string) {
-  const supabase = getDocumentStoreClient();
-  const { data, error } = await supabase
-    .from('app_documents')
-    .select('collection, documentId, data, updatedAt')
-    .eq('collection', collection)
-    .eq('documentId', documentId)
-    .maybeSingle();
+  try {
+    const data = await prisma.appDocument.findUnique({
+      where: {
+        collection_documentId: {
+          collection,
+          documentId,
+        },
+      },
+      select: {
+        collection: true,
+        documentId: true,
+        data: true,
+        updatedAt: true,
+      },
+    });
 
-  if (error) {
-    throw normalizeSupabaseError(error, 'Document storage is unavailable.');
+    return mapDocumentRow<T>((data as AppDocumentRow | null) ?? null);
+  } catch (error) {
+    throw normalizeDatabaseError(error as Error & { code?: string }, 'Document storage is unavailable.');
   }
-
-  return mapDocumentRow<T>((data as AppDocumentRow | null) ?? null);
 }
 
 export async function setDocument(collection: string, documentId: string, data: JsonRecord, merge = false) {
-  const existing = merge ? await getDocument(collection, documentId) : null;
-  const nextData = serializeDocumentRecord({ ...(merge && existing ? existing : {}), ...data });
-  const supabase = getDocumentStoreClient();
+  try {
+    const existing = merge ? await getDocument(collection, documentId) : null;
+    const nextData = serializeDocumentRecord({ ...(merge && existing ? existing : {}), ...data });
 
-  const { data: saved, error } = await supabase
-    .from('app_documents')
-    .upsert(
-      {
+    const saved = await prisma.appDocument.upsert({
+      where: {
+        collection_documentId: {
+          collection,
+          documentId,
+        },
+      },
+      create: {
         collection,
         documentId,
         data: nextData,
       },
-      {
-        onConflict: 'collection,documentId',
-      }
-    )
-    .select('collection, documentId, data, updatedAt')
-    .single();
+      update: {
+        data: nextData,
+      },
+      select: {
+        collection: true,
+        documentId: true,
+        data: true,
+        updatedAt: true,
+      },
+    });
 
-  if (error) {
-    throw normalizeSupabaseError(error, 'Document storage is unavailable.');
+    return mapDocumentRow(saved as AppDocumentRow)!;
+  } catch (error) {
+    throw normalizeDatabaseError(error as Error & { code?: string }, 'Document storage is unavailable.');
   }
-
-  return mapDocumentRow(saved as AppDocumentRow)!;
 }
 
 export async function updateDocument(collection: string, documentId: string, patch: JsonRecord) {
@@ -140,22 +154,30 @@ export async function updateDocument(collection: string, documentId: string, pat
   }
 
   const nextData = serializeDocumentRecord(applyDottedPatch(existing, patch));
-  const supabase = getDocumentStoreClient();
-  const { data, error } = await supabase
-    .from('app_documents')
-    .update({
-      data: nextData,
-    })
-    .eq('collection', collection)
-    .eq('documentId', documentId)
-    .select('collection, documentId, data, updatedAt')
-    .single();
 
-  if (error) {
-    throw normalizeSupabaseError(error, 'Document storage is unavailable.');
+  try {
+    const data = await prisma.appDocument.update({
+      where: {
+        collection_documentId: {
+          collection,
+          documentId,
+        },
+      },
+      data: {
+        data: nextData,
+      },
+      select: {
+        collection: true,
+        documentId: true,
+        data: true,
+        updatedAt: true,
+      },
+    });
+
+    return mapDocumentRow(data as AppDocumentRow)!;
+  } catch (error) {
+    throw normalizeDatabaseError(error as Error & { code?: string }, 'Document storage is unavailable.');
   }
-
-  return mapDocumentRow(data as AppDocumentRow)!;
 }
 
 export async function addDocument(collection: string, data: JsonRecord) {
@@ -164,33 +186,38 @@ export async function addDocument(collection: string, data: JsonRecord) {
 }
 
 export async function listDocuments<T = JsonRecord>(collection: string, options?: { limit?: number; orderBy?: string; direction?: 'asc' | 'desc' }) {
-  const supabase = getDocumentStoreClient();
-  let query = supabase
-    .from('app_documents')
-    .select('collection, documentId, data, updatedAt')
-    .eq('collection', collection)
-    .order('updatedAt', { ascending: options?.direction === 'asc' });
+  try {
+    const data = await prisma.appDocument.findMany({
+      where: {
+        collection,
+      },
+      orderBy: {
+        updatedAt: options?.direction === 'asc' ? 'asc' : 'desc',
+      },
+      take: options?.limit,
+      select: {
+        collection: true,
+        documentId: true,
+        data: true,
+        updatedAt: true,
+      },
+    });
 
-  if (options?.limit) {
-    query = query.limit(options.limit);
+    const results = data.map((doc) => mapDocumentRow<T>(doc as AppDocumentRow)!);
+
+    if (!options?.orderBy) {
+      return results;
+    }
+
+    return results.sort((a: any, b: any) => {
+      const av = normalizeSortValue(a[options.orderBy!]);
+      const bv = normalizeSortValue(b[options.orderBy!]);
+      const compare = av > bv ? 1 : av < bv ? -1 : 0;
+      return options.direction === 'asc' ? compare : -compare;
+    });
+  } catch (error) {
+    throw normalizeDatabaseError(error as Error & { code?: string }, 'Document storage is unavailable.');
   }
-
-  const { data, error } = await query.returns<AppDocumentRow[]>();
-
-  if (error) {
-    throw normalizeSupabaseError(error, 'Document storage is unavailable.');
-  }
-
-  const results = (data || []).map((doc: AppDocumentRow) => mapDocumentRow<T>(doc)!);
-
-  if (!options?.orderBy) return results;
-
-  return results.sort((a: any, b: any) => {
-    const av = normalizeSortValue(a[options.orderBy!]);
-    const bv = normalizeSortValue(b[options.orderBy!]);
-    const compare = av > bv ? 1 : av < bv ? -1 : 0;
-    return options.direction === 'asc' ? compare : -compare;
-  });
 }
 
 export function applyDottedPatch(source: JsonRecord, patch: JsonRecord) {
@@ -218,11 +245,7 @@ export function applyDottedPatch(source: JsonRecord, patch: JsonRecord) {
 
 function normalizeSortValue(value: any) {
   if (!value) return 0;
-  if (value instanceof Date) return value.getTime();
-  if (typeof value === 'object' && typeof value.seconds === 'number') return value.seconds * 1000;
-  if (typeof value === 'string') {
-    const date = Date.parse(value);
-    return Number.isNaN(date) ? value : date;
-  }
-  return value;
+  if (typeof value === 'number') return value;
+  if (typeof value === 'string') return value.toLowerCase();
+  return JSON.stringify(value);
 }

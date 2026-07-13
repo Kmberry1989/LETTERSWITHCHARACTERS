@@ -1,3 +1,4 @@
+import { cookies } from 'next/headers';
 import type { User as SupabaseAuthUser } from '@supabase/supabase-js';
 import {
   normalizeOwnedTileSetIds,
@@ -10,6 +11,7 @@ import { DEFAULT_PLAYER_STATS } from '@/lib/player-stats';
 import { DEFAULT_NOTIFICATION_PREFERENCES } from '@/lib/notifications';
 import { DEFAULT_RETENTION_STATE } from '@/lib/retention';
 import { getDefaultBoardTintId, resolveBoardColor } from '@/lib/board-skins';
+import { prisma } from '@/lib/prisma';
 import { getDocument, setDocument } from '@/lib/server/document-store';
 import { createBackendClient } from '@/lib/supabase/config';
 import { createClient as createServerSupabaseClient } from '@/lib/supabase/server';
@@ -35,6 +37,15 @@ export type AppUser = {
   experience?: number;
   level?: number;
 };
+
+const SESSION_COOKIE = 'lwc_session';
+const SESSION_DAYS = 30;
+
+function sessionExpiry() {
+  const expiresAt = new Date();
+  expiresAt.setDate(expiresAt.getDate() + SESSION_DAYS);
+  return expiresAt;
+}
 
 function getProfileDisplayName(authUser: SupabaseAuthUser, profile: Record<string, any> | null) {
   if (typeof profile?.displayName === 'string' && profile.displayName.trim()) {
@@ -85,6 +96,79 @@ export function makeUser(overrides: Partial<AppUser> & Pick<AppUser, 'uid'>): Ap
     avatarPosterUrl: overrides.avatarPosterUrl ?? null,
     avatarConfiguredAt: overrides.avatarConfiguredAt ?? null,
     onboardingCompletedAt: overrides.onboardingCompletedAt ?? null,
+  };
+}
+
+export async function createSession(user: AppUser) {
+  const token = crypto.randomUUID();
+  const expiresAt = sessionExpiry();
+
+  await prisma.appSession.create({
+    data: {
+      token,
+      userId: user.uid,
+      expiresAt,
+    },
+  });
+
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE, token, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    expires: expiresAt,
+  });
+
+  return token;
+}
+
+async function destroyLocalSession(token?: string | null) {
+  const cookieStore = await cookies();
+  const activeToken = token || cookieStore.get(SESSION_COOKIE)?.value;
+
+  if (activeToken) {
+    await prisma.appSession.deleteMany({ where: { token: activeToken } });
+  }
+
+  cookieStore.delete(SESSION_COOKIE);
+}
+
+async function getUserByLocalSessionToken(token?: string | null): Promise<AppUser | null> {
+  if (!token) return null;
+
+  const session = await prisma.appSession.findUnique({ where: { token } });
+  if (!session || session.expiresAt <= new Date()) {
+    if (session) {
+      await prisma.appSession.delete({ where: { token } }).catch(() => null);
+    }
+    return null;
+  }
+
+  const profile = await getDocument<any>('users', session.userId);
+  if (!profile) {
+    return null;
+  }
+
+  return {
+    uid: profile.uid || session.userId,
+    email: profile.email || null,
+    displayName: profile.displayName || profile.email || 'Player',
+    photoURL: profile.photoURL || null,
+    isAnonymous: Boolean(profile.isAnonymous),
+    providerId: profile.providerId || (profile.isAnonymous ? 'guest' : 'password'),
+    avatarPresetId: profile.avatarPresetId || null,
+    avatarModelUrl: profile.avatarModelUrl || null,
+    avatarPosterUrl: profile.avatarPosterUrl || null,
+    avatarConfiguredAt: profile.avatarConfiguredAt || null,
+    onboardingCompletedAt: profile.onboardingCompletedAt || null,
+    boardThemeId: profile.boardThemeId || 'board-green',
+    boardTintId: profile.boardTintId || getDefaultBoardTintId(profile.boardThemeId || 'board-green'),
+    boardColor: resolveBoardColor(profile.boardThemeId || 'board-green', profile.boardColor || null, profile.boardTintId || null),
+    berries: typeof profile.berries === 'number' ? profile.berries : STARTER_BERRIES,
+    experience: typeof profile.experience === 'number' ? profile.experience : 0,
+    level: getLevelForExperience(typeof profile.experience === 'number' ? profile.experience : 0),
+    getIdToken: async () => token,
   };
 }
 
@@ -174,6 +258,12 @@ async function hydrateUserFromAuthUser(authUser: SupabaseAuthUser, accessToken?:
 }
 
 export async function getCurrentUser() {
+  const cookieStore = await cookies();
+  const localUser = await getUserByLocalSessionToken(cookieStore.get(SESSION_COOKIE)?.value);
+  if (localUser) {
+    return localUser;
+  }
+
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase.auth.getUser();
 
@@ -194,6 +284,12 @@ export async function getCurrentUser() {
 }
 
 export async function getCurrentSessionToken() {
+  const cookieStore = await cookies();
+  const localToken = cookieStore.get(SESSION_COOKIE)?.value;
+  if (localToken) {
+    return localToken;
+  }
+
   const supabase = await createServerSupabaseClient();
   const { data, error } = await supabase.auth.getSession();
 
@@ -209,6 +305,11 @@ export async function verifyBearerToken(request: Request) {
   if (!authHeader?.startsWith('Bearer ')) return null;
 
   const token = authHeader.slice('Bearer '.length);
+  const localUser = await getUserByLocalSessionToken(token);
+  if (localUser) {
+    return localUser;
+  }
+
   const supabase = createBackendClient();
   const { data, error } = await supabase.auth.getUser(token);
 
@@ -220,10 +321,15 @@ export async function verifyBearerToken(request: Request) {
 }
 
 export async function destroySession() {
+  await destroyLocalSession();
+
   const supabase = await createServerSupabaseClient();
   const { error } = await supabase.auth.signOut();
 
   if (error) {
+    if (isMissingAuthSessionError(error)) {
+      return;
+    }
     throw error;
   }
 }
