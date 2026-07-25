@@ -1,266 +1,543 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
-import { RotateCcw, Target, Trophy } from 'lucide-react';
-import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react';
+import {
+  Coins,
+  Gamepad2,
+  Gift,
+  Loader2,
+  LockKeyhole,
+  RotateCcw,
+  Sparkles,
+  Trophy,
+} from 'lucide-react';
+import { useUser } from '@/firebase';
+import ClawCraneScene, {
+  type ClawCraneSceneHandle,
+} from '@/components/minigames/claw-crane-scene';
+import ClawPrizePreview from '@/components/minigames/claw-prize-preview';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { GameScreen } from '@/components/game-screen';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from '@/components/ui/sheet';
 import { useAudio } from '@/hooks/use-audio';
-import { createArcadeSessionId } from '@/lib/arcade/session-id';
+import {
+  CLAW_CREDIT_COST,
+  CLAW_PRIZE_BY_ID,
+  CLAW_PRIZE_CATALOG,
+  type ClawCollection,
+  type ClawPhase,
+  type ClawPlay,
+  type ClawStats,
+} from '@/lib/claw-crane';
 import { cn } from '@/lib/utils';
 
-type Prize = {
-  id: string;
-  name: string;
-  value: number;
-  accent: string;
-  glow: string;
+type ServerState = {
+  berries: number;
+  credits: number;
+  collection: ClawCollection;
+  stats: ClawStats;
+  stockedPrizeIds: string[];
+  activePlay: ClawPlay | null;
+  creditCost: number;
 };
 
-const LANE_COUNT = 5;
-const SWEEP_MIN = 0.12;
-const SWEEP_MAX = 0.88;
-const SWEEP_STEP = 0.016;
+type ResultState = {
+  kind: 'win' | 'miss';
+  prizeId: string | null;
+  score: number;
+  rewards?: { berries: number; experience: number };
+};
 
-const INITIAL_LANES: Prize[][] = [
-  [
-    { id: 'berry-bear', name: 'Berry Bear', value: 70, accent: 'linear-gradient(180deg,#fb7185 0%,#ec4899 100%)', glow: 'rgba(244,114,182,0.24)' },
-    { id: 'mint-frog', name: 'Mint Frog', value: 55, accent: 'linear-gradient(180deg,#6ee7b7 0%,#10b981 100%)', glow: 'rgba(16,185,129,0.24)' },
-  ],
-  [
-    { id: 'sun-cat', name: 'Sun Cat', value: 65, accent: 'linear-gradient(180deg,#fcd34d 0%,#f59e0b 100%)', glow: 'rgba(245,158,11,0.24)' },
-    { id: 'cloud-whale', name: 'Cloud Whale', value: 40, accent: 'linear-gradient(180deg,#7dd3fc 0%,#38bdf8 100%)', glow: 'rgba(56,189,248,0.24)' },
-  ],
-  [
-    { id: 'lilac-bun', name: 'Lilac Bun', value: 90, accent: 'linear-gradient(180deg,#c4b5fd 0%,#8b5cf6 100%)', glow: 'rgba(139,92,246,0.24)' },
-    { id: 'peach-puff', name: 'Peach Puff', value: 60, accent: 'linear-gradient(180deg,#fdba74 0%,#fb7185 100%)', glow: 'rgba(251,113,133,0.2)' },
-    { id: 'sea-otter', name: 'Sea Otter', value: 45, accent: 'linear-gradient(180deg,#93c5fd 0%,#2563eb 100%)', glow: 'rgba(37,99,235,0.22)' },
-  ],
-  [
-    { id: 'lime-dino', name: 'Lime Dino', value: 50, accent: 'linear-gradient(180deg,#bef264 0%,#84cc16 100%)', glow: 'rgba(132,204,22,0.22)' },
-  ],
-  [
-    { id: 'starlight-fox', name: 'Starlight Fox', value: 85, accent: 'linear-gradient(180deg,#fde68a 0%,#f97316 100%)', glow: 'rgba(249,115,22,0.24)' },
-    { id: 'bubble-ram', name: 'Bubble Ram', value: 55, accent: 'linear-gradient(180deg,#bfdbfe 0%,#6366f1 100%)', glow: 'rgba(99,102,241,0.22)' },
-  ],
-];
+const PRACTICE_STOCK = CLAW_PRIZE_CATALOG.slice(0, 12).map((prize) => prize.id);
 
-function cloneLanes(lanes: Prize[][]) {
-  return lanes.map((lane) => [...lane]);
+const PHASE_LABELS: Record<ClawPhase, string> = {
+  loading: 'Stocking cabinet',
+  ready: 'Ready to aim',
+  aiming: 'Carriage moving',
+  dropping: 'Claw descending',
+  closing: 'Fingers closing',
+  lifting: 'Testing the grip',
+  delivering: 'Moving to the prize chute',
+  releasing: 'Opening over the chute',
+  result: 'Play complete',
+};
+
+async function readJson(response: Response) {
+  const body = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(body?.error || 'The prize crane request failed.');
+  return body;
 }
 
 export default function ClawCraneGame() {
   const { playSfx } = useAudio();
-  const [lanes, setLanes] = useState<Prize[][]>(() => cloneLanes(INITIAL_LANES));
-  const [clawPosition, setClawPosition] = useState(0.5);
-  const [direction, setDirection] = useState<1 | -1>(1);
-  const [attemptsLeft, setAttemptsLeft] = useState(3);
-  const [dropDepth, setDropDepth] = useState(0);
-  const [phase, setPhase] = useState<'aim' | 'drop' | 'grab' | 'rise' | 'done'>('aim');
-  const [message, setMessage] = useState('Time the claw and drop over the tallest stack you want to grab.');
-  const [capturedPrize, setCapturedPrize] = useState<Prize | null>(null);
-  const [score, setScore] = useState(0);
-  const [sessionId, setSessionId] = useState(() => createArcadeSessionId());
+  const { user, isUserLoading } = useUser();
+  const sceneRef = useRef<ClawCraneSceneHandle>(null);
+  const activePlayRef = useRef<ClawPlay | null>(null);
+  const resumedPlayIdRef = useRef<string | null>(null);
+  const [serverState, setServerState] = useState<ServerState | null>(null);
+  const [phase, setPhase] = useState<ClawPhase>('loading');
+  const [sceneReady, setSceneReady] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('Loading the cabinet and checking the gantry.');
+  const [error, setError] = useState<string | null>(null);
+  const [lastResult, setLastResult] = useState<ResultState | null>(null);
+  const [collectionOpen, setCollectionOpen] = useState(false);
+  const [selectedPrizeId, setSelectedPrizeId] = useState(CLAW_PRIZE_CATALOG[0].id);
+  const [joystick, setJoystick] = useState({ x: 0, z: 0, active: false });
+  const practice = !isUserLoading && !user?.uid;
 
-  const targetLane = useMemo(() => {
-    const normalized = (clawPosition - SWEEP_MIN) / (SWEEP_MAX - SWEEP_MIN);
-    return Math.min(LANE_COUNT - 1, Math.max(0, Math.round(normalized * (LANE_COUNT - 1))));
-  }, [clawPosition]);
-
-  const totalPrizes = lanes.reduce((total, lane) => total + lane.length, 0);
-  const finished = phase === 'done';
+  const stockedPrizeIds = practice
+    ? PRACTICE_STOCK
+    : serverState?.stockedPrizeIds || [];
+  const canRenderScene = practice || Boolean(serverState);
+  const credits: number | 'unlimited' = practice ? 'unlimited' : serverState?.credits || 0;
+  const berries = practice ? null : serverState?.berries ?? null;
+  const collection = serverState?.collection || {
+    ownedPrizeIds: [],
+    prizeWonAt: {},
+    total: CLAW_PRIZE_CATALOG.length,
+    complete: false,
+  };
+  const selectedPrize = CLAW_PRIZE_BY_ID[selectedPrizeId] || CLAW_PRIZE_CATALOG[0];
+  const selectedOwned = collection.ownedPrizeIds.includes(selectedPrize.id);
+  const canControl = sceneReady && !busy && (phase === 'ready' || phase === 'aiming');
+  const canDrop = canControl && (practice || Number(credits) > 0) && !collection.complete;
+  const stockKey = stockedPrizeIds.join('|');
 
   useEffect(() => {
-    if (phase !== 'aim') {
+    setSceneReady(false);
+    setPhase('loading');
+  }, [stockKey]);
+
+  const loadState = useCallback(async () => {
+    if (isUserLoading) return;
+    if (!user?.uid) {
+      activePlayRef.current = null;
+      setServerState(null);
+      setError(null);
+      setMessage('Practice mode: unlimited drops, with no saved credits or prizes.');
       return;
     }
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/minigames/claw-crane', { cache: 'no-store' });
+      const payload = await readJson(response);
+      const state = payload.state as ServerState;
+      setServerState(state);
+      activePlayRef.current = state.activePlay;
+      setMessage(
+        state.activePlay
+          ? 'Resuming the drop that was interrupted on this cabinet.'
+          : state.collection.complete
+            ? 'Collection complete. Every character has found a home.'
+            : 'Move the carriage on both rails, then drop over the prize you want.'
+      );
+    } catch (requestError: any) {
+      setError(requestError?.message || 'The saved crane cabinet could not be loaded.');
+    } finally {
+      setBusy(false);
+    }
+  }, [isUserLoading, user?.uid]);
 
-    const interval = window.setInterval(() => {
-      setClawPosition((value) => {
-        const next = value + SWEEP_STEP * direction;
-        if (next >= SWEEP_MAX) {
-          setDirection(-1);
-          return SWEEP_MAX;
-        }
-        if (next <= SWEEP_MIN) {
-          setDirection(1);
-          return SWEEP_MIN;
-        }
-        return next;
+  useEffect(() => {
+    void loadState();
+  }, [loadState]);
+
+  useEffect(() => {
+    const activePlay = serverState?.activePlay;
+    if (
+      sceneReady &&
+      activePlay &&
+      resumedPlayIdRef.current !== activePlay.id &&
+      sceneRef.current
+    ) {
+      resumedPlayIdRef.current = activePlay.id;
+      activePlayRef.current = activePlay;
+      setMessage('Resuming your paid drop from its saved carriage position.');
+      sceneRef.current.startDrop(activePlay);
+    }
+  }, [sceneReady, serverState?.activePlay]);
+
+  const updateServerState = (state: ServerState) => {
+    setServerState(state);
+    activePlayRef.current = state.activePlay;
+  };
+
+  const purchaseCredit = async () => {
+    if (practice || busy || collection.complete) return;
+    setBusy(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/minigames/claw-crane', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'purchase-credit' }),
       });
-    }, 32);
-
-    return () => window.clearInterval(interval);
-  }, [direction, phase]);
-
-  const reset = () => {
-    playSfx('swoosh');
-    setLanes(cloneLanes(INITIAL_LANES));
-    setClawPosition(0.5);
-    setDirection(1);
-    setAttemptsLeft(3);
-    setDropDepth(0);
-    setPhase('aim');
-    setMessage('Time the claw and drop over the tallest stack you want to grab.');
-    setCapturedPrize(null);
-    setScore(0);
-    setSessionId(createArcadeSessionId());
+      const payload = await readJson(response);
+      updateServerState(payload.state as ServerState);
+      playSfx('arcadeSelect');
+      setMessage(`Credit inserted. The Drop button is armed.`);
+    } catch (requestError: any) {
+      playSfx('arcadeError');
+      setError(requestError?.message || 'Could not insert a crane credit.');
+    } finally {
+      setBusy(false);
+    }
   };
 
-  const finishRun = (nextScore: number, prize: Prize | null, attemptsRemaining: number, nextPrizeCount: number) => {
-    setScore(nextScore);
-    setCapturedPrize(prize);
-    setDropDepth(0);
-    if (prize) {
-      setPhase('done');
-      setMessage(`${prize.name} secured. Prize bay closed.`);
+  const requestDrop = useCallback(async () => {
+    const scene = sceneRef.current;
+    if (!scene || !sceneReady || busy || (phase !== 'ready' && phase !== 'aiming')) return;
+    setError(null);
+    setLastResult(null);
+    if (practice) {
+      playSfx('arcadeSelect');
+      scene.startDrop(null);
+      setMessage('Practice drop started. Line up the fingers and watch the grip.');
       return;
     }
-    if (attemptsRemaining <= 0 || nextPrizeCount === 0) {
-      setPhase('done');
-      setMessage(nextPrizeCount === 0 ? 'Machine cleared out.' : 'No grabs left. Reset for a new cabinet.');
+    if (!serverState || serverState.collection.complete) return;
+    if (serverState.credits <= 0) {
+      setMessage(`Insert a ${CLAW_CREDIT_COST}-berry credit before dropping.`);
+      playSfx('arcadeError');
       return;
     }
-    setPhase('aim');
-    setMessage('Missed. Line up another drop.');
-  };
-
-  const handleDrop = () => {
-    if (phase !== 'aim' || attemptsLeft <= 0) {
-      return;
+    setBusy(true);
+    try {
+      const position = scene.getPosition();
+      const response = await fetch('/api/minigames/claw-crane', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'start-play',
+          clawX: position.x,
+          clawZ: position.z,
+        }),
+      });
+      const payload = await readJson(response);
+      const state = payload.state as ServerState;
+      updateServerState(state);
+      const play = payload.play as ClawPlay;
+      activePlayRef.current = play;
+      resumedPlayIdRef.current = play.id;
+      playSfx('arcadeSelect');
+      scene.startDrop(play);
+      setMessage('Credit accepted. The claw is descending.');
+    } catch (requestError: any) {
+      playSfx('arcadeError');
+      setError(requestError?.message || 'Could not start this drop.');
+    } finally {
+      setBusy(false);
     }
+  }, [busy, phase, playSfx, practice, sceneReady, serverState]);
 
-    const lanePrizes = lanes[targetLane];
-    const depthTarget = Math.min(0.76, 0.24 + lanePrizes.length * 0.14);
-    setPhase('drop');
-    setDropDepth(depthTarget);
-    setAttemptsLeft((value) => value - 1);
-    playSfx('arcadeSelect');
-    setMessage(`Dropping into lane ${targetLane + 1}.`);
-
-    window.setTimeout(() => {
-      const nextLanes = cloneLanes(lanes);
-      const prize = nextLanes[targetLane].pop() || null;
-      const nextAttempts = attemptsLeft - 1;
-      const nextPrizeCount = nextLanes.reduce((total, lane) => total + lane.length, 0);
-      const nextScore = prize ? score + prize.value + nextAttempts * 12 : score;
-
-      setPhase(prize ? 'grab' : 'rise');
-      setLanes(nextLanes);
-      if (prize) {
+  const handleResolved = useCallback(
+    async (result: { kind: 'win' | 'miss'; prizeId: string | null; score: number }) => {
+      const localResult: ResultState = result;
+      setLastResult(localResult);
+      if (result.kind === 'win') {
         playSfx('arcadeSuccess');
-        setMessage(`${prize.name} caught. Bringing it back up.`);
+        setMessage(`${CLAW_PRIZE_BY_ID[result.prizeId || '']?.name || 'Prize'} reached the chute!`);
       } else {
         playSfx('arcadeError');
+        setMessage('The claw came back empty. Reposition and try another drop.');
       }
+      if (practice) return;
+      const play = activePlayRef.current;
+      if (!play) {
+        setError('The cabinet finished visually, but its saved play record is missing.');
+        return;
+      }
+      setBusy(true);
+      try {
+        const response = await fetch('/api/minigames/claw-crane', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            action: 'settle-play',
+            playId: play.id,
+            prizeId: result.prizeId,
+            score: result.score,
+          }),
+        });
+        const payload = await readJson(response);
+        const state = payload.state as ServerState;
+        updateServerState(state);
+        activePlayRef.current = null;
+        setLastResult({
+          ...localResult,
+          prizeId: payload.wonPrizeId || null,
+          rewards: payload.rewards,
+        });
+        if (payload.wonPrizeId) setSelectedPrizeId(payload.wonPrizeId);
+        setMessage(
+          payload.wonPrizeId
+            ? `${CLAW_PRIZE_BY_ID[payload.wonPrizeId]?.name || 'Prize'} saved to My Prizes.`
+            : 'Play saved as a miss. The cabinet has been restocked.'
+        );
+      } catch (requestError: any) {
+        setError(requestError?.message || 'The play finished, but its result could not be saved.');
+      } finally {
+        setBusy(false);
+      }
+    },
+    [playSfx, practice]
+  );
 
-      window.setTimeout(() => {
-        finishRun(nextScore, prize, nextAttempts, nextPrizeCount);
-      }, 420);
-    }, 540);
+  const handleJoystick = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!canControl) return;
+    event.currentTarget.setPointerCapture(event.pointerId);
+    const bounds = event.currentTarget.getBoundingClientRect();
+    const radius = Math.max(1, Math.min(bounds.width, bounds.height) / 2);
+    const x = (event.clientX - (bounds.left + bounds.width / 2)) / radius;
+    const z = (event.clientY - (bounds.top + bounds.height / 2)) / radius;
+    const magnitude = Math.max(1, Math.sqrt(x * x + z * z));
+    const next = { x: x / magnitude, z: z / magnitude, active: true };
+    setJoystick(next);
+    sceneRef.current?.setInput(next.x, next.z);
   };
 
+  const releaseJoystick = (event?: ReactPointerEvent<HTMLDivElement>) => {
+    if (event?.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+    setJoystick({ x: 0, z: 0, active: false });
+    sceneRef.current?.setInput(0, 0);
+  };
+
+  const ownedCount = collection.ownedPrizeIds.length;
+  const activeStatus = error || message;
+  const rewardText = lastResult?.rewards
+    ? `+${lastResult.rewards.berries} berries · +${lastResult.rewards.experience} XP`
+    : null;
+
   return (
-    <GameScreen>
-      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden rounded-[1.4rem] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(255,244,232,0.96))] p-2 shadow-[0_24px_70px_rgba(234,88,12,0.16)] md:gap-4 md:p-5">
-        <div className="ml-11 flex min-h-10 items-center justify-end gap-2 md:ml-0 md:justify-between">
-          <div className="flex flex-wrap items-center gap-2">
-            <Badge variant="secondary" className="rounded-full px-3 py-1">{score} pts</Badge>
-            <Badge variant="secondary" className="rounded-full px-3 py-1">{attemptsLeft} drops</Badge>
+    <GameScreen className="max-w-[1500px]">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden rounded-[1.35rem] border border-white/80 bg-[linear-gradient(155deg,#fffaf5,#ffe9ef_55%,#e8fbff)] p-2 shadow-[0_24px_70px_rgba(244,63,94,0.15)] md:gap-3 md:p-4">
+        <div className="ml-11 flex min-h-10 shrink-0 items-center justify-end gap-1.5 md:ml-0 md:justify-between md:gap-3">
+          <div className="hidden min-w-0 md:block">
+            <div className="text-[0.65rem] font-black uppercase tracking-[0.24em] text-rose-500">Pick Me Up Prize Crane</div>
+            <div className="truncate text-sm font-semibold text-slate-700">{PHASE_LABELS[phase]}</div>
           </div>
-          <Button variant="outline" size="icon" className="rounded-full md:w-auto md:px-4" onClick={reset} aria-label="Reset">
-            <RotateCcw className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">Reset</span>
-          </Button>
-          {finished ? <ArcadeSessionStatus sessionId={sessionId} modeId="claw-crane" score={score} completed={Boolean(capturedPrize)} /> : null}
-        </div>
-
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-[1.5rem] border border-white/80 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.96),rgba(255,231,214,0.92)_40%,rgba(251,191,36,0.18)_100%)] shadow-inner">
-          <div className="flex items-center justify-between gap-3 border-b border-white/70 px-4 py-3">
-            <div>
-              <div className="text-xs font-black uppercase tracking-[0.18em] text-orange-500">Prize Crane</div>
-              <div className="text-sm font-semibold text-slate-700">Drop once per lane sweep. A clean catch ends the round.</div>
-            </div>
-            <Badge className="rounded-full bg-white/85 text-orange-950 hover:bg-white/85">
-              <Target className="mr-1 h-3.5 w-3.5" />
-              Lane {targetLane + 1}
+          <div className="flex items-center justify-end gap-1.5 md:gap-2">
+            <Badge className="rounded-full bg-white/90 px-2.5 text-slate-800 hover:bg-white/90">
+              {practice ? <Gamepad2 className="mr-1 h-3.5 w-3.5" /> : <Coins className="mr-1 h-3.5 w-3.5 text-amber-500" />}
+              {practice ? 'Practice' : `${credits} credit${credits === 1 ? '' : 's'}`}
             </Badge>
-          </div>
-
-          <div className="relative min-h-0 flex-1 overflow-hidden p-3 md:p-5">
-            <div className="absolute inset-x-3 top-3 h-5 rounded-full bg-[linear-gradient(180deg,rgba(148,163,184,0.95),rgba(100,116,139,0.92))] shadow-[0_10px_18px_rgba(15,23,42,0.16)] md:inset-x-5" />
-
-            <div
-              className="absolute top-5 z-20 flex -translate-x-1/2 flex-col items-center transition-[left] duration-75"
-              style={{ left: `${clawPosition * 100}%` }}
+            {!practice && (
+              <Badge variant="secondary" className="hidden rounded-full px-2.5 sm:inline-flex">
+                {berries?.toLocaleString() || 0} berries
+              </Badge>
+            )}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full bg-white/88 px-2.5 md:px-3"
+              onClick={() => setCollectionOpen(true)}
+              data-testid="claw-collection"
             >
-              <div className="w-1 rounded-full bg-slate-400 shadow-[0_0_0_1px_rgba(255,255,255,0.4)]" style={{ height: `${3.25 + dropDepth * 14}rem` }} />
-              <div className="relative -mt-1.5 flex h-12 w-12 items-start justify-center rounded-full bg-[linear-gradient(180deg,#fef3c7_0%,#fb923c_100%)] shadow-[0_12px_24px_rgba(249,115,22,0.28)]">
-                <span className="mt-2 h-3.5 w-5 rounded-full bg-white/85" />
-                <span className="absolute bottom-0 left-[8px] h-5 w-[3px] origin-top rotate-[22deg] rounded-full bg-slate-500" />
-                <span className="absolute bottom-0 right-[8px] h-5 w-[3px] origin-top -rotate-[22deg] rounded-full bg-slate-500" />
-                <span className="absolute bottom-[4px] left-1/2 h-5 w-[3px] -translate-x-1/2 rounded-full bg-slate-500" />
-              </div>
-            </div>
-
-            <div className="absolute inset-x-3 bottom-3 top-12 rounded-[1.6rem] border-[5px] border-white/85 bg-[linear-gradient(180deg,rgba(255,255,255,0.74),rgba(255,255,255,0.35))] shadow-[inset_0_1px_0_rgba(255,255,255,0.85),0_28px_48px_rgba(15,23,42,0.08)] md:inset-x-5">
-              <div className="absolute inset-0 rounded-[1.25rem] bg-[repeating-linear-gradient(90deg,rgba(255,255,255,0.3)_0_1px,transparent_1px_20%),linear-gradient(180deg,rgba(251,191,36,0.08),rgba(244,114,182,0.05))]" />
-              <div className="absolute inset-x-0 bottom-0 h-16 rounded-b-[1.3rem] bg-[linear-gradient(180deg,rgba(253,186,116,0.18),rgba(251,146,60,0.3))]" />
-
-              <div className="relative z-10 grid h-full grid-cols-5 gap-2 px-3 pb-3 pt-10 md:px-5">
-                {lanes.map((lane, laneIndex) => (
-                  <div
-                    key={laneIndex}
-                    className={cn(
-                      'relative flex flex-col-reverse items-center justify-start rounded-[1.2rem] border border-dashed border-orange-200/70 bg-white/18 px-1 pb-3 pt-2',
-                      targetLane === laneIndex && phase === 'aim' && 'ring-2 ring-orange-300/80'
-                    )}
-                  >
-                    <div className="pointer-events-none absolute inset-x-2 bottom-1 h-2 rounded-full bg-orange-200/50 blur-sm" />
-                    {lane.map((prize, prizeIndex) => (
-                      <div
-                        key={prize.id}
-                        className="relative mb-2 flex h-12 w-full max-w-[4.2rem] items-center justify-center rounded-[1rem] border border-white/80 text-center text-[0.55rem] font-black uppercase tracking-[0.1em] text-white shadow-[0_12px_24px_rgba(15,23,42,0.12)] md:h-14 md:text-[0.62rem]"
-                        style={{
-                          background: prize.accent,
-                          boxShadow: `0 12px 22px ${prize.glow}`,
-                          transform: `rotate(${(laneIndex - 2) * 3 + prizeIndex * 2}deg)`,
-                        }}
-                      >
-                        <span className="px-1 leading-tight">{prize.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          <div className="border-t border-white/70 px-3 py-3 md:px-5">
-            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-              <div className="min-h-5 text-sm font-semibold text-slate-700">
-                {capturedPrize ? (
-                  <span className="inline-flex items-center gap-2 text-emerald-700">
-                    <Trophy className="h-4 w-4" />
-                    {capturedPrize.name} banked for {score} points.
-                  </span>
-                ) : (
-                  message
-                )}
-              </div>
+              <Gift className="h-4 w-4 md:mr-1.5" />
+              <span className="hidden md:inline">My Prizes</span>
+              <span className="ml-1 text-xs">{ownedCount}/{collection.total}</span>
+            </Button>
+            {!practice && (
               <Button
                 type="button"
-                className="rounded-full bg-[linear-gradient(135deg,#fb923c,#f43f5e)] px-6 text-white shadow-[0_16px_34px_rgba(244,63,94,0.22)] hover:opacity-95"
-                onClick={handleDrop}
-                disabled={phase !== 'aim' || attemptsLeft <= 0}
+                size="sm"
+                className="rounded-full bg-amber-400 px-3 font-black text-amber-950 shadow-sm hover:bg-amber-300"
+                disabled={busy || collection.complete || (berries || 0) < CLAW_CREDIT_COST}
+                onClick={purchaseCredit}
+                data-testid="claw-insert-credit"
               >
-                Drop Claw
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : `Insert ${CLAW_CREDIT_COST}`}
               </Button>
-            </div>
+            )}
           </div>
         </div>
+
+        <div className="relative min-h-0 flex-1 overflow-hidden rounded-[1.4rem] border border-white/90 bg-rose-50 shadow-inner">
+          {canRenderScene ? (
+            <ClawCraneScene
+              key={stockKey}
+              ref={sceneRef}
+              stockedPrizeIds={stockedPrizeIds}
+              practice={practice}
+              credits={credits}
+              berries={berries}
+              onReady={() => {
+                setSceneReady(true);
+                setPhase('ready');
+              }}
+              onPhaseChange={setPhase}
+              onDropRequested={() => void requestDrop()}
+              onResolved={(result) => void handleResolved(result)}
+            />
+          ) : (
+            <div className="h-full w-full bg-rose-50" />
+          )}
+
+          <div className="pointer-events-none absolute inset-x-3 top-3 z-20 flex justify-center">
+            <div
+              className={cn(
+                'max-w-[min(38rem,90%)] rounded-full border px-3 py-1.5 text-center text-xs font-bold shadow-lg backdrop-blur-md md:text-sm',
+                error
+                  ? 'border-red-200 bg-red-50/95 text-red-700'
+                  : lastResult?.kind === 'win'
+                    ? 'border-emerald-200 bg-emerald-50/95 text-emerald-800'
+                    : 'border-white/80 bg-white/86 text-slate-700'
+              )}
+              role="status"
+            >
+              {activeStatus}
+              {rewardText ? <span className="ml-2 text-emerald-700">{rewardText}</span> : null}
+            </div>
+          </div>
+
+          <div className="absolute bottom-3 left-3 z-20 md:bottom-5 md:left-5">
+            <div
+              className={cn(
+                'relative h-[5.8rem] w-[5.8rem] touch-none rounded-full border-[3px] border-white/80 bg-slate-900/38 shadow-[0_14px_28px_rgba(15,23,42,0.25)] backdrop-blur-md md:h-28 md:w-28',
+                !canControl && 'opacity-45'
+              )}
+              data-testid="claw-joystick"
+              aria-label="Move claw carriage"
+              onPointerDown={handleJoystick}
+              onPointerMove={(event) => {
+                if (joystick.active) handleJoystick(event);
+              }}
+              onPointerUp={releaseJoystick}
+              onPointerCancel={releaseJoystick}
+            >
+              <div className="absolute inset-3 rounded-full border border-white/30" />
+              <div
+                className="absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white/90 bg-[radial-gradient(circle_at_35%_30%,#fecdd3,#fb7185_58%,#be123c)] shadow-lg transition-transform md:h-12 md:w-12"
+                style={{
+                  transform: `translate(calc(-50% + ${joystick.x * 24}px), calc(-50% + ${joystick.z * 24}px))`,
+                }}
+              />
+            </div>
+            <div className="mt-1 text-center text-[0.6rem] font-black uppercase tracking-[0.16em] text-white drop-shadow md:text-xs">
+              Move
+            </div>
+          </div>
+
+          <div className="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-2 md:bottom-5 md:right-5">
+            {!practice && Number(credits) <= 0 && !collection.complete ? (
+              <div className="rounded-full bg-slate-950/55 px-3 py-1 text-[0.65rem] font-bold text-white backdrop-blur md:text-xs">
+                Insert a credit first
+              </div>
+            ) : null}
+            <Button
+              type="button"
+              className="h-[5.2rem] w-[5.2rem] rounded-full border-4 border-white/85 bg-[radial-gradient(circle_at_35%_25%,#fde68a,#fb7185_58%,#e11d48)] p-0 text-base font-black uppercase tracking-[0.1em] text-white shadow-[0_16px_32px_rgba(190,24,93,0.38)] hover:scale-[1.02] hover:opacity-100 active:scale-95 md:h-28 md:w-28 md:text-lg"
+              onClick={() => void requestDrop()}
+              disabled={!canDrop}
+              data-testid="claw-drop"
+            >
+              {busy ? <Loader2 className="h-7 w-7 animate-spin" /> : collection.complete ? <Trophy className="h-7 w-7" /> : 'Drop'}
+            </Button>
+            <div className="text-center text-[0.6rem] font-black uppercase tracking-[0.14em] text-white drop-shadow md:text-xs">
+              Space
+            </div>
+          </div>
+
+          {!sceneReady && (
+            <div className="absolute inset-0 z-30 grid place-items-center bg-white/75 backdrop-blur">
+              <div className="flex flex-col items-center gap-3 text-rose-700">
+                <Loader2 className="h-8 w-8 animate-spin" />
+                <span className="text-sm font-black uppercase tracking-[0.18em]">Building gantry</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        <div className="flex min-h-8 shrink-0 items-center justify-between gap-2 px-1 text-[0.7rem] font-semibold text-slate-600 md:text-xs">
+          <span className="truncate">Joystick or WASD/arrows moves both rails · Space drops · F fullscreen</span>
+          {!practice && error ? (
+            <Button variant="ghost" size="sm" className="h-7 shrink-0 rounded-full" onClick={() => void loadState()}>
+              <RotateCcw className="mr-1 h-3.5 w-3.5" />
+              Retry
+            </Button>
+          ) : null}
+        </div>
       </div>
+
+      <Sheet open={collectionOpen} onOpenChange={setCollectionOpen}>
+        <SheetContent side="right" className="h-[100svh] w-full max-w-xl overflow-y-auto bg-[linear-gradient(155deg,#fffaf5,#ffe9ef_60%,#e8fbff)] sm:w-[34rem] sm:max-w-[34rem]">
+          <SheetHeader className="pr-8 text-left">
+            <SheetTitle className="flex items-center gap-2 text-2xl font-black text-slate-900">
+              <Gift className="h-6 w-6 text-rose-500" />
+              My Prizes
+            </SheetTitle>
+            <SheetDescription>
+              {practice
+                ? 'Sign in to save characters you carry to the prize chute.'
+                : `${ownedCount} of ${collection.total} characters collected. The cabinet only stocks characters you still need.`}
+            </SheetDescription>
+          </SheetHeader>
+
+          <div className="mt-5 overflow-hidden rounded-[1.4rem] border border-white/90 bg-white/65 shadow-lg">
+            {selectedOwned ? (
+              <ClawPrizePreview prize={selectedPrize} visible={collectionOpen} />
+            ) : (
+              <div className="grid h-56 place-items-center bg-[radial-gradient(circle,#fff,#e2e8f0)]">
+                <div className="flex flex-col items-center gap-2 text-slate-400">
+                  <LockKeyhole className="h-12 w-12" />
+                  <span className="font-black uppercase tracking-[0.16em]">Still in the machine</span>
+                </div>
+              </div>
+            )}
+            <div className="border-t border-white/80 bg-white/80 px-5 py-4">
+              <div className="text-xl font-black text-slate-900">{selectedPrize.name}</div>
+              <div className="text-sm font-semibold text-slate-600">
+                {selectedOwned
+                  ? `Won ${new Date(collection.prizeWonAt[selectedPrize.id] || Date.now()).toLocaleDateString()}`
+                  : 'Guide the claw around this character and carry it to the chute.'}
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-5 grid grid-cols-3 gap-2 sm:grid-cols-4">
+            {CLAW_PRIZE_CATALOG.map((prize) => {
+              const owned = collection.ownedPrizeIds.includes(prize.id);
+              const selected = prize.id === selectedPrize.id;
+              return (
+                <button
+                  key={prize.id}
+                  type="button"
+                  onClick={() => setSelectedPrizeId(prize.id)}
+                  className={cn(
+                    'relative flex min-h-24 flex-col items-center justify-center rounded-2xl border p-2 text-center transition',
+                    selected ? 'border-rose-400 bg-white shadow-lg ring-2 ring-rose-200' : 'border-white/80 bg-white/65 hover:bg-white',
+                    !owned && 'text-slate-400'
+                  )}
+                >
+                  <span
+                    className={cn(
+                      'mb-2 grid h-10 w-10 place-items-center rounded-full text-lg font-black text-white shadow-sm',
+                      !owned && 'grayscale'
+                    )}
+                    style={{ backgroundColor: prize.previewColor }}
+                  >
+                    {owned ? prize.name.slice(0, 1) : <LockKeyhole className="h-4 w-4" />}
+                  </span>
+                  <span className="text-xs font-black">{prize.name}</span>
+                  {owned ? <Sparkles className="absolute right-2 top-2 h-3.5 w-3.5 text-amber-400" /> : null}
+                </button>
+              );
+            })}
+          </div>
+        </SheetContent>
+      </Sheet>
     </GameScreen>
   );
 }

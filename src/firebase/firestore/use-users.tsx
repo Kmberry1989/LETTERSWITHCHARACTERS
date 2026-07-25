@@ -6,6 +6,7 @@ import { useCollection } from './use-collection';
 import type { PlayerStats } from '@/lib/player-stats';
 import type { NotificationPreferences, StoredPushSubscription } from '@/lib/notifications';
 import type { RetentionState } from '@/lib/retention';
+import type { ClawPlay, ClawStats } from '@/lib/claw-crane';
 
 export interface UserProfile {
   uid: string;
@@ -36,6 +37,13 @@ export interface UserProfile {
   notificationPreferences?: NotificationPreferences;
   pushSubscriptions?: StoredPushSubscription[];
   retention?: Partial<RetentionState>;
+  clawCredits?: number;
+  ownedClawPrizeIds?: string[];
+  clawPrizeWonAt?: Record<string, string>;
+  clawStats?: Partial<ClawStats>;
+  activeClawPlay?: ClawPlay | null;
+  recentClawPlayIds?: string[];
+  clawCabinetSeed?: number;
 }
 
 export function useUsers() {

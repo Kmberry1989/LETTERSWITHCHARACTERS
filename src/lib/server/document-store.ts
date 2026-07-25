@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 
 export type JsonRecord = Record<string, any>;
@@ -178,6 +179,85 @@ export async function updateDocument(collection: string, documentId: string, pat
   } catch (error) {
     throw normalizeDatabaseError(error as Error & { code?: string }, 'Document storage is unavailable.');
   }
+}
+
+export async function mutateDocumentAtomically<T = JsonRecord>(
+  collection: string,
+  documentId: string,
+  mutate: (document: JsonRecord & { id: string }) => { patch: JsonRecord; result: T }
+) {
+  const maxAttempts = 3;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await prisma.$transaction(
+        async (transaction) => {
+          const existing = await transaction.appDocument.findUnique({
+            where: {
+              collection_documentId: {
+                collection,
+                documentId,
+              },
+            },
+            select: {
+              collection: true,
+              documentId: true,
+              data: true,
+              updatedAt: true,
+            },
+          });
+
+          const document = mapDocumentRow((existing as AppDocumentRow | null) ?? null);
+          if (!document) {
+            throw new Error(`${collection}/${documentId} does not exist.`);
+          }
+
+          const mutation = mutate(document);
+          const nextData = serializeDocumentRecord(applyDottedPatch(document, mutation.patch));
+          const saved = await transaction.appDocument.update({
+            where: {
+              collection_documentId: {
+                collection,
+                documentId,
+              },
+            },
+            data: {
+              data: nextData,
+            },
+            select: {
+              collection: true,
+              documentId: true,
+              data: true,
+              updatedAt: true,
+            },
+          });
+
+          return {
+            document: mapDocumentRow(saved as AppDocumentRow)!,
+            result: mutation.result,
+          };
+        },
+        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
+      );
+    } catch (error) {
+      if (
+        attempt < maxAttempts &&
+        error instanceof Prisma.PrismaClientKnownRequestError &&
+        error.code === 'P2034'
+      ) {
+        continue;
+      }
+      if (error instanceof Error && error.message.startsWith(`${collection}/${documentId} does not exist.`)) {
+        throw error;
+      }
+      if (error instanceof Error && error.name !== 'PrismaClientKnownRequestError') {
+        throw error;
+      }
+      throw normalizeDatabaseError(error as Error & { code?: string }, 'Document storage is unavailable.');
+    }
+  }
+
+  throw createDocumentStoreError('Document storage is unavailable.');
 }
 
 export async function addDocument(collection: string, data: JsonRecord) {
