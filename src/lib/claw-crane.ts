@@ -1,6 +1,8 @@
 import type { RetentionState } from '@/lib/retention';
 
-export const CLAW_CREDIT_COST = 25;
+export const CLAW_TOKEN_COST = 25;
+/** @deprecated Use CLAW_TOKEN_COST. Kept for older imports and saved clients. */
+export const CLAW_CREDIT_COST = CLAW_TOKEN_COST;
 export const CLAW_STOCK_SIZE = 12;
 
 export type ClawPhase =
@@ -52,10 +54,14 @@ export type ClawGameSnapshot = {
   coordinateSystem: string;
   phase: ClawPhase;
   practice: boolean;
+  tokens: number | 'unlimited';
+  /** @deprecated Compatibility alias for older game harnesses. */
   credits: number | 'unlimited';
   berries: number | null;
+  camera: { yaw: number; pitch: number; zoom: number; distance: number };
   carriage: { x: number; z: number; velocityX: number; velocityZ: number };
   claw: { y: number; fingerOpen: number; capturedPrizeId: string | null };
+  fillerBalls: { count: number; colors: string[] };
   visiblePrizes: Array<{ id: string; x: number; y: number; z: number }>;
   lastResult: { kind: 'win' | 'miss'; prizeId?: string | null; score: number } | null;
 };
@@ -65,6 +71,8 @@ export type ClawProfileFields = {
   experience?: number;
   level?: number;
   retention?: Partial<RetentionState>;
+  clawTokens?: number;
+  /** @deprecated Legacy saved balance migrated into clawTokens on the next write. */
   clawCredits?: number;
   ownedClawPrizeIds?: string[];
   clawPrizeWonAt?: Record<string, string>;
@@ -176,7 +184,14 @@ export function normalizeClawProfile(profile: ClawProfileFields | null | undefin
   };
 
   return {
-    clawCredits: Math.max(0, Math.floor(profile?.clawCredits || 0)),
+    clawTokens: Math.max(
+      0,
+      Math.floor(
+        typeof profile?.clawTokens === 'number'
+          ? profile.clawTokens
+          : profile?.clawCredits || 0
+      )
+    ),
     ownedClawPrizeIds,
     clawPrizeWonAt: prizeWonAt,
     clawStats: {

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import {
-  CLAW_CREDIT_COST,
+  CLAW_TOKEN_COST,
   CLAW_PRIZE_BY_ID,
   CLAW_PRIZE_CATALOG,
   type ClawPlay,
@@ -47,12 +47,14 @@ function makeState(profile: JsonRecord) {
 
   return {
     berries: cosmetics.berries,
-    credits: claw.clawCredits,
+    tokens: claw.clawTokens,
+    credits: claw.clawTokens,
     collection,
     stats: claw.clawStats,
     stockedPrizeIds,
     activePlay: claw.activeClawPlay,
-    creditCost: CLAW_CREDIT_COST,
+    tokenCost: CLAW_TOKEN_COST,
+    creditCost: CLAW_TOKEN_COST,
   };
 }
 
@@ -98,7 +100,7 @@ export async function POST(request: Request) {
       throw new ClawRequestError('Missing action.', 400);
     }
 
-    if (action === 'purchase-credit') {
+    if (action === 'purchase-token' || action === 'purchase-credit') {
       const mutation = await mutateDocumentAtomically('users', user.uid, (profile) => {
         const cosmetics = normalizeUserCosmetics(profile as any);
         const claw = normalizeClawProfile(profile as any);
@@ -106,13 +108,13 @@ export async function POST(request: Request) {
         if (collection.complete) {
           throw new ClawRequestError('Your prize collection is already complete.', 409);
         }
-        if (cosmetics.berries < CLAW_CREDIT_COST) {
-          throw new ClawRequestError('Not enough berries for a crane credit.', 400);
+        if (cosmetics.berries < CLAW_TOKEN_COST) {
+          throw new ClawRequestError('Not enough berries for a Claw Token.', 400);
         }
         return {
           patch: {
-            berries: cosmetics.berries - CLAW_CREDIT_COST,
-            clawCredits: claw.clawCredits + 1,
+            berries: cosmetics.berries - CLAW_TOKEN_COST,
+            clawTokens: claw.clawTokens + 1,
             updatedAt: new Date().toISOString(),
           },
           result: { purchased: true },
@@ -134,8 +136,8 @@ export async function POST(request: Request) {
         if (collection.complete) {
           throw new ClawRequestError('Your prize collection is already complete.', 409);
         }
-        if (claw.clawCredits <= 0) {
-          throw new ClawRequestError('Insert a crane credit before dropping.', 400);
+        if (claw.clawTokens <= 0) {
+          throw new ClawRequestError('Buy a Claw Token before dropping.', 400);
         }
         const stockPrizeIds = selectClawStock(collection.ownedPrizeIds, claw.clawCabinetSeed);
         if (stockPrizeIds.length === 0) {
@@ -152,7 +154,7 @@ export async function POST(request: Request) {
         };
         return {
           patch: {
-            clawCredits: claw.clawCredits - 1,
+            clawTokens: claw.clawTokens - 1,
             activeClawPlay: play,
             updatedAt: new Date().toISOString(),
           },

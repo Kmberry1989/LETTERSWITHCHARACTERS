@@ -7,6 +7,7 @@
   },
   "scripts": {
     "generate:tiles": "node scripts/generate-tile-catalog.mjs",
+    "grant:all-profiles:berries": "node --env-file-if-exists=.env scripts/grant-all-profiles-berries.mjs",
     "predev": "npm run generate:tiles",
     "dev": "next dev --turbopack -p 9002",
     "genkit:dev": "genkit start -- tsx src/ai/dev.ts",

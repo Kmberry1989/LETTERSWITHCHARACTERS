@@ -34,7 +34,7 @@ type SceneResult = {
 type ClawCraneSceneProps = {
   stockedPrizeIds: string[];
   practice: boolean;
-  credits: number | 'unlimited';
+  tokens: number | 'unlimited';
   berries: number | null;
   onReady: () => void;
   onPhaseChange: (phase: ClawPhase) => void;
@@ -68,6 +68,15 @@ const X_LIMIT = 3.05;
 const Z_LIMIT = 2.7;
 const CHUTE_X = -2.55;
 const CHUTE_Z = 2.28;
+const DEFAULT_CAMERA_YAW = 0.668;
+const DEFAULT_CAMERA_PITCH = 0.324;
+const CAMERA_TARGET_Y = 3.15;
+const CAMERA_MIN_YAW = -0.38;
+const CAMERA_MAX_YAW = 1.48;
+const CAMERA_MIN_PITCH = 0.18;
+const CAMERA_MAX_PITCH = 0.62;
+const CAMERA_MIN_ZOOM = 0.68;
+const CAMERA_MAX_ZOOM = 1.32;
 
 function makeBox(
   width: number,
@@ -132,11 +141,11 @@ class ClawCraneEngine {
   readonly wheelMeshes: THREE.Mesh[] = [];
   readonly fingerPivots: THREE.Group[] = [];
   readonly prizes: PrizeObject[] = [];
-  readonly fillers: Array<{ mesh: THREE.Mesh; body: CANNON.Body }> = [];
+  readonly fillers: Array<{ mesh: THREE.Mesh; body: CANNON.Body; color: string }> = [];
   readonly callbacks: MutableRefObject<EngineCallbacks>;
   readonly runtime: MutableRefObject<{
     practice: boolean;
-    credits: number | 'unlimited';
+    tokens: number | 'unlimited';
     berries: number | null;
   }>;
   readonly container: HTMLElement;
@@ -165,13 +174,20 @@ class ClawCraneEngine {
   lastResult: SceneResult | null = null;
   resizeObserver: ResizeObserver | null = null;
   keys = new Set<string>();
+  activeViewPointers = new Map<number, { x: number; y: number }>();
+  cameraYaw = DEFAULT_CAMERA_YAW;
+  cameraPitch = DEFAULT_CAMERA_PITCH;
+  cameraZoom = 1;
+  baseCameraDistance = 16.54;
+  lastGestureCenter: { x: number; y: number } | null = null;
+  lastGestureDistance = 0;
 
   constructor(
     canvas: HTMLCanvasElement,
     container: HTMLElement,
     stockedPrizeIds: string[],
     callbacks: MutableRefObject<EngineCallbacks>,
-    runtime: MutableRefObject<{ practice: boolean; credits: number | 'unlimited'; berries: number | null }>
+    runtime: MutableRefObject<{ practice: boolean; tokens: number | 'unlimited'; berries: number | null }>
   ) {
     this.canvas = canvas;
     this.container = container;
@@ -401,6 +417,7 @@ class ClawCraneEngine {
 
   async loadAssets(stockedPrizeIds: string[]) {
     try {
+      this.addBallBed(28);
       await this.loadClaw();
       await Promise.all(
         stockedPrizeIds.map(async (id, index) => {
@@ -429,7 +446,7 @@ class ClawCraneEngine {
           const jitterZ = (seededValue(3911, index) - 0.5) * 0.32;
           const x = -2.2 + column * 1.45 + jitterX;
           const z = -1.65 + row * 1.45 + jitterZ;
-          const y = 0.95 + row * 0.08;
+          const y = 1.46 + row * 0.08;
           const body = new CANNON.Body({
             mass: 0.72,
             shape: new CANNON.Box(
@@ -452,7 +469,6 @@ class ClawCraneEngine {
           this.prizes.push({ id, mesh, body });
         })
       );
-      this.addCapsules(Math.max(4, 12 - stockedPrizeIds.length));
       this.ready = true;
       this.setPhase('ready');
       this.callbacks.current.onReady();
@@ -464,30 +480,52 @@ class ClawCraneEngine {
     }
   }
 
-  addCapsules(count: number) {
-    const colors = [0x67e8f9, 0xfda4af, 0xfde047, 0xc4b5fd, 0x86efac];
-    for (let index = 0; index < count; index += 1) {
+  addBallBed(count: number) {
+    const colors = [
+      0x38bdf8,
+      0xfb7185,
+      0xfacc15,
+      0xa78bfa,
+      0x4ade80,
+      0xfb923c,
+      0x2dd4bf,
+      0xf472b6,
+    ];
+    let added = 0;
+    let slot = 0;
+    while (added < count && slot < 40) {
+      const column = slot % 6;
+      const row = Math.floor(slot / 6);
+      const jitterX = (seededValue(811, slot) - 0.5) * 0.16;
+      const jitterZ = (seededValue(1217, slot) - 0.5) * 0.16;
+      const x = -3 + column * 1.2 + jitterX;
+      const z = -2.38 + row * 1.03 + jitterZ;
+      slot += 1;
+      if (x < -1.55 && z > 1.25) continue;
+      const color = colors[added % colors.length];
       const material = new THREE.MeshStandardMaterial({
-        color: colors[index % colors.length],
-        roughness: 0.52,
-        metalness: 0.08,
+        color,
+        roughness: 0.34,
+        metalness: 0.04,
       });
-      const mesh = new THREE.Mesh(new THREE.CapsuleGeometry(0.28, 0.38, 5, 10), material);
-      const x = 2.45 - (index % 3) * 0.72;
-      const z = 1.5 - Math.floor(index / 3) * 0.75;
-      mesh.position.set(x, 1, z);
-      mesh.rotation.z = Math.PI / 2;
+      const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.33, 18, 14), material);
+      const y = 0.86 + (added % 3) * 0.025;
+      mesh.position.set(x, y, z);
       mesh.castShadow = true;
+      mesh.receiveShadow = true;
       this.scene.add(mesh);
       const body = new CANNON.Body({
-        mass: 0.35,
-        shape: new CANNON.Sphere(0.32),
-        position: new CANNON.Vec3(x, 1, z),
-        linearDamping: 0.42,
-        angularDamping: 0.62,
+        mass: 0.24,
+        shape: new CANNON.Sphere(0.33),
+        position: new CANNON.Vec3(x, y, z),
+        linearDamping: 0.5,
+        angularDamping: 0.58,
+        sleepSpeedLimit: 0.06,
+        sleepTimeLimit: 0.65,
       });
       this.world.addBody(body);
-      this.fillers.push({ mesh, body });
+      this.fillers.push({ mesh, body, color: `#${color.toString(16).padStart(6, '0')}` });
+      added += 1;
     }
   }
 
@@ -509,15 +547,100 @@ class ClawCraneEngine {
     const onKeyUp = (event: KeyboardEvent) => {
       this.keys.delete(event.key.toLowerCase());
     };
+    const resetGestureReference = () => {
+      const points = [...this.activeViewPointers.values()];
+      if (points.length === 0) {
+        this.lastGestureCenter = null;
+        this.lastGestureDistance = 0;
+        return;
+      }
+      const first = points[0];
+      const second = points[1];
+      this.lastGestureCenter = second
+        ? { x: (first.x + second.x) / 2, y: (first.y + second.y) / 2 }
+        : { ...first };
+      this.lastGestureDistance = second
+        ? Math.hypot(second.x - first.x, second.y - first.y)
+        : 0;
+    };
+    const onPointerDown = (event: PointerEvent) => {
+      event.preventDefault();
+      this.activeViewPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      try {
+        this.canvas.setPointerCapture(event.pointerId);
+      } catch {
+        // Pointer capture can fail if the pointer ends during a browser gesture.
+      }
+      resetGestureReference();
+    };
+    const onPointerMove = (event: PointerEvent) => {
+      if (!this.activeViewPointers.has(event.pointerId)) return;
+      event.preventDefault();
+      this.activeViewPointers.set(event.pointerId, { x: event.clientX, y: event.clientY });
+      const points = [...this.activeViewPointers.values()];
+      const first = points[0];
+      const second = points[1];
+      const center = second
+        ? { x: (first.x + second.x) / 2, y: (first.y + second.y) / 2 }
+        : first;
+      if (this.lastGestureCenter) {
+        const rotateScale = second ? 0.0042 : 0.0058;
+        this.cameraYaw -= (center.x - this.lastGestureCenter.x) * rotateScale;
+        this.cameraPitch += (center.y - this.lastGestureCenter.y) * rotateScale * 0.72;
+      }
+      if (second) {
+        const distance = Math.hypot(second.x - first.x, second.y - first.y);
+        if (this.lastGestureDistance > 0 && distance > 4) {
+          this.cameraZoom *= this.lastGestureDistance / distance;
+        }
+        this.lastGestureDistance = distance;
+      }
+      this.lastGestureCenter = center;
+      this.updateCamera();
+    };
+    const onPointerEnd = (event: PointerEvent) => {
+      this.activeViewPointers.delete(event.pointerId);
+      resetGestureReference();
+    };
+    const onWheel = (event: WheelEvent) => {
+      event.preventDefault();
+      this.cameraZoom *= Math.exp(event.deltaY * 0.001);
+      this.updateCamera();
+    };
     window.addEventListener('keydown', onKeyDown);
     window.addEventListener('keyup', onKeyUp);
+    this.canvas.addEventListener('pointerdown', onPointerDown);
+    this.canvas.addEventListener('pointermove', onPointerMove);
+    this.canvas.addEventListener('pointerup', onPointerEnd);
+    this.canvas.addEventListener('pointercancel', onPointerEnd);
+    this.canvas.addEventListener('wheel', onWheel, { passive: false });
     this.resizeObserver = new ResizeObserver(() => this.resize());
     this.resizeObserver.observe(this.container);
     this.container.dataset.keydownCleanup = 'installed';
     (this.container as HTMLElement & { __clawCleanup?: () => void }).__clawCleanup = () => {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
+      this.canvas.removeEventListener('pointerdown', onPointerDown);
+      this.canvas.removeEventListener('pointermove', onPointerMove);
+      this.canvas.removeEventListener('pointerup', onPointerEnd);
+      this.canvas.removeEventListener('pointercancel', onPointerEnd);
+      this.canvas.removeEventListener('wheel', onWheel);
     };
+  }
+
+  updateCamera() {
+    this.cameraYaw = clamp(this.cameraYaw, CAMERA_MIN_YAW, CAMERA_MAX_YAW);
+    this.cameraPitch = clamp(this.cameraPitch, CAMERA_MIN_PITCH, CAMERA_MAX_PITCH);
+    this.cameraZoom = clamp(this.cameraZoom, CAMERA_MIN_ZOOM, CAMERA_MAX_ZOOM);
+    const distance = this.baseCameraDistance * this.cameraZoom;
+    const horizontalDistance = Math.cos(this.cameraPitch) * distance;
+    this.camera.position.set(
+      Math.sin(this.cameraYaw) * horizontalDistance,
+      CAMERA_TARGET_Y + Math.sin(this.cameraPitch) * distance,
+      Math.cos(this.cameraYaw) * horizontalDistance
+    );
+    this.camera.lookAt(0, CAMERA_TARGET_Y, 0);
+    this.camera.updateProjectionMatrix();
   }
 
   resize() {
@@ -526,14 +649,13 @@ class ClawCraneEngine {
     this.renderer.setSize(width, height, false);
     this.camera.aspect = width / height;
     if (width / height < 0.82) {
-      this.camera.position.set(10.7, 9.2, 14.7);
+      this.baseCameraDistance = 19.16;
       this.camera.fov = 47;
     } else {
-      this.camera.position.set(9.7, 8.4, 12.3);
+      this.baseCameraDistance = 16.54;
       this.camera.fov = 42;
     }
-    this.camera.lookAt(0, 3.15, 0);
-    this.camera.updateProjectionMatrix();
+    this.updateCamera();
   }
 
   setPhase(phase: ClawPhase) {
@@ -763,8 +885,15 @@ class ClawCraneEngine {
       coordinateSystem: 'cabinet center origin; +x right, +y up, +z toward the player',
       phase: this.phase,
       practice: this.runtime.current.practice,
-      credits: this.runtime.current.credits,
+      tokens: this.runtime.current.tokens,
+      credits: this.runtime.current.tokens,
       berries: this.runtime.current.berries,
+      camera: {
+        yaw: Number(this.cameraYaw.toFixed(3)),
+        pitch: Number(this.cameraPitch.toFixed(3)),
+        zoom: Number(this.cameraZoom.toFixed(3)),
+        distance: Number((this.baseCameraDistance * this.cameraZoom).toFixed(2)),
+      },
       carriage: {
         x: Number(this.carriageX.toFixed(2)),
         z: Number(this.carriageZ.toFixed(2)),
@@ -775,6 +904,10 @@ class ClawCraneEngine {
         y: Number(this.clawY.toFixed(2)),
         fingerOpen: Number(this.fingerOpen.toFixed(2)),
         capturedPrizeId: this.captured?.id || null,
+      },
+      fillerBalls: {
+        count: this.fillers.length,
+        colors: [...new Set(this.fillers.map((filler) => filler.color))],
       },
       visiblePrizes: this.prizes.map((prize) => ({
         id: prize.id,
@@ -821,7 +954,7 @@ const ClawCraneScene = forwardRef<ClawCraneSceneHandle, ClawCraneSceneProps>(
     {
       stockedPrizeIds,
       practice,
-      credits,
+      tokens,
       berries,
       onReady,
       onPhaseChange,
@@ -839,9 +972,9 @@ const ClawCraneScene = forwardRef<ClawCraneSceneHandle, ClawCraneSceneProps>(
       onDropRequested,
       onResolved,
     });
-    const runtimeRef = useRef({ practice, credits, berries });
+    const runtimeRef = useRef({ practice, tokens, berries });
     callbacksRef.current = { onReady, onPhaseChange, onDropRequested, onResolved };
-    runtimeRef.current = { practice, credits, berries };
+    runtimeRef.current = { practice, tokens, berries };
     const stockKey = stockedPrizeIds.join('|');
 
     useImperativeHandle(
@@ -856,15 +989,23 @@ const ClawCraneScene = forwardRef<ClawCraneSceneHandle, ClawCraneSceneProps>(
             coordinateSystem: 'cabinet center origin; +x right, +y up, +z toward the player',
             phase: 'loading',
             practice,
-            credits,
+            tokens,
+            credits: tokens,
             berries,
+            camera: {
+              yaw: DEFAULT_CAMERA_YAW,
+              pitch: DEFAULT_CAMERA_PITCH,
+              zoom: 1,
+              distance: 16.54,
+            },
             carriage: { x: 0, z: 0, velocityX: 0, velocityZ: 0 },
             claw: { y: CLAW_HOME_Y, fingerOpen: 1, capturedPrizeId: null },
+            fillerBalls: { count: 0, colors: [] },
             visiblePrizes: [],
             lastResult: null,
           },
       }),
-      [berries, credits, practice]
+      [berries, practice, tokens]
     );
 
     useEffect(() => {
@@ -891,7 +1032,11 @@ const ClawCraneScene = forwardRef<ClawCraneSceneHandle, ClawCraneSceneProps>(
         className="relative h-full min-h-0 w-full overflow-hidden rounded-[1.35rem] bg-rose-50"
         data-testid="claw-scene"
       >
-        <canvas ref={canvasRef} className="block h-full w-full touch-none" aria-label="3D prize crane cabinet" />
+        <canvas
+          ref={canvasRef}
+          className="block h-full w-full touch-none cursor-grab active:cursor-grabbing"
+          aria-label="3D prize crane cabinet. Drag to rotate the view and pinch to zoom."
+        />
       </div>
     );
   }

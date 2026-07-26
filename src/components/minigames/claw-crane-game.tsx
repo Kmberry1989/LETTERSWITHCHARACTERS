@@ -28,7 +28,7 @@ import {
 } from '@/components/ui/sheet';
 import { useAudio } from '@/hooks/use-audio';
 import {
-  CLAW_CREDIT_COST,
+  CLAW_TOKEN_COST,
   CLAW_PRIZE_BY_ID,
   CLAW_PRIZE_CATALOG,
   type ClawCollection,
@@ -40,12 +40,14 @@ import { cn } from '@/lib/utils';
 
 type ServerState = {
   berries: number;
-  credits: number;
+  tokens: number;
+  credits?: number;
   collection: ClawCollection;
   stats: ClawStats;
   stockedPrizeIds: string[];
   activePlay: ClawPlay | null;
-  creditCost: number;
+  tokenCost: number;
+  creditCost?: number;
 };
 
 type ResultState = {
@@ -97,7 +99,9 @@ export default function ClawCraneGame() {
     ? PRACTICE_STOCK
     : serverState?.stockedPrizeIds || [];
   const canRenderScene = practice || Boolean(serverState);
-  const credits: number | 'unlimited' = practice ? 'unlimited' : serverState?.credits || 0;
+  const tokens: number | 'unlimited' = practice
+    ? 'unlimited'
+    : serverState?.tokens ?? serverState?.credits ?? 0;
   const berries = practice ? null : serverState?.berries ?? null;
   const collection = serverState?.collection || {
     ownedPrizeIds: [],
@@ -108,7 +112,7 @@ export default function ClawCraneGame() {
   const selectedPrize = CLAW_PRIZE_BY_ID[selectedPrizeId] || CLAW_PRIZE_CATALOG[0];
   const selectedOwned = collection.ownedPrizeIds.includes(selectedPrize.id);
   const canControl = sceneReady && !busy && (phase === 'ready' || phase === 'aiming');
-  const canDrop = canControl && (practice || Number(credits) > 0) && !collection.complete;
+  const canDrop = canControl && (practice || Number(tokens) > 0) && !collection.complete;
   const stockKey = stockedPrizeIds.join('|');
 
   useEffect(() => {
@@ -122,7 +126,7 @@ export default function ClawCraneGame() {
       activePlayRef.current = null;
       setServerState(null);
       setError(null);
-      setMessage('Practice mode: unlimited drops, with no saved credits or prizes.');
+      setMessage('Practice mode: unlimited drops, with no saved tokens or prizes.');
       return;
     }
     setBusy(true);
@@ -171,7 +175,7 @@ export default function ClawCraneGame() {
     activePlayRef.current = state.activePlay;
   };
 
-  const purchaseCredit = async () => {
+  const purchaseToken = async () => {
     if (practice || busy || collection.complete) return;
     setBusy(true);
     setError(null);
@@ -179,15 +183,15 @@ export default function ClawCraneGame() {
       const response = await fetch('/api/minigames/claw-crane', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'purchase-credit' }),
+        body: JSON.stringify({ action: 'purchase-token' }),
       });
       const payload = await readJson(response);
       updateServerState(payload.state as ServerState);
       playSfx('arcadeSelect');
-      setMessage(`Credit inserted. The Drop button is armed.`);
+      setMessage('Claw Token ready. The Drop button is armed.');
     } catch (requestError: any) {
       playSfx('arcadeError');
-      setError(requestError?.message || 'Could not insert a crane credit.');
+      setError(requestError?.message || 'Could not buy a Claw Token.');
     } finally {
       setBusy(false);
     }
@@ -205,8 +209,8 @@ export default function ClawCraneGame() {
       return;
     }
     if (!serverState || serverState.collection.complete) return;
-    if (serverState.credits <= 0) {
-      setMessage(`Insert a ${CLAW_CREDIT_COST}-berry credit before dropping.`);
+    if (serverState.tokens <= 0) {
+      setMessage(`Buy a Claw Token for ${CLAW_TOKEN_COST} berries before dropping.`);
       playSfx('arcadeError');
       return;
     }
@@ -230,7 +234,7 @@ export default function ClawCraneGame() {
       resumedPlayIdRef.current = play.id;
       playSfx('arcadeSelect');
       scene.startDrop(play);
-      setMessage('Credit accepted. The claw is descending.');
+      setMessage('Claw Token accepted. The claw is descending.');
     } catch (requestError: any) {
       playSfx('arcadeError');
       setError(requestError?.message || 'Could not start this drop.');
@@ -330,7 +334,7 @@ export default function ClawCraneGame() {
           <div className="flex items-center justify-end gap-1.5 md:gap-2">
             <Badge className="rounded-full bg-white/90 px-2.5 text-slate-800 hover:bg-white/90">
               {practice ? <Gamepad2 className="mr-1 h-3.5 w-3.5" /> : <Coins className="mr-1 h-3.5 w-3.5 text-amber-500" />}
-              {practice ? 'Practice' : `${credits} credit${credits === 1 ? '' : 's'}`}
+              {practice ? 'Practice' : `${tokens} Claw Token${tokens === 1 ? '' : 's'}`}
             </Badge>
             {!practice && (
               <Badge variant="secondary" className="hidden rounded-full px-2.5 sm:inline-flex">
@@ -354,11 +358,11 @@ export default function ClawCraneGame() {
                 type="button"
                 size="sm"
                 className="rounded-full bg-amber-400 px-3 font-black text-amber-950 shadow-sm hover:bg-amber-300"
-                disabled={busy || collection.complete || (berries || 0) < CLAW_CREDIT_COST}
-                onClick={purchaseCredit}
-                data-testid="claw-insert-credit"
+                disabled={busy || collection.complete || (berries || 0) < CLAW_TOKEN_COST}
+                onClick={purchaseToken}
+                data-testid="claw-buy-token"
               >
-                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : `Insert ${CLAW_CREDIT_COST}`}
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : `Buy Token · ${CLAW_TOKEN_COST}`}
               </Button>
             )}
           </div>
@@ -371,7 +375,7 @@ export default function ClawCraneGame() {
               ref={sceneRef}
               stockedPrizeIds={stockedPrizeIds}
               practice={practice}
-              credits={credits}
+              tokens={tokens}
               berries={berries}
               onReady={() => {
                 setSceneReady(true);
@@ -431,9 +435,9 @@ export default function ClawCraneGame() {
           </div>
 
           <div className="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-2 md:bottom-5 md:right-5">
-            {!practice && Number(credits) <= 0 && !collection.complete ? (
+            {!practice && Number(tokens) <= 0 && !collection.complete ? (
               <div className="rounded-full bg-slate-950/55 px-3 py-1 text-[0.65rem] font-bold text-white backdrop-blur md:text-xs">
-                Insert a credit first
+                Buy a Claw Token first
               </div>
             ) : null}
             <Button
@@ -461,7 +465,7 @@ export default function ClawCraneGame() {
         </div>
 
         <div className="flex min-h-8 shrink-0 items-center justify-between gap-2 px-1 text-[0.7rem] font-semibold text-slate-600 md:text-xs">
-          <span className="truncate">Joystick or WASD/arrows moves both rails · Space drops · F fullscreen</span>
+          <span className="truncate">Drag view to rotate · pinch to zoom · joystick/WASD moves · Space drops · F fullscreen</span>
           {!practice && error ? (
             <Button variant="ghost" size="sm" className="h-7 shrink-0 rounded-full" onClick={() => void loadState()}>
               <RotateCcw className="mr-1 h-3.5 w-3.5" />

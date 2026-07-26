@@ -29,3 +29,44 @@ Prize Crane implementation:
 - Completed isolated-account checks: 1250 -> 1225 berries on one credit purchase, the unused credit survived reload, starting a play consumed exactly one credit, an interrupted drop resumed after reload, Pebble saved once, the active play cleared, retention rewards applied once, and duplicate settlement returned `duplicate: true` without a second prize.
 - Completed cleanup: removed the isolated QA credential, profile, and seven sessions after verification; moved generated screenshots/state logs out of the repo to `/tmp/letterswithcharacters-claw-validation-20260725`.
 - Final checks: `npm run typecheck`, `npm run build`, and `git diff --check` pass. The existing multi-lockfile root warning remains non-blocking.
+
+---
+
+Current prompt: Play-test every mini-game, grant every profile 100 berries, and make the prize crane use its own claw-token currency with each token costing 25 berries.
+
+Current audit:
+- Confirmed eight playable mini-game routes: 5-in-6, claw crane, liquid sort, match sort, solitaire, wheel, word connect, and word search.
+- Implemented an explicit `clawTokens` profile balance and Claw Token UI/API language. Older `clawCredits` balances are read as a compatibility fallback, and old purchase clients remain accepted.
+- Each Claw Token costs exactly 25 berries; buying and consuming tokens remain atomic.
+- Applied the one-time additive 100-berry grant to all 14 profiles in the active Prisma-backed `users` collection. Total berries increased from 14,003 to 15,403, all 14 profiles carry the grant marker, and a dry rerun correctly skipped all 14.
+- TypeScript passes after the economy and grant implementation.
+- Production build and `git diff --check` pass. The existing multi-lockfile workspace-root warning remains non-blocking.
+- Browser playtest passed for all eight games with meaningful state changes and no new console/page errors:
+  - Word Search: dragged across BEACH and advanced to 1/5.
+  - 5 in 6: submitted APPLE and advanced to 1/6.
+  - Word Connect: built CARE and locked it into the found list.
+  - Liquid Sort: poured Tube 1 into Tube 4 and advanced to one move.
+  - Goods Sort: moved one Robot to the Robot shelf and advanced to 1/12.
+  - Solitaire Sprint: drew a card and reduced the stock from 24 to 23.
+  - Wheel: flicked, landed on 600, guessed G, revealed the letter, and banked 600.
+  - Claw Crane: moved the carriage from x=0 to x=1.93, completed a deterministic drop, and delivered Gizmo in practice mode.
+- Isolated signed-in claw economy check passed: 1,250 -> 1,225 berries bought one Claw Token, one started drop consumed it (0 -> 1 -> 0 tokens), and the play settled. The QA credential, profile, and session were removed afterward.
+- Visually inspected the post-action screenshot for every game plus the signed-in Claw Token state. Gameplay remained visible and legible at the tested 1280x800 viewport.
+
+---
+
+Current prompt: Add touch gestures for rotating and zooming the claw game, and add filler underneath the prizes using different colors of balls.
+
+Implementation:
+- Added bounded camera orbit controls directly to the cabinet canvas: one-finger drag rotates, two-finger drag rotates, pinch changes zoom, and mouse drag/wheel provide desktop parity.
+- Gesture listeners are scoped to the 3D canvas so the joystick, Drop button, drawer, and surrounding app controls keep their existing behavior.
+- Added camera yaw, pitch, zoom, and distance to `window.render_game_to_text()` for deterministic gesture verification.
+- Replaced the small decorative capsule group with a 28-ball Cannon physics bed in eight colors, kept clear of the chute, and raised the collectible spawn layer so characters settle visibly on top of the balls.
+- Added filler-ball count and color data to the deterministic text snapshot.
+- Validation passed:
+  - `npm run typecheck`, `npm run build`, and `git diff --check`.
+  - Required web-game harness confirmed the ready cabinet, 28 balls, eight colors, and no captured console errors.
+  - 390x844 touch emulation changed yaw from 0.668 to 0.291 and pitch from 0.324 to 0.491.
+  - Pinch-out changed zoom from 1.0 to 0.727; pinch-in reached the bounded 1.32 maximum.
+  - A full Drop cycle still settled after the camera gestures.
+  - Desktop and mobile screenshots were opened and inspected; prizes remain visible above the balls and the chute remains clear.
