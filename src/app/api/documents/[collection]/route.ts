@@ -1,13 +1,17 @@
 import { NextResponse } from 'next/server';
-import { addDocument, listDocuments, toDocumentStoreError } from '@/lib/server/document-store';
+import { addDocument, getDocument, listDocuments, toDocumentStoreError, updateDocument } from '@/lib/server/document-store';
 import { getCurrentUser, type AppUser } from '@/lib/server/auth';
+import { createNewGame } from '@/lib/game/create-new-game';
+import type { UserProfile } from '@/firebase/firestore/use-users';
 
 export const dynamic = 'force-dynamic';
 
-const LISTABLE_COLLECTIONS = new Set(['lobbyMessages', 'lobbyChallenges']);
-const CREATABLE_COLLECTIONS = new Set(['lobbyMessages', 'lobbyChallenges']);
+const LISTABLE_COLLECTIONS = new Set(['users', 'lobbyMessages', 'lobbyChallenges']);
+const CREATABLE_COLLECTIONS = new Set(['games', 'lobbyMessages', 'lobbyChallenges']);
 const MAX_COLLECTION_LIMIT = 100;
 const MAX_LOBBY_MESSAGE_LENGTH = 500;
+const BOT_UID = 'bitty-botty-001';
+const BOT_DIFFICULTIES = new Set(['Easy', 'Medium', 'Hard']);
 
 function jsonError(message: string, status: number) {
   return NextResponse.json({ error: message }, { status });
@@ -17,6 +21,17 @@ function sanitizeLimit(value: string | null) {
   const parsed = Number(value || '50');
   if (!Number.isFinite(parsed)) return 50;
   return Math.max(1, Math.min(MAX_COLLECTION_LIMIT, Math.floor(parsed)));
+}
+
+function toPublicUser(document: any) {
+  return {
+    id: document.id,
+    uid: document.uid || document.id,
+    displayName: document.displayName || null,
+    photoURL: document.photoURL || null,
+    avatarPosterUrl: document.avatarPosterUrl || null,
+    stats: document.stats || {},
+  };
 }
 
 async function requireCollectionReadAccess(collection: string) {
@@ -71,7 +86,51 @@ async function buildLobbyChallengePayload(body: any, user: AppUser) {
   };
 }
 
+async function buildBotGamePayload(body: any, user: AppUser) {
+  const difficulty = String(body?.data?.difficulty || '');
+
+  if (!BOT_DIFFICULTIES.has(difficulty)) {
+    return jsonError('Invalid bot difficulty.', 400);
+  }
+
+  const userProfile = await getDocument<UserProfile>('users', user.uid);
+  if (!userProfile) {
+    return jsonError('Your user profile could not be found.', 404);
+  }
+
+  const games = await listDocuments<any>('games');
+  const alreadyActive = games.some(
+    (game) =>
+      game.status === 'active' &&
+      Array.isArray(game.players) &&
+      game.players.includes(user.uid) &&
+      game.players.includes(BOT_UID)
+  );
+
+  if (alreadyActive) {
+    return jsonError('You already have an active bot game.', 409);
+  }
+
+  const botProfile: UserProfile = {
+    uid: BOT_UID,
+    displayName: 'Bitty Botty',
+    avatarId: 'avatar-base',
+    avatarPresetId: 'ember-scribe',
+    avatarPosterUrl: '/avatars/posters/ember-scribe.svg',
+    equippedTileSetId: 'tile-minimalist',
+  };
+
+  return {
+    ...createNewGame(user.uid, BOT_UID, userProfile, botProfile),
+    difficulty,
+  };
+}
+
 async function buildCreatePayload(collection: string, body: any, user: AppUser) {
+  if (collection === 'games') {
+    return buildBotGamePayload(body, user);
+  }
+
   if (collection === 'lobbyMessages') {
     return buildLobbyMessagePayload(body, user);
   }
@@ -98,11 +157,14 @@ export async function GET(
     const orderBy = url.searchParams.get('orderBy') || undefined;
     const direction = (url.searchParams.get('direction') || 'desc') as 'asc' | 'desc';
 
-    const documents = await listDocuments(collection, {
+    const listedDocuments = await listDocuments(collection, {
       limit: sanitizeLimit(url.searchParams.get('limit')),
       orderBy,
       direction,
     });
+    const documents = collection === 'users'
+      ? listedDocuments.map(toPublicUser)
+      : listedDocuments;
 
     return NextResponse.json({ documents });
   } catch (error) {
@@ -132,6 +194,14 @@ export async function POST(
     if (payload instanceof NextResponse) return payload;
 
     const document = await addDocument(collection, payload);
+
+    if (collection === 'games') {
+      const profile = await getDocument<UserProfile>('users', user.uid);
+      await updateDocument('users', user.uid, {
+        gameIds: [...new Set([...(profile?.gameIds || []), document.id])],
+      });
+    }
+
     return NextResponse.json({ document });
   } catch (error) {
     const normalized = toDocumentStoreError(error, 'Could not create document.');
