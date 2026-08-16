@@ -15,7 +15,11 @@
     "prebuild": "npm run generate:tiles",
     "build": "NODE_ENV=production next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:e2e": "playwright test",
+    "test:all": "npm run lint && npm run typecheck && npm run test && npm run build",
     "typecheck": "npm run generate:tiles && rm -rf .next && next typegen && tsc --noEmit",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
@@ -76,18 +80,21 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@playwright/test": "^1.51.1",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/three": "^0.185.1",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^15.5.20",
     "genkit-cli": "^0.0.2",
     "postcss": "^8.5.14",
     "prisma": "^6.16.2",
     "tailwindcss": "^3.4.1",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^3.2.4"
   },
   "overrides": {
-    "@tootallnate/once": "^3.0.1",
-    "postcss": "$postcss"
+    "@tootallnate/once": "^3.0.1"
   }
 }

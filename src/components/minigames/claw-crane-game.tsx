@@ -183,7 +183,7 @@ export default function ClawCraneGame() {
       const response = await fetch('/api/minigames/claw-crane', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'purchase-token' }),
+        body: JSON.stringify({ action: 'purchase-token', requestId: crypto.randomUUID() }),
       });
       const payload = await readJson(response);
       updateServerState(payload.state as ServerState);
@@ -222,6 +222,7 @@ export default function ClawCraneGame() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'start-play',
+          requestId: crypto.randomUUID(),
           clawX: position.x,
           clawZ: position.z,
         }),
@@ -267,6 +268,7 @@ export default function ClawCraneGame() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             action: 'settle-play',
+            requestId: crypto.randomUUID(),
             playId: play.id,
             prizeId: result.prizeId,
             score: result.score,
@@ -413,6 +415,11 @@ export default function ClawCraneGame() {
                 !canControl && 'opacity-45'
               )}
               data-testid="claw-joystick"
+              role="slider"
+              tabIndex={0}
+              aria-valuemin={-1}
+              aria-valuemax={1}
+              aria-valuenow={joystick.x}
               aria-label="Move claw carriage"
               onPointerDown={handleJoystick}
               onPointerMove={(event) => {
@@ -420,6 +427,19 @@ export default function ClawCraneGame() {
               }}
               onPointerUp={releaseJoystick}
               onPointerCancel={releaseJoystick}
+              onKeyDown={(event) => {
+                if (!canControl) return;
+                const step = event.shiftKey ? 1 : 0.45;
+                const next = { x: joystick.x, z: joystick.z, active: true };
+                if (event.key === 'ArrowLeft') next.x = -step;
+                else if (event.key === 'ArrowRight') next.x = step;
+                else if (event.key === 'ArrowUp') next.z = -step;
+                else if (event.key === 'ArrowDown') next.z = step;
+                else return;
+                event.preventDefault();
+                setJoystick(next);
+                sceneRef.current?.setInput(next.x, next.z);
+              }}
             >
               <div className="absolute inset-3 rounded-full border border-white/30" />
               <div

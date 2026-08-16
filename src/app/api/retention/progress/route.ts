@@ -1,127 +1,117 @@
-import { NextResponse } from 'next/server';
 import { getCurrentUser } from '@/lib/server/auth';
-import { getDocument, updateDocument } from '@/lib/server/document-store';
-import { awardPlayerProgress } from '@/lib/server/game-rewards';
+import { mutateDocumentAtomically } from '@/lib/server/document-store';
+import { normalizeUserCosmetics } from '@/lib/user-profile';
+import { getLevelForExperience } from '@/lib/tile-cosmetics';
 import {
   applyArcadeSession,
   claimDailyReward,
   normalizeRetentionState,
-  type RetentionModeId,
 } from '@/lib/retention';
+import { ApiRequestError, assertSameOrigin, asApiError, enforceRateLimit, jsonError, jsonOk, parseJson } from '@/lib/server/api';
+import { retentionProgressSchema } from '@/lib/server/request-schemas';
 
 export const dynamic = 'force-dynamic';
 
-type ProgressRequestBody =
-  | {
-      action: 'arcade-session';
-      sessionId: string;
-      modeId: RetentionModeId;
-      score?: number;
-      completed?: boolean;
-      completeDailyChallenge?: boolean;
-    }
-  | {
-      action: 'claim-daily-reward';
-    };
-
 export async function POST(request: Request) {
-  const user = await getCurrentUser();
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-  }
+  try {
+    assertSameOrigin(request);
+    enforceRateLimit(request, 'retention-progress', 60, 60_000);
+    const user = await getCurrentUser();
+    if (!user) throw new ApiRequestError('UNAUTHORIZED', 'Unauthorized', 401);
+    const body = await parseJson(request, retentionProgressSchema);
+    const requestId = body.action === 'arcade-session'
+      ? body.sessionId
+      : body.requestId || crypto.randomUUID();
 
-  const body = (await request.json().catch(() => null)) as ProgressRequestBody | null;
-  if (!body?.action) {
-    return NextResponse.json({ error: 'Missing action.' }, { status: 400 });
-  }
+    const mutation = await mutateDocumentAtomically<any>('users', user.uid, (document) => {
+      const profile = normalizeUserCosmetics(document as any) as any;
+      const retention = normalizeRetentionState(profile.retention);
 
-  const profile = await getDocument<any>('users', user.uid);
-  if (!profile) {
-    return NextResponse.json({ error: 'Profile not found.' }, { status: 404 });
-  }
+      if (body.action === 'claim-daily-reward') {
+        const daily = claimDailyReward(retention);
+        const nextExperience = profile.experience + daily.rewardExperience;
+        return {
+          patch: daily.claimed
+            ? {
+                retention: daily.retention,
+                berries: profile.berries + daily.rewardBerries,
+                experience: nextExperience,
+                level: getLevelForExperience(nextExperience),
+                updatedAt: new Date().toISOString(),
+              }
+            : {},
+          result: {
+            claimed: daily.claimed,
+            retention: daily.retention,
+            rewards: { berries: daily.rewardBerries, experience: daily.rewardExperience },
+          },
+          ...(daily.claimed ? {
+            ledger: {
+              requestId,
+              kind: 'daily-reward',
+              currency: 'berries',
+              amount: daily.rewardBerries,
+              balanceAfter: profile.berries + daily.rewardBerries,
+              metadata: { source: 'retention' },
+            },
+          } : {}),
+        };
+      }
 
-  const retention = normalizeRetentionState(profile.retention);
-
-  if (body.action === 'claim-daily-reward') {
-    const result = claimDailyReward(retention);
-    if (!result.claimed) {
-      return NextResponse.json({
-        claimed: false,
-        retention: result.retention,
-        rewards: { berries: 0, experience: 0 },
+      const result = applyArcadeSession(retention, body.modeId, {
+        sessionId: body.sessionId,
+        score: body.score,
+        completed: body.completed,
+        completeDailyChallenge: body.completeDailyChallenge,
       });
-    }
-
-    await updateDocument('users', user.uid, {
-      retention: result.retention,
-      updatedAt: new Date().toISOString(),
-    });
-    await awardPlayerProgress(user.uid, {
-      berries: result.rewardBerries,
-      experience: result.rewardExperience,
-    });
-
-    return NextResponse.json({
-      claimed: true,
-      retention: result.retention,
-      rewards: { berries: result.rewardBerries, experience: result.rewardExperience },
-    });
+      const sessionRewards = { berries: result.rewardBerries, experience: result.rewardExperience };
+      if (result.duplicate) {
+        return {
+          patch: {},
+          result: {
+            duplicate: true,
+            dailyRewardClaimed: false,
+            retention: result.retention,
+            rewards: { session: sessionRewards, dailyReward: { berries: 0, experience: 0 }, total: sessionRewards },
+          },
+        };
+      }
+      const daily = claimDailyReward(result.retention);
+      const totalRewards = {
+        berries: sessionRewards.berries + daily.rewardBerries,
+        experience: sessionRewards.experience + daily.rewardExperience,
+      };
+      const nextExperience = profile.experience + totalRewards.experience;
+      return {
+        patch: {
+          retention: daily.retention,
+          berries: profile.berries + totalRewards.berries,
+          experience: nextExperience,
+          level: getLevelForExperience(nextExperience),
+          updatedAt: new Date().toISOString(),
+        },
+        result: {
+          duplicate: false,
+          dailyRewardClaimed: daily.claimed,
+          retention: daily.retention,
+          rewards: {
+            session: sessionRewards,
+            dailyReward: { berries: daily.rewardBerries, experience: daily.rewardExperience },
+            total: totalRewards,
+          },
+        },
+        ledger: {
+          requestId,
+          kind: 'arcade-session-reward',
+          currency: 'berries',
+          amount: totalRewards.berries,
+          balanceAfter: profile.berries + totalRewards.berries,
+          metadata: { modeId: body.modeId, sessionId: body.sessionId },
+        },
+      };
+    }, { requestId });
+    return jsonOk(mutation.result, request);
+  } catch (error) {
+    return jsonError(asApiError(error, 'Could not save arcade progress.'), request);
   }
-
-  if (!body.sessionId?.trim()) {
-    return NextResponse.json({ error: 'Missing sessionId.' }, { status: 400 });
-  }
-
-  const result = applyArcadeSession(retention, body.modeId, {
-    sessionId: body.sessionId,
-    score: body.score,
-    completed: body.completed,
-    completeDailyChallenge: body.completeDailyChallenge,
-  });
-
-  const sessionRewards = {
-    berries: result.rewardBerries,
-    experience: result.rewardExperience,
-  };
-
-  if (result.duplicate) {
-    return NextResponse.json({
-      ok: true,
-      duplicate: true,
-      dailyRewardClaimed: false,
-      retention: result.retention,
-      rewards: {
-        session: sessionRewards,
-        dailyReward: { berries: 0, experience: 0 },
-        total: sessionRewards,
-      },
-    });
-  }
-
-  const dailyRewardResult = claimDailyReward(result.retention);
-  const totalRewards = {
-    berries: sessionRewards.berries + dailyRewardResult.rewardBerries,
-    experience: sessionRewards.experience + dailyRewardResult.rewardExperience,
-  };
-
-  await updateDocument('users', user.uid, {
-    retention: dailyRewardResult.retention,
-    updatedAt: new Date().toISOString(),
-  });
-  await awardPlayerProgress(user.uid, totalRewards);
-
-  return NextResponse.json({
-    ok: true,
-    duplicate: false,
-    dailyRewardClaimed: dailyRewardResult.claimed,
-    retention: dailyRewardResult.retention,
-    rewards: {
-      session: sessionRewards,
-      dailyReward: {
-        berries: dailyRewardResult.rewardBerries,
-        experience: dailyRewardResult.rewardExperience,
-      },
-      total: totalRewards,
-    },
-  });
 }

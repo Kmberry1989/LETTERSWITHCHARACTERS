@@ -70,3 +70,24 @@ Implementation:
   - Pinch-out changed zoom from 1.0 to 0.727; pinch-in reached the bounded 1.32 maximum.
   - A full Drop cycle still settled after the camera gestures.
   - Desktop and mobile screenshots were opened and inspected; prizes remain visible above the balls and the chute remains clear.
+
+---
+
+Current prompt: Disable audio tone generator in favor of .ogg files for BGM.
+
+Progress:
+- Removed the Web Audio oscillator BGM fallback from `MusicPlayer`; route-based background music now always selects one of the bundled `.ogg` loops.
+- Kept synthesized SFX fallback behavior unchanged because the request is limited to BGM.
+- Validation: `npm run typecheck` and `git diff --check` pass. Browser smoke on `/minigames/word-search` fetched `arcade-loop.ogg` after a user gesture with no console errors; the local asset endpoint responds `200` as `audio/ogg`.
+
+---
+
+Current prompt: Implement the ranked release-safety and maintainability roadmap.
+
+Implementation:
+- Added shared Zod request contracts, request IDs, standardized success/error envelopes, same-origin mutation checks, and process-local rate limiting for auth, arcade validation, retention, shop, and crane APIs.
+- Added an atomic `economy_transactions` Prisma model with per-user idempotency keys and integrated crane token purchase/consumption/settlement, shop purchases, daily rewards, and arcade session rewards.
+- Hardened local sessions with rotation, expiry cleanup, secure cookie attributes, and all-session revocation through `DELETE /api/auth/session?all=1`.
+- Added Vitest unit coverage for arcade rules, retention idempotency, crane normalization/stock, and API schemas; added Playwright desktop/mobile smoke coverage for all eight mini-games and the crane deterministic hook.
+- Improved the arcade index with controls, difficulty, rewards, descriptions, reduced-motion support, keyboard-accessible crane joystick, lazy-loaded crane code, production docs, and environment/security notes.
+- Verification: `npm run test:all`, `npm run test:e2e`, and `git diff --check` pass. Lint/build retain only the repository's existing hook/font warnings.

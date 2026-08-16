@@ -1,4 +1,3 @@
-import { NextResponse } from 'next/server';
 import {
   CLAW_TOKEN_COST,
   CLAW_PRIZE_BY_ID,
@@ -19,6 +18,8 @@ import {
   toDocumentStoreError,
   type JsonRecord,
 } from '@/lib/server/document-store';
+import { ApiRequestError, assertSameOrigin, asApiError, enforceRateLimit, jsonError, jsonOk, parseJson } from '@/lib/server/api';
+import { clawRequestSchema } from '@/lib/server/request-schemas';
 
 export const dynamic = 'force-dynamic';
 
@@ -58,47 +59,41 @@ function makeState(profile: JsonRecord) {
   };
 }
 
-function responseError(error: unknown) {
+function responseError(error: unknown, request?: Request) {
   if (error instanceof ClawRequestError) {
-    return NextResponse.json({ error: error.message }, { status: error.status });
+    return jsonError(new ApiRequestError('CLAW_REQUEST_FAILED', error.message, error.status), request);
   }
   const normalized = toDocumentStoreError(error, 'The prize crane could not reach player storage.');
-  const status =
-    'status' in normalized && typeof normalized.status === 'number'
-      ? normalized.status
-      : normalized.message.includes('does not exist')
-        ? 404
-        : 500;
-  return NextResponse.json({ error: normalized.message }, { status });
+  return jsonError(asApiError(normalized, normalized.message), request);
 }
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return jsonError(new ApiRequestError('UNAUTHORIZED', 'Unauthorized', 401), request);
     }
     const profile = await getDocument<JsonRecord>('users', user.uid);
     if (!profile) {
-      return NextResponse.json({ error: 'Profile not found.' }, { status: 404 });
+      return jsonError(new ApiRequestError('PROFILE_NOT_FOUND', 'Profile not found.', 404), request);
     }
-    return NextResponse.json({ state: makeState(profile) });
+    return jsonOk({ state: makeState(profile) }, request);
   } catch (error) {
-    return responseError(error);
+    return responseError(error, request);
   }
 }
 
 export async function POST(request: Request) {
   try {
+    assertSameOrigin(request);
+    enforceRateLimit(request, 'claw-crane', 30, 60_000);
     const user = await getCurrentUser();
     if (!user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      return jsonError(new ApiRequestError('UNAUTHORIZED', 'Unauthorized', 401), request);
     }
-    const body = await request.json().catch(() => null);
-    const action = String(body?.action || '');
-    if (!action) {
-      throw new ClawRequestError('Missing action.', 400);
-    }
+    const body = await parseJson(request, clawRequestSchema);
+    const mutationRequestId = body.requestId || crypto.randomUUID();
+    const action = body.action;
 
     if (action === 'purchase-token' || action === 'purchase-credit') {
       const mutation = await mutateDocumentAtomically('users', user.uid, (profile) => {
@@ -117,10 +112,18 @@ export async function POST(request: Request) {
             clawTokens: claw.clawTokens + 1,
             updatedAt: new Date().toISOString(),
           },
-          result: { purchased: true },
-        };
-      });
-      return NextResponse.json({ ...mutation.result, state: makeState(mutation.document) });
+            result: { purchased: true },
+            ledger: {
+              requestId: mutationRequestId,
+              kind: 'claw-token-purchase',
+              currency: 'berries',
+              amount: -CLAW_TOKEN_COST,
+              balanceAfter: cosmetics.berries - CLAW_TOKEN_COST,
+              metadata: { tokensAdded: 1 },
+            },
+          };
+      }, { requestId: mutationRequestId });
+      return jsonOk({ ...mutation.result, state: makeState(mutation.document) }, request);
     }
 
     if (action === 'start-play') {
@@ -159,9 +162,17 @@ export async function POST(request: Request) {
             updatedAt: new Date().toISOString(),
           },
           result: { resumed: false, play },
+          ledger: {
+            requestId: mutationRequestId,
+            kind: 'claw-token-consumption',
+            currency: 'clawTokens',
+            amount: -1,
+            balanceAfter: claw.clawTokens - 1,
+            metadata: { playId: play.id },
+          },
         };
-      });
-      return NextResponse.json({ ...mutation.result, state: makeState(mutation.document) });
+      }, { requestId: mutationRequestId });
+      return jsonOk({ ...mutation.result, state: makeState(mutation.document) }, request);
     }
 
     if (action === 'settle-play') {
@@ -244,13 +255,21 @@ export async function POST(request: Request) {
               experience: rewardExperience,
             },
           },
+          ledger: {
+            requestId: mutationRequestId,
+            kind: wonPrizeId ? 'claw-prize-reward' : 'claw-play-settlement',
+            currency: 'berries',
+            amount: rewardBerries,
+            balanceAfter: cosmetics.berries + rewardBerries,
+            metadata: { playId: play.id, wonPrizeId },
+          },
         };
-      });
-      return NextResponse.json({ ...mutation.result, state: makeState(mutation.document) });
+      }, { requestId: mutationRequestId });
+      return jsonOk({ ...mutation.result, state: makeState(mutation.document) }, request);
     }
 
     throw new ClawRequestError('Unknown action.', 400);
   } catch (error) {
-    return responseError(error);
+    return responseError(error, request);
   }
 }

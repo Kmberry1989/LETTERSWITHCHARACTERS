@@ -87,6 +87,10 @@ export const MODE_METADATA: Record<
     href: string;
     accent: string;
     iconPath: string;
+    description: string;
+    controls: string;
+    difficulty: 'Easy' | 'Medium' | 'Hard';
+    reward: string;
   }
 > = {
   'word-duel': {
@@ -94,54 +98,72 @@ export const MODE_METADATA: Record<
     href: '/dashboard',
     accent: 'from-amber-200 via-orange-100 to-rose-100',
     iconPath: '/arcade-icons/word-duel.png',
+    description: 'Play the main word game against another player.',
+    controls: 'Tap or drag tiles', difficulty: 'Medium', reward: 'Match rewards',
   },
   'word-search': {
     title: 'Word Search',
     href: '/minigames/word-search',
     accent: 'from-sky-200 via-cyan-100 to-emerald-100',
     iconPath: '/arcade-icons/word-search.png',
+    description: 'Trace every hidden word in the letter grid.',
+    controls: 'Drag across letters', difficulty: 'Easy', reward: 'Up to 45 berries',
   },
   'five-in-six': {
     title: '5 in 6',
     href: '/minigames/5-in-6',
     accent: 'from-emerald-200 via-lime-100 to-slate-100',
     iconPath: '/arcade-icons/five-in-six.png',
+    description: 'Find the five-letter answer in six guesses.',
+    controls: 'Tap the keyboard', difficulty: 'Medium', reward: 'Up to 45 berries',
   },
   'word-connect': {
     title: 'Word Connect',
     href: '/minigames/word-connect',
     accent: 'from-fuchsia-200 via-rose-100 to-orange-100',
     iconPath: '/arcade-icons/word-connect.png',
+    description: 'Connect letters into as many valid words as you can.',
+    controls: 'Swipe between letters', difficulty: 'Easy', reward: 'Up to 45 berries',
   },
   'liquid-sort': {
     title: 'Liquid Sort',
     href: '/minigames/liquid-sort',
     accent: 'from-cyan-200 via-sky-100 to-indigo-100',
     iconPath: '/arcade-icons/liquid-sort.png',
+    description: 'Pour matching colors together until every tube is sorted.',
+    controls: 'Tap two tubes', difficulty: 'Medium', reward: 'Up to 45 berries',
   },
   'match-sort': {
     title: 'Goods Sort',
     href: '/minigames/match-sort',
     accent: 'from-amber-200 via-yellow-100 to-orange-100',
     iconPath: '/arcade-icons/goods-sort.png',
+    description: 'Move each object to its matching shelf.',
+    controls: 'Tap an item, then a shelf', difficulty: 'Easy', reward: 'Up to 45 berries',
   },
   solitaire: {
     title: 'Solitaire Sprint',
     href: '/minigames/solitaire',
     accent: 'from-violet-200 via-purple-100 to-pink-100',
     iconPath: '/arcade-icons/solitaire.png',
+    description: 'Build the foundations before the sprint runs out.',
+    controls: 'Tap cards and stock', difficulty: 'Hard', reward: 'Up to 45 berries',
   },
   wheel: {
     title: 'Wheel',
     href: '/minigames/wheel',
     accent: 'from-emerald-200 via-lime-100 to-yellow-100',
     iconPath: '/arcade-icons/wheel.png',
+    description: 'Flick the wheel, guess letters, and solve the phrase.',
+    controls: 'Flick and tap', difficulty: 'Medium', reward: 'Up to 45 berries',
   },
   'claw-crane': {
     title: 'Claw Crane',
     href: '/minigames/claw-crane',
     accent: 'from-rose-200 via-amber-100 to-sky-100',
     iconPath: '/arcade-icons/claw-crane.svg',
+    description: 'Guide the claw to collect characters for your cabinet.',
+    controls: 'Joystick, WASD, or touch', difficulty: 'Hard', reward: '25 berries per token',
   },
 };
 

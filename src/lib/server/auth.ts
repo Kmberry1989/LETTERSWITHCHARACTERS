@@ -100,6 +100,14 @@ export function makeUser(overrides: Partial<AppUser> & Pick<AppUser, 'uid'>): Ap
 }
 
 export async function createSession(user: AppUser) {
+  await prisma.appSession.deleteMany({
+    where: {
+      OR: [
+        { expiresAt: { lt: new Date() } },
+        { userId: user.uid },
+      ],
+    },
+  });
   const token = crypto.randomUUID();
   const expiresAt = sessionExpiry();
 
@@ -118,6 +126,8 @@ export async function createSession(user: AppUser) {
     secure: process.env.NODE_ENV === 'production',
     path: '/',
     expires: expiresAt,
+    maxAge: SESSION_DAYS * 24 * 60 * 60,
+    priority: 'high',
   });
 
   return token;
@@ -332,4 +342,11 @@ export async function destroySession() {
     }
     throw error;
   }
+}
+
+export async function revokeAllSessions(userId: string) {
+  if (!userId) return;
+  await prisma.appSession.deleteMany({ where: { userId } });
+  const cookieStore = await cookies();
+  cookieStore.delete(SESSION_COOKIE);
 }

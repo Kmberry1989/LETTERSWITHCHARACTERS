@@ -10,6 +10,15 @@ type AppDocumentRow = {
   updatedAt?: Date;
 };
 
+export type EconomyLedgerMutation = {
+  requestId: string;
+  kind: string;
+  currency: string;
+  amount: number;
+  balanceAfter?: number;
+  metadata?: JsonRecord;
+};
+
 export class DocumentStoreUnavailableError extends Error {
   status = 503 as const;
 
@@ -184,7 +193,12 @@ export async function updateDocument(collection: string, documentId: string, pat
 export async function mutateDocumentAtomically<T = JsonRecord>(
   collection: string,
   documentId: string,
-  mutate: (document: JsonRecord & { id: string }) => { patch: JsonRecord; result: T }
+  mutate: (document: JsonRecord & { id: string }) => {
+    patch: JsonRecord;
+    result: T;
+    ledger?: EconomyLedgerMutation;
+  },
+  options?: { requestId?: string }
 ) {
   const maxAttempts = 3;
 
@@ -212,6 +226,23 @@ export async function mutateDocumentAtomically<T = JsonRecord>(
             throw new Error(`${collection}/${documentId} does not exist.`);
           }
 
+          if (options?.requestId) {
+            const existingLedger = await transaction.economyTransaction.findUnique({
+              where: {
+                userId_requestId: {
+                  userId: documentId,
+                  requestId: options.requestId,
+                },
+              },
+            });
+            if (existingLedger) {
+              return {
+                document,
+                result: existingLedger.result as T,
+                replayed: true,
+              };
+            }
+          }
           const mutation = mutate(document);
           const nextData = serializeDocumentRecord(applyDottedPatch(document, mutation.patch));
           const saved = await transaction.appDocument.update({
@@ -232,9 +263,25 @@ export async function mutateDocumentAtomically<T = JsonRecord>(
             },
           });
 
+          if (mutation.ledger) {
+            await transaction.economyTransaction.create({
+              data: {
+                userId: documentId,
+                requestId: mutation.ledger.requestId,
+                kind: mutation.ledger.kind,
+                currency: mutation.ledger.currency,
+                amount: mutation.ledger.amount,
+                balanceAfter: mutation.ledger.balanceAfter,
+                result: serializeForJson(mutation.result),
+                metadata: mutation.ledger.metadata ? serializeForJson(mutation.ledger.metadata) : undefined,
+              },
+            });
+          }
+
           return {
             document: mapDocumentRow(saved as AppDocumentRow)!,
             result: mutation.result,
+            replayed: false,
           };
         },
         { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
