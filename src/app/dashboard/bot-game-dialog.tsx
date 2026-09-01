@@ -22,7 +22,7 @@ import {
 import { Label } from "@/components/ui/label"
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { addDoc, collection, doc, getDoc, updateDoc } from '@/lib/client/document-client';
+import { addDoc, collection, doc, getDoc } from '@/lib/client/document-client';
 import { createTileBag, drawTiles } from '@/lib/game-logic';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
@@ -132,12 +132,6 @@ export function BotGameDialog({ disabled, existingGames, children }: BotGameDial
         try {
             const gamesCol = collection(null, 'games');
             const gameDocRef = await addDoc(gamesCol, newGame);
-
-            // Now update the user's profile with the new game ID
-            const nextGameIds = Array.from(new Set([...(userProfile.gameIds || []), gameDocRef.id]));
-            await updateDoc(userDocRef, {
-                gameIds: nextGameIds,
-            });
 
             toast({
                 title: "Game created!",
