@@ -132,7 +132,7 @@ export async function POST(
           data: {
             collection: 'games',
             documentId: gameId,
-            data: serializeForJson(gameData),
+            data: serializeForJson(gameData) as unknown as Prisma.InputJsonValue,
           },
         });
 
