@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { useUser } from '../provider';
 import { collection } from '@/lib/client/document-client';
 import { useCollection } from './use-collection';
 import type { PlayerStats } from '@/lib/player-stats';
@@ -47,7 +48,8 @@ export interface UserProfile {
 }
 
 export function useUsers() {
-  const usersCollectionRef = useMemo(() => collection(null, 'users'), []);
+  const { user } = useUser();
+  const usersCollectionRef = useMemo(() => user?.uid ? collection(null, 'users') : null, [user?.uid]);
   const { data, isLoading, error } = useCollection<UserProfile>(usersCollectionRef);
 
   return {

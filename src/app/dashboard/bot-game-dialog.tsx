@@ -22,12 +22,8 @@ import {
 import { Label } from "@/components/ui/label"
 import { useUser } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { addDoc, collection, doc, getDoc, updateDoc } from '@/lib/client/document-client';
-import { createTileBag, drawTiles } from '@/lib/game-logic';
 import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
-import type { UserProfile } from '@/firebase/firestore/use-users';
-import { normalizeUserCosmetics } from '@/lib/user-profile';
 
 interface BotGameDialogProps {
     disabled?: boolean;
@@ -74,70 +70,14 @@ export function BotGameDialog({ disabled, existingGames, children }: BotGameDial
             return;
         }
 
-        const userDocRef = doc(null, 'users', user.uid);
-        const userDocSnap = await getDoc(userDocRef);
-        const userProfile = userDocSnap.data() as UserProfile | undefined;
-
-        if (!userProfile) {
-            toast({
-                variant: "destructive",
-                title: "Could not start game",
-                description: "Your user profile could not be found.",
-            });
-            setIsCreating(false);
-            return;
-        }
-
-        const userCosmetics = normalizeUserCosmetics(userProfile);
-
-        let tileBag = createTileBag();
-        const [player1Tiles, tileBagAfterP1] = drawTiles(tileBag, 7);
-        const [player2Tiles, finalTileBag] = drawTiles(tileBagAfterP1, 7);
-        tileBag = finalTileBag;
-
-
-        const newGame = {
-            players: [user.uid, opponent.uid],
-            playerData: {
-                [user.uid]: {
-                    displayName: userProfile.displayName || 'You',
-                    score: 0,
-                    avatarId: userProfile.avatarId || 'user-1',
-                    photoURL: userProfile.photoURL || null,
-                    avatarPresetId: userProfile.avatarPresetId || null,
-                    avatarPosterUrl: userProfile.avatarPosterUrl || null,
-                    equippedTileSetId: userCosmetics.equippedTileSetId,
-                    tiles: player1Tiles,
-                },
-                [opponent.uid]: {
-                    displayName: opponent.displayName,
-                    score: 0,
-                    avatarId: opponent.avatarId,
-                    photoURL: null,
-                    avatarPresetId: 'ember-scribe',
-                    avatarPosterUrl: opponent.avatarPosterUrl,
-                    equippedTileSetId: 'tile-minimalist',
-                    tiles: player2Tiles,
-                }
-            },
-            board: {},
-            tileBag: tileBag,
-            currentTurn: user.uid,
-            status: 'active',
-            consecutivePasses: 0,
-            messages: [],
-            difficulty: selectedDifficulty,
-        };
-
         try {
-            const gamesCol = collection(null, 'games');
-            const gameDocRef = await addDoc(gamesCol, newGame);
-
-            // Now update the user's profile with the new game ID
-            const nextGameIds = Array.from(new Set([...(userProfile.gameIds || []), gameDocRef.id]));
-            await updateDoc(userDocRef, {
-                gameIds: nextGameIds,
+            const response = await fetch('/api/games/bot', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ difficulty: selectedDifficulty }),
             });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'Could not create game.');
 
             toast({
                 title: "Game created!",
@@ -145,7 +85,7 @@ export function BotGameDialog({ disabled, existingGames, children }: BotGameDial
             });
             setIsOpen(false);
             // Redirect or let the dashboard update
-            window.location.href = `/game?game=${gameDocRef.id}`;
+            window.location.href = `/game?game=${result.gameId}`;
 
         } catch (error: any) {
             console.error("Error creating bot game:", error);
@@ -153,7 +93,7 @@ export function BotGameDialog({ disabled, existingGames, children }: BotGameDial
             const permissionError = new FirestorePermissionError({
                 path: 'games or users',
                 operation: 'create',
-                requestResourceData: newGame,
+                requestResourceData: { difficulty: selectedDifficulty },
                 user,
             } satisfies SecurityRuleContext);
             errorEmitter.emit('permission-error', permissionError);

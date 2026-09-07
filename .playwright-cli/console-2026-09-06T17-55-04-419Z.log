@@ -1,0 +1,5 @@
+[     432ms] [WARNING] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio @ http://127.0.0.1:9012/_next/static/chunks/1720-7ac45adb78f6a82a.js:0
+[     447ms] [WARNING] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio @ http://127.0.0.1:9012/_next/static/chunks/1720-7ac45adb78f6a82a.js:0
+[     643ms] [WARNING] The AudioContext was not allowed to start. It must be resumed (or created) after a user gesture on the page. https://developer.chrome.com/blog/autoplay/#web_audio @ http://127.0.0.1:9012/_next/static/chunks/1720-7ac45adb78f6a82a.js:0
+[     659ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://127.0.0.1:9012/api/documents/users?:0
+[   54790ms] Failed to set the 'volume' property on 'HTMLMediaElement': The volume provided (-0.000275) is outside the range [0, 1].

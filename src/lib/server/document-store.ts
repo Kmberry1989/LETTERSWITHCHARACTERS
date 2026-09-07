@@ -97,7 +97,7 @@ function serializeDocumentRecord(value: JsonRecord): JsonRecord {
 
 function mapDocumentRow<T = JsonRecord>(row: AppDocumentRow | null) {
   if (!row) return null;
-  return { id: row.documentId, ...(row.data as T) } as T & { id: string };
+  return { ...(row.data as T), id: row.documentId } as T & { id: string };
 }
 
 export async function getDocument<T = JsonRecord>(collection: string, documentId: string) {
@@ -312,11 +312,12 @@ export async function addDocument(collection: string, data: JsonRecord) {
   return setDocument(collection, documentId, data, false);
 }
 
-export async function listDocuments<T = JsonRecord>(collection: string, options?: { limit?: number; orderBy?: string; direction?: 'asc' | 'desc' }) {
+export async function listDocuments<T = JsonRecord>(collection: string, options?: { limit?: number; orderBy?: string; direction?: 'asc' | 'desc'; participant?: { field: 'players' | 'participantIds'; uid: string } }) {
   try {
     const data = await prisma.appDocument.findMany({
       where: {
         collection,
+        ...(options?.participant ? { data: { path: [options.participant.field], array_contains: [options.participant.uid] } } : {}),
       },
       orderBy: {
         updatedAt: options?.direction === 'asc' ? 'asc' : 'desc',

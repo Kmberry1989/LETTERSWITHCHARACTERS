@@ -161,7 +161,7 @@ async function getUserByLocalSessionToken(token?: string | null): Promise<AppUse
   }
 
   return {
-    uid: profile.uid || session.userId,
+    uid: session.userId,
     email: profile.email || null,
     displayName: profile.displayName || profile.email || 'Player',
     photoURL: profile.photoURL || null,
@@ -246,7 +246,7 @@ async function hydrateUserFromAuthUser(authUser: SupabaseAuthUser, accessToken?:
   const profile = await upsertUserProfile(baseUser);
 
   return {
-    uid: profile.uid || authUser.id,
+    uid: authUser.id,
     email: profile.email ?? email,
     displayName: profile.displayName || baseUser.displayName || 'Player',
     photoURL: profile.photoURL || baseUser.photoURL || null,
