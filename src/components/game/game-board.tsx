@@ -88,7 +88,7 @@ function Cell({
         ) : isMultiplier ? (
           <div className="flex items-center justify-center">
             <span
-              className="text-[0.5rem] font-black tracking-[0.12em] text-[color:inherit] min-[420px]:text-[0.68rem] sm:text-[0.9rem] sm:tracking-[0.18em]"
+              className="text-[0.45rem] font-black tracking-widest text-[color:inherit] min-[420px]:text-[0.55rem] sm:text-[0.65rem] md:text-[0.75rem] whitespace-nowrap"
               style={{ textShadow: 'var(--board-cell-text-shadow)' }}
             >
               {type}

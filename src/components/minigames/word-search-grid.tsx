@@ -2,11 +2,8 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { RefreshCcw } from 'lucide-react';
-import { GameScreen } from '@/components/game-screen';
+import { GameModeHeader, GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { useAudio } from '@/hooks/use-audio';
 import { createArcadeSessionId } from '@/lib/arcade/session-id';
 import { cn } from '@/lib/utils';
@@ -265,16 +262,8 @@ export default function WordSearchGrid() {
   return (
     <GameScreen>
       <div className="flex min-h-0 flex-1 flex-col gap-2 rounded-[1.4rem] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(239,246,255,0.94))] p-2 shadow-[0_20px_55px_rgba(14,165,233,0.08)] md:gap-4 md:p-5">
-        <div className="ml-11 flex min-h-10 items-center justify-end gap-2 md:ml-0 md:justify-between">
-          <Badge variant="secondary" className="rounded-full px-3 py-1">
-            {foundWords.length}/{puzzle.words.length}
-          </Badge>
-          <Button variant="outline" size="icon" className="rounded-full md:w-auto md:px-4" onClick={() => void loadPuzzle()} aria-label="New grid">
-            <RefreshCcw className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">New Grid</span>
-          </Button>
-          {allFound ? <ArcadeSessionStatus sessionId={sessionId} modeId="word-search" score={80} /> : null}
-        </div>
+        <GameModeHeader modeId="word-search" statLabel="Words found" statValue={`${foundWords.length}/${puzzle.words.length}`} onRestart={() => void loadPuzzle()} hasProgress={foundWords.length > 0} />
+        {allFound ? <ArcadeSessionStatus sessionId={sessionId} modeId="word-search" score={80} outcome="completed" onPlayAgain={() => void loadPuzzle()} /> : null}
         <div className="grid min-h-0 flex-1 min-w-0 grid-rows-[auto_1fr] content-start gap-2 md:grid-cols-[minmax(0,1fr),220px] md:grid-rows-1 md:gap-6">
         <div className="mx-auto flex min-h-0 w-full max-w-[min(100%,calc(100svh-7rem))] min-w-0 items-start md:max-w-[27rem]">
           <div

@@ -14,6 +14,28 @@ export const RETENTION_MODES = [
 
 export type RetentionModeId = (typeof RETENTION_MODES)[number];
 
+export type GameModeCategory = 'word-games' | 'puzzle-shelf' | 'prize-corner';
+export type GameSessionOutcome = 'won' | 'lost' | 'completed' | 'abandoned';
+
+export type GameModeDefinition = {
+  id: RetentionModeId;
+  title: string;
+  shortTitle: string;
+  href: string;
+  category: GameModeCategory;
+  objective: string;
+  instructions: string;
+  accessibilityInstructions: string;
+  scoreLabel: string;
+  completionRule: string;
+  accent: string;
+  iconPath: string;
+  description: string;
+  controls: string;
+  difficulty: 'Easy' | 'Medium' | 'Hard';
+  reward: string;
+};
+
 export type QuestDefinition = {
   id: string;
   title: string;
@@ -80,90 +102,150 @@ export const DEFAULT_RETENTION_STATE: RetentionState = {
   },
 };
 
-export const MODE_METADATA: Record<
-  RetentionModeId,
-  {
-    title: string;
-    href: string;
-    accent: string;
-    iconPath: string;
-    description: string;
-    controls: string;
-    difficulty: 'Easy' | 'Medium' | 'Hard';
-    reward: string;
-  }
-> = {
+export const MODE_METADATA: Record<RetentionModeId, GameModeDefinition> = {
   'word-duel': {
+    id: 'word-duel',
     title: 'Word Duel',
+    shortTitle: 'Duels',
     href: '/dashboard',
+    category: 'word-games',
+    objective: 'Outscore your opponent by building connected words on the shared board.',
+    instructions: 'Place tiles in one row or column, connect to the existing word, then submit your turn.',
+    accessibilityInstructions: 'Select rack tiles and board spaces with the keyboard or pointer. Turn status and scoring updates are announced.',
+    scoreLabel: 'Match score',
+    completionRule: 'The duel ends when the tile bag and a rack are empty, or both players pass.',
     accent: 'from-amber-200 via-orange-100 to-rose-100',
     iconPath: '/arcade-icons/word-duel.png',
     description: 'Play the main word game against another player.',
     controls: 'Tap or drag tiles', difficulty: 'Medium', reward: 'Match rewards',
   },
   'word-search': {
+    id: 'word-search',
     title: 'Word Search',
+    shortTitle: 'Search',
     href: '/minigames/word-search',
+    category: 'word-games',
+    objective: 'Find every hidden word in the letter grid.',
+    instructions: 'Drag in a straight line across letters. Words may run in either direction.',
+    accessibilityInstructions: 'Use pointer drag to trace a word. The word list and found count update after each selection.',
+    scoreLabel: 'Words found',
+    completionRule: 'Find all five listed words.',
     accent: 'from-sky-200 via-cyan-100 to-emerald-100',
     iconPath: '/arcade-icons/word-search.png',
     description: 'Trace every hidden word in the letter grid.',
-    controls: 'Drag across letters', difficulty: 'Easy', reward: 'Up to 45 berries',
+    controls: 'Drag across letters', difficulty: 'Easy', reward: 'Clear rewards + daily bonuses',
   },
   'five-in-six': {
+    id: 'five-in-six',
     title: '5 in 6',
+    shortTitle: '5 in 6',
     href: '/minigames/5-in-6',
+    category: 'word-games',
+    objective: 'Guess the hidden five-letter word in six attempts.',
+    instructions: 'Enter a valid word. Green letters are correct, amber letters belong elsewhere, and gray letters are absent.',
+    accessibilityInstructions: 'Use the physical or on-screen keyboard. Letter feedback is exposed through text and color.',
+    scoreLabel: 'Guesses',
+    completionRule: 'Solve the word before the sixth guess is exhausted.',
     accent: 'from-emerald-200 via-lime-100 to-slate-100',
     iconPath: '/arcade-icons/five-in-six.png',
     description: 'Find the five-letter answer in six guesses.',
-    controls: 'Tap the keyboard', difficulty: 'Medium', reward: 'Up to 45 berries',
+    controls: 'Keyboard or tap', difficulty: 'Medium', reward: 'Participation on loss; clear bonus on win',
   },
   'word-connect': {
+    id: 'word-connect',
     title: 'Word Connect',
+    shortTitle: 'Connect',
     href: '/minigames/word-connect',
+    category: 'word-games',
+    objective: 'Build enough valid words from the letter wheel.',
+    instructions: 'Select adjacent letters in sequence, then submit the completed word.',
+    accessibilityInstructions: 'Letters are individual buttons and the current word is announced as it changes.',
+    scoreLabel: 'Words found',
+    completionRule: 'Discover the target number of accepted words.',
     accent: 'from-fuchsia-200 via-rose-100 to-orange-100',
     iconPath: '/arcade-icons/word-connect.png',
     description: 'Connect letters into as many valid words as you can.',
-    controls: 'Swipe between letters', difficulty: 'Easy', reward: 'Up to 45 berries',
+    controls: 'Tap letters', difficulty: 'Easy', reward: 'Clear rewards + daily bonuses',
   },
   'liquid-sort': {
+    id: 'liquid-sort',
     title: 'Liquid Sort',
+    shortTitle: 'Liquid Sort',
     href: '/minigames/liquid-sort',
+    category: 'puzzle-shelf',
+    objective: 'Sort the story inks so every filled vial holds one color.',
+    instructions: 'Choose a vial, then choose an empty vial or one topped with the same color.',
+    accessibilityInstructions: 'Every vial is a labeled button. Selection and invalid pours are announced.',
+    scoreLabel: 'Moves',
+    completionRule: 'Fill each non-empty vial with four matching ink layers.',
     accent: 'from-cyan-200 via-sky-100 to-indigo-100',
     iconPath: '/arcade-icons/liquid-sort.png',
     description: 'Pour matching colors together until every tube is sorted.',
-    controls: 'Tap two tubes', difficulty: 'Medium', reward: 'Up to 45 berries',
+    controls: 'Tap two vials', difficulty: 'Medium', reward: 'Clear rewards + daily bonuses',
   },
   'match-sort': {
+    id: 'match-sort',
     title: 'Goods Sort',
+    shortTitle: 'Goods Sort',
     href: '/minigames/match-sort',
+    category: 'puzzle-shelf',
+    objective: 'Return every character parcel to its matching story shelf.',
+    instructions: 'Select a parcel from the tray, then select the shelf with the same character.',
+    accessibilityInstructions: 'Parcels and shelves are labeled buttons. Correct placement and errors are announced.',
+    scoreLabel: 'Parcels sorted',
+    completionRule: 'Place all twelve parcels on their matching shelves.',
     accent: 'from-amber-200 via-yellow-100 to-orange-100',
     iconPath: '/arcade-icons/goods-sort.png',
     description: 'Move each object to its matching shelf.',
-    controls: 'Tap an item, then a shelf', difficulty: 'Easy', reward: 'Up to 45 berries',
+    controls: 'Tap parcel, then shelf', difficulty: 'Easy', reward: 'Clear rewards + daily bonuses',
   },
   solitaire: {
+    id: 'solitaire',
     title: 'Solitaire Sprint',
+    shortTitle: 'Solitaire',
     href: '/minigames/solitaire',
+    category: 'puzzle-shelf',
+    objective: 'Restore the four storybook suits before the sprint ends.',
+    instructions: 'Build downward in alternating colors and move aces upward to their matching foundations.',
+    accessibilityInstructions: 'Cards identify rank, suit, and location. Select a card, then its destination.',
+    scoreLabel: 'Score',
+    completionRule: 'Build every foundation through rank four.',
     accent: 'from-violet-200 via-purple-100 to-pink-100',
     iconPath: '/arcade-icons/solitaire.png',
     description: 'Build the foundations before the sprint runs out.',
-    controls: 'Tap cards and stock', difficulty: 'Hard', reward: 'Up to 45 berries',
+    controls: 'Tap cards and stock', difficulty: 'Hard', reward: 'Clear rewards + daily bonuses',
   },
   wheel: {
+    id: 'wheel',
     title: 'Wheel',
+    shortTitle: 'Story Wheel',
     href: '/minigames/wheel',
+    category: 'word-games',
+    objective: 'Reveal and solve the hidden storybook phrase.',
+    instructions: 'Spin for a value, choose consonants, buy vowels, or solve the complete phrase.',
+    accessibilityInstructions: 'The wheel is a button; its result, bank, guessed letters, and phrase state are announced.',
+    scoreLabel: 'Bank',
+    completionRule: 'Enter the complete phrase correctly.',
     accent: 'from-emerald-200 via-lime-100 to-yellow-100',
     iconPath: '/arcade-icons/wheel.png',
     description: 'Flick the wheel, guess letters, and solve the phrase.',
-    controls: 'Flick and tap', difficulty: 'Medium', reward: 'Up to 45 berries',
+    controls: 'Spin and tap', difficulty: 'Medium', reward: 'Clear rewards + daily bonuses',
   },
   'claw-crane': {
+    id: 'claw-crane',
     title: 'Claw Crane',
+    shortTitle: 'Prize Corner',
     href: '/minigames/claw-crane',
+    category: 'prize-corner',
+    objective: 'Guide the claw and bring a character prize to the chute.',
+    instructions: 'Move above a prize, then drop. Signed-in plays use one Claw Token.',
+    accessibilityInstructions: 'Use WASD or the labeled joystick to move, Space or Drop to play, and F for fullscreen.',
+    scoreLabel: 'Prizes caught',
+    completionRule: 'Deliver a character to the prize chute.',
     accent: 'from-rose-200 via-amber-100 to-sky-100',
     iconPath: '/arcade-icons/claw-crane.svg',
     description: 'Guide the claw to collect characters for your cabinet.',
-    controls: 'Joystick, WASD, or touch', difficulty: 'Hard', reward: '25 berries per token',
+    controls: 'Joystick, WASD, or touch', difficulty: 'Hard', reward: 'Claw Tokens cost 25 berries',
   },
 };
 
@@ -173,6 +255,18 @@ const DAILY_ROTATION: Array<{
   description: string;
   targetLabel: string;
 }> = [
+  {
+    modeId: 'word-duel',
+    title: 'Friendly Rivalry',
+    description: 'Finish a Word Duel and keep the clubhouse story moving.',
+    targetLabel: 'Complete 1 Word Duel',
+  },
+  {
+    modeId: 'five-in-six',
+    title: 'Six-Guess Secret',
+    description: 'Crack the hidden five-letter word before the last row.',
+    targetLabel: 'Solve the featured word',
+  },
   {
     modeId: 'word-search',
     title: 'Morning Grid',
@@ -237,6 +331,16 @@ const QUEST_ROTATION: QuestDefinition[][] = [
     defineQuest('q-any-session', 'Daily Warmup', 'Play any 2 sessions across the arcade.', 'any', 2, 20, 30),
     defineQuest('q-wheel', 'Lucky Spin', 'Solve 1 wheel phrase.', 'wheel', 1, 25, 35),
     defineQuest('q-word-search', 'Grid Sweep', 'Finish 1 word-search board.', 'word-search', 1, 30, 45),
+  ],
+  [
+    defineQuest('q-any-session', 'Daily Warmup', 'Finish any 2 sessions across the suite.', 'any', 2, 20, 30),
+    defineQuest('q-five', 'Six-Guess Secret', 'Solve 1 Five in Six board.', 'five-in-six', 1, 25, 35),
+    defineQuest('q-duel', 'Clubhouse Match', 'Complete 1 Word Duel.', 'word-duel', 1, 30, 45),
+  ],
+  [
+    defineQuest('q-any-session', 'Puzzle Tour', 'Finish any 2 sessions across the suite.', 'any', 2, 20, 30),
+    defineQuest('q-solitaire', 'Suit Keeper', 'Clear 1 Solitaire Sprint.', 'solitaire', 1, 25, 35),
+    defineQuest('q-claw', 'Prize Corner', 'Complete 1 Claw Crane play.', 'claw-crane', 1, 30, 45),
   ],
 ];
 
@@ -445,7 +549,14 @@ export function rotateRetentionForToday(retention: RetentionState, today = new D
 export function applyArcadeSession(
   retentionValue: Partial<RetentionState> | null | undefined,
   modeId: RetentionModeId,
-  options?: { sessionId?: string; score?: number; completed?: boolean; completeDailyChallenge?: boolean; now?: Date }
+  options?: {
+    sessionId?: string;
+    score?: number;
+    outcome?: GameSessionOutcome;
+    completed?: boolean;
+    completeDailyChallenge?: boolean;
+    now?: Date;
+  }
 ) {
   const now = options?.now || new Date();
   const dayKey = getDayKey(now);
@@ -462,6 +573,16 @@ export function applyArcadeSession(
   }
 
   const dailyChallenge = getDailyChallenge(now);
+  const outcome = options?.outcome || (options?.completed ? 'completed' : 'abandoned');
+  const isClear = outcome === 'won' || outcome === 'completed';
+  if (outcome === 'abandoned') {
+    return {
+      duplicate: false,
+      retention,
+      rewardBerries: 0,
+      rewardExperience: 0,
+    };
+  }
   const nextModeProgress = {
     ...retention.modeProgress,
     [modeId]: {
@@ -497,7 +618,7 @@ export function applyArcadeSession(
   let rewardExperience = 12;
 
   const shouldCompleteDailyChallenge =
-    Boolean(options?.completeDailyChallenge ?? options?.completed) &&
+    Boolean(options?.completeDailyChallenge ?? isClear) &&
     dailyChallenge.modeId === modeId &&
     !retention.dailyChallengeCompletions.includes(dayKey);
 
@@ -517,7 +638,7 @@ export function applyArcadeSession(
     rewardExperience += dailyChallenge.rewardExperience;
   }
 
-  if (options?.completed) {
+  if (isClear) {
     rewardBerries += 6;
     rewardExperience += 10;
   }

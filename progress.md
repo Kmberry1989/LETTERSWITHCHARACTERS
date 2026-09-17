@@ -91,3 +91,28 @@ Implementation:
 - Added Vitest unit coverage for arcade rules, retention idempotency, crane normalization/stock, and API schemas; added Playwright desktop/mobile smoke coverage for all eight mini-games and the crane deterministic hook.
 - Improved the arcade index with controls, difficulty, rewards, descriptions, reduced-motion support, keyboard-accessible crane joystick, lazy-loaded crane code, production docs, and environment/security notes.
 - Verification: `npm run test:all`, `npm run test:e2e`, and `git diff --check` pass. Lint/build retain only the repository's existing hook/font warnings.
+
+---
+
+Current prompt: Implement the approved Cohesive Game Suite and Gameplay-Loop Upgrade.
+
+Implementation:
+- Added one canonical game-mode definition for Word Duel and all eight Arcade modes, including category, objective, rules, score label, completion rule, accessibility guidance, rewards, and stable routes.
+- Rebuilt the Arcade into Word Games, Puzzle Shelf, and Prize Corner shelves with full-card activation, daily markers, best score, last-played state, and a shared economy summary.
+- Added a shared play header and result panel with labeled counters, rules, sound state, guarded restart, outcome, rewards, personal best, quest progress, replay, next recommendation, and return-to-Arcade actions.
+- Rethemed Goods Sort with existing character tile art and story-shelf language while retaining its mechanics; the other puzzle modes now inherit the storybook host framing.
+- Fixed Five in Six exhausted boards to record a loss rather than a clear, while retaining explicitly labeled participation rewards.
+- Expanded daily and quest rotation coverage across every maintained mode, including Word Duel and Five in Six, and replaced misleading reward ceilings with actual reward composition language.
+- Added explicit won/lost/completed/abandoned session outcomes and normalized completion responses; abandoned sessions mint nothing and replayed session IDs remain idempotent.
+- Reconciled Word Duel completion, retention, balances, XP, quests, streaks, stats, and economy ledgers atomically. Bot-finished games now record the human result without rewarding the synthetic bot profile.
+- Clarified Word Duels navigation and home-base dashboard framing. Added live status announcements, semantic help, keyboard actions, reduced-motion-compatible framing, and play-surface-only touch behavior.
+- Preserved the pre-existing uncommitted game-board and tile-rack responsiveness edits unchanged.
+
+Validation:
+- `npm test`: 52 tests passed.
+- `npm run typecheck`: passed.
+- `npm run build`: passed before the final economy-source fix; repeated in the final validation pass.
+- `npm run lint`: 0 errors and 13 existing warnings.
+- `npm run test:e2e -- --workers=2`: all 18 desktop/mobile cases passed with installed Chrome.
+- The required web-game harness successfully interacted with Wheel; screenshots for Wheel and the categorized Arcade were visually inspected.
+- Live Supabase auth, two-user remote play, OAuth, production persistence, and production deployment remain outside this local verification run.

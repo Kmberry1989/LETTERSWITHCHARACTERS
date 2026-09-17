@@ -329,9 +329,9 @@ export default function ClawCraneGame() {
     <GameScreen className="max-w-[1500px]">
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden rounded-[1.35rem] border border-white/80 bg-[linear-gradient(155deg,#fffaf5,#ffe9ef_55%,#e8fbff)] p-2 shadow-[0_24px_70px_rgba(244,63,94,0.15)] md:gap-3 md:p-4">
         <div className="ml-11 flex min-h-10 shrink-0 items-center justify-end gap-1.5 md:ml-0 md:justify-between md:gap-3">
-          <div className="hidden min-w-0 md:block">
-            <div className="text-[0.65rem] font-black uppercase tracking-[0.24em] text-rose-500">Pick Me Up Prize Crane</div>
-            <div className="truncate text-sm font-semibold text-slate-700">{PHASE_LABELS[phase]}</div>
+          <div className="min-w-0 flex-1 md:block">
+            <h1 className="text-[0.65rem] font-black uppercase tracking-[0.24em] text-rose-500">Prize Corner · Claw Crane</h1>
+            <div className="hidden truncate text-sm font-semibold text-slate-700 sm:block">{PHASE_LABELS[phase]}</div>
           </div>
           <div className="flex items-center justify-end gap-1.5 md:gap-2">
             <Badge className="rounded-full bg-white/90 px-2.5 text-slate-800 hover:bg-white/90">

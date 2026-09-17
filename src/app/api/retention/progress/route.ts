@@ -5,6 +5,7 @@ import { getLevelForExperience } from '@/lib/tile-cosmetics';
 import {
   applyArcadeSession,
   claimDailyReward,
+  getNextActionHref,
   normalizeRetentionState,
 } from '@/lib/retention';
 import { ApiRequestError, assertSameOrigin, asApiError, enforceRateLimit, jsonError, jsonOk, parseJson } from '@/lib/server/api';
@@ -58,12 +59,32 @@ export async function POST(request: Request) {
         };
       }
 
+      const previousProgress = retention.modeProgress[body.modeId];
+      const previousQuests = new Map(retention.quests.map((quest) => [quest.id, quest.progress]));
       const result = applyArcadeSession(retention, body.modeId, {
         sessionId: body.sessionId,
         score: body.score,
+        outcome: body.outcome,
         completed: body.completed,
         completeDailyChallenge: body.completeDailyChallenge,
       });
+      const currentProgress = result.retention.modeProgress[body.modeId];
+      const questDeltas = result.retention.quests
+        .map((quest) => ({
+          id: quest.id,
+          title: quest.title,
+          progress: quest.progress,
+          goal: quest.goal,
+          delta: Math.max(0, quest.progress - (previousQuests.get(quest.id) || 0)),
+        }))
+        .filter((quest) => quest.delta > 0);
+      const progressSummary = {
+        outcome: body.outcome || (body.completed ? 'completed' : 'abandoned'),
+        bestScore: currentProgress.bestScore,
+        isPersonalBest: (body.score || 0) > previousProgress.bestScore,
+        questDeltas,
+        recommendedNextHref: getNextActionHref(result.retention, false),
+      };
       const sessionRewards = { berries: result.rewardBerries, experience: result.rewardExperience };
       if (result.duplicate) {
         return {
@@ -73,6 +94,7 @@ export async function POST(request: Request) {
             dailyRewardClaimed: false,
             retention: result.retention,
             rewards: { session: sessionRewards, dailyReward: { berries: 0, experience: 0 }, total: sessionRewards },
+            progress: progressSummary,
           },
         };
       }
@@ -99,6 +121,7 @@ export async function POST(request: Request) {
             dailyReward: { berries: daily.rewardBerries, experience: daily.rewardExperience },
             total: totalRewards,
           },
+          progress: progressSummary,
         },
         ledger: {
           requestId,

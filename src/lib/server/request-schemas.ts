@@ -38,6 +38,7 @@ export const retentionProgressSchema = z.discriminatedUnion('action', [
     sessionId: safeText(160),
     modeId: z.enum(RETENTION_MODES),
     score: z.number().finite().optional(),
+    outcome: z.enum(['won', 'lost', 'completed', 'abandoned']).optional(),
     completed: z.boolean().optional(),
     completeDailyChallenge: z.boolean().optional(),
   }),

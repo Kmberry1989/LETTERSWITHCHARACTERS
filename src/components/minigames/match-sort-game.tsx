@@ -1,10 +1,9 @@
 'use client';
 
+import Image from 'next/image';
 import { useMemo, useState } from 'react';
-import { Check, RefreshCcw } from 'lucide-react';
-import { GameScreen } from '@/components/game-screen';
+import { GameModeHeader, GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
-import { Button } from '@/components/ui/button';
 import { useAudio } from '@/hooks/use-audio';
 import { createArcadeSessionId } from '@/lib/arcade/session-id';
 import { cn } from '@/lib/utils';
@@ -14,7 +13,7 @@ type GoodsSku = 'chick' | 'bunny' | 'robot' | 'chips';
 type GoodsDefinition = {
   sku: GoodsSku;
   label: string;
-  emoji: string;
+  imagePath: string;
   sticker: string;
   shell: string;
   text: string;
@@ -29,7 +28,7 @@ const GOODS: Record<GoodsSku, GoodsDefinition> = {
   chick: {
     sku: 'chick',
     label: 'Chick',
-    emoji: '🐥',
+    imagePath: '/tiles/parrot_tile.png',
     sticker: 'PEEP',
     shell: 'from-[#fff4a8] via-[#ffe37e] to-[#ffc85a]',
     text: 'text-[#9b5e16]',
@@ -38,7 +37,7 @@ const GOODS: Record<GoodsSku, GoodsDefinition> = {
   bunny: {
     sku: 'bunny',
     label: 'Bunny',
-    emoji: '🐰',
+    imagePath: '/tiles/tabby_cat_tile.png',
     sticker: 'HOP',
     shell: 'from-[#ffd3ef] via-[#ffb7de] to-[#f591c2]',
     text: 'text-[#9d3b73]',
@@ -47,7 +46,7 @@ const GOODS: Record<GoodsSku, GoodsDefinition> = {
   robot: {
     sku: 'robot',
     label: 'Robot',
-    emoji: '🤖',
+    imagePath: '/tiles/copper_circuit_tile.png',
     sticker: 'BEEP',
     shell: 'from-[#bbf2ff] via-[#8be5fb] to-[#63c7ff]',
     text: 'text-[#1f6893]',
@@ -56,7 +55,7 @@ const GOODS: Record<GoodsSku, GoodsDefinition> = {
   chips: {
     sku: 'chips',
     label: 'Chips',
-    emoji: '🍟',
+    imagePath: '/tiles/toast_tile.png',
     sticker: 'SNACK',
     shell: 'from-[#ffd0ae] via-[#ffb58f] to-[#ff9367]',
     text: 'text-[#9b4529]',
@@ -92,7 +91,7 @@ function GoodsFigure({
   item,
   compact = false,
 }: {
-  item: Pick<GoodsItem, 'emoji' | 'label' | 'sticker' | 'shell' | 'text' | 'shadow'>;
+  item: Pick<GoodsItem, 'imagePath' | 'label' | 'sticker' | 'shell' | 'text' | 'shadow'>;
   compact?: boolean;
 }) {
   return (
@@ -107,8 +106,8 @@ function GoodsFigure({
       aria-label={item.label}
     >
       <div className="pointer-events-none absolute inset-x-2 top-1 h-1/3 rounded-full bg-white/35 blur-md" />
-      <span className={cn('relative z-10 leading-none drop-shadow-[0_2px_0_rgba(255,255,255,0.5)]', compact ? 'text-[1.45rem]' : 'text-[1.85rem] md:text-[2rem]')}>
-        {item.emoji}
+      <span className={cn('relative z-10', compact ? 'h-9 w-9' : 'h-12 w-12 md:h-14 md:w-14')}>
+        <Image src={item.imagePath} alt="" fill sizes="56px" className="object-contain drop-shadow-[0_2px_0_rgba(255,255,255,0.5)]" />
       </span>
     </div>
   );
@@ -148,6 +147,7 @@ export default function MatchSortGame() {
   const [shelves, setShelves] = useState<Record<GoodsSku, GoodsItem[]>>(() => createShelves());
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState(() => createArcadeSessionId());
+  const [message, setMessage] = useState('Select a character parcel, then its matching story shelf.');
 
   const sortedCount = useMemo(() => ORDER.reduce((sum, sku) => sum + shelves[sku].length, 0), [shelves]);
   const solved = tray.length === 0 && ORDER.every((sku) => shelves[sku].length === 3);
@@ -159,16 +159,19 @@ export default function MatchSortGame() {
     setShelves(createShelves());
     setSelectedItemId(null);
     setSessionId(createArcadeSessionId());
+    setMessage('Select a character parcel, then its matching story shelf.');
   };
 
   const placeOnShelf = (sku: GoodsSku) => {
     if (!selectedItem) {
       playSfx('arcadeError');
+      setMessage('Select a parcel from the tray first.');
       return;
     }
 
     if (selectedItem.sku !== sku) {
       playSfx('arcadeError');
+      setMessage(`${selectedItem.label} belongs on the ${selectedItem.label} shelf.`);
       return;
     }
 
@@ -179,44 +182,15 @@ export default function MatchSortGame() {
       [sku]: [...current[sku], selectedItem],
     }));
     setSelectedItemId(null);
+    setMessage(tray.length === 1 ? 'Every parcel is home!' : `${selectedItem.label} sorted.`);
   };
 
   return (
     <GameScreen>
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden rounded-[1.7rem] border border-[#f8ddb3] bg-[linear-gradient(180deg,#fff3dc_0%,#ffdba7_100%)] p-2 shadow-[0_30px_80px_rgba(180,114,36,0.18)] md:gap-4 md:p-5">
-        <div className="ml-11 flex min-h-10 items-center justify-end gap-2 md:ml-0 md:justify-between">
-          <div
-            className="flex items-center gap-1.5 rounded-full border border-white/70 bg-white/70 px-3 py-2 shadow-sm"
-            aria-label={`${sortedCount} of ${START_ITEMS.length} toys sorted`}
-          >
-            {START_ITEMS.map((item, index) => (
-              <span
-                key={item.id}
-                aria-hidden="true"
-                className={cn(
-                  'h-2.5 w-2.5 rounded-full transition-colors',
-                  index < sortedCount ? 'bg-[#f59e0b] shadow-[0_0_0_3px_rgba(245,158,11,0.18)]' : 'bg-[#f0c68e]'
-                )}
-              />
-            ))}
-          </div>
-          <Button variant="outline" size="icon" className="rounded-full border-white/70 bg-white/75" onClick={reset} aria-label="Restock">
-            <RefreshCcw className="h-4 w-4" />
-          </Button>
-          {solved ? (
-            <>
-              <div
-                className="flex h-10 w-10 items-center justify-center rounded-full border border-emerald-200 bg-white/80 text-emerald-600 shadow-sm"
-                aria-label="Board solved"
-              >
-                <Check className="h-5 w-5" />
-              </div>
-              <div className="sr-only">
-                <ArcadeSessionStatus sessionId={sessionId} modeId="match-sort" score={320} />
-              </div>
-            </>
-          ) : null}
-        </div>
+        <GameModeHeader modeId="match-sort" statLabel="Parcels sorted" statValue={`${sortedCount}/${START_ITEMS.length}`} onRestart={reset} hasProgress={sortedCount > 0} />
+        {solved ? <ArcadeSessionStatus sessionId={sessionId} modeId="match-sort" score={320} outcome="completed" onPlayAgain={reset} /> : null}
+        <div className="sr-only" role="status" aria-live="polite">{message}</div>
 
         <div className="rounded-[1.6rem] border border-[#e2b77f] bg-[linear-gradient(180deg,#ffd89b_0%,#f0b96d_100%)] p-3 shadow-[inset_0_2px_0_rgba(255,255,255,0.45),0_12px_28px_rgba(120,67,13,0.16)]">
           <div className="grid min-h-0 flex-1 grid-cols-2 gap-3 md:grid-cols-4">

@@ -351,6 +351,7 @@ export async function POST(
   });
   if (isGameFinished) {
     await recordCompletedGame({
+      id: gameId,
       players: gameData.players,
       playerData: {
         ...gameData.playerData,
@@ -362,7 +363,7 @@ export async function POST(
       winner: uid,
     });
   }
-  const winnerBonus = await awardWinnerBonusIfNeeded(isGameFinished ? uid : undefined, false);
+  const winnerBonus = await awardWinnerBonusIfNeeded(isGameFinished ? uid : undefined, false, gameId);
   if (isGameFinished) {
     await Promise.all(
       gameData.players.map((playerId) =>

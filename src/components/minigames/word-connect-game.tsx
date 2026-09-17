@@ -1,8 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { RefreshCcw } from 'lucide-react';
-import { GameScreen } from '@/components/game-screen';
+import { GameModeHeader, GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -143,16 +142,8 @@ export default function WordConnectGame() {
   return (
     <GameScreen>
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden rounded-[1.4rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.96),rgba(254,242,242,0.92))] p-2 shadow-[0_20px_60px_rgba(251,113,133,0.12)] md:gap-5 md:p-5">
-        <div className="ml-11 flex min-h-10 items-center justify-end gap-2 md:ml-0 md:justify-between">
-          <Badge variant="secondary" className="rounded-full px-3 py-1">
-            {foundWords.length} / {puzzle.targetCount}
-          </Badge>
-          <Button variant="outline" size="icon" className="rounded-full md:w-auto md:px-4" onClick={() => void loadPuzzle()} aria-label="New wheel">
-            <RefreshCcw className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">New Wheel</span>
-          </Button>
-          {solved ? <ArcadeSessionStatus sessionId={sessionId} modeId="word-connect" score={foundWords.length * 25} /> : null}
-        </div>
+        <GameModeHeader modeId="word-connect" statLabel="Words found" statValue={`${foundWords.length}/${puzzle.targetCount}`} onRestart={() => void loadPuzzle()} hasProgress={foundWords.length > 0 || path.length > 0} />
+        {solved ? <ArcadeSessionStatus sessionId={sessionId} modeId="word-connect" score={foundWords.length * 25} outcome="completed" onPlayAgain={() => void loadPuzzle()} /> : null}
         <div className="flex min-h-0 flex-1 flex-col justify-center gap-2 md:gap-5">
         <div className="mx-auto flex w-full max-w-[min(100%,calc(100svh-12rem))] touch-none items-center justify-center rounded-[1.5rem] border border-rose-100 bg-white/85 p-2 shadow-sm md:max-w-xl md:p-6" style={{ touchAction: 'none' }}>
           <div className="relative aspect-square w-full max-w-[18rem] md:max-w-[20rem]">
@@ -204,7 +195,7 @@ export default function WordConnectGame() {
               Clear
             </Button>
           </div>
-          {status ? <div className="mt-2 text-xs text-slate-600 md:mt-4 md:text-sm">{status}</div> : null}
+          {status ? <div className="mt-2 text-xs text-slate-600 md:mt-4 md:text-sm" role="status" aria-live="polite">{status}</div> : null}
         </div>
 
         <div className="min-h-0 rounded-[1.4rem] border border-slate-200 bg-white/80 p-3 md:p-5">

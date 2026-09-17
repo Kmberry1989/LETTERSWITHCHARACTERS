@@ -15,5 +15,7 @@ describe('API request contracts', () => {
   it('requires a valid retention mode for arcade sessions', () => {
     expect(retentionProgressSchema.safeParse({ action: 'arcade-session', sessionId: 's1', modeId: 'word-search' }).success).toBe(true);
     expect(retentionProgressSchema.safeParse({ action: 'arcade-session', sessionId: 's1', modeId: 'admin' }).success).toBe(false);
+    expect(retentionProgressSchema.safeParse({ action: 'arcade-session', sessionId: 's1', modeId: 'five-in-six', outcome: 'lost' }).success).toBe(true);
+    expect(retentionProgressSchema.safeParse({ action: 'arcade-session', sessionId: 's1', modeId: 'five-in-six', outcome: 'reset-and-pay-me' }).success).toBe(false);
   });
 });
