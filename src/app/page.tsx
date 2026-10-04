@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import { UserPlus, UserRound } from 'lucide-react';
+import { Bot, UserPlus, UserRound } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -166,6 +166,13 @@ export default function LoginPage() {
                   </div>
                   <Button type="button" variant="outline" disabled={isLoading || isAuthUnavailable} className="w-full" onClick={() => void handleGuestAuth()}>Continue as Guest</Button>
                 </form>
+                <div className="mt-3 border-t border-amber-200/70 pt-3 text-center">
+                  <p className="mb-2 text-xs text-muted-foreground">No services configured? Try a sealed practice match instead.</p>
+                  <Button asChild variant="secondary" className="w-full">
+                    <a href="/demo/bot"><Bot className="mr-2 h-4 w-4" /> Play local bot demo</a>
+                  </Button>
+                  <p className="mt-2 text-[0.68rem] leading-4 text-muted-foreground">No account, rewards, berries, AI key, or saved progress.</p>
+                </div>
               </CardContent>
             </Card>
           </div>

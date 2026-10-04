@@ -1230,6 +1230,18 @@
     "readabilityTone": "dark"
   },
   {
+    "id": "tile-dragon-scale",
+    "fileName": "dragon_scale_tile.png",
+    "name": "Dragon Scale",
+    "description": "Emerald story-dragon scales with restrained gilded edges.",
+    "assetPath": "/tiles/dragon_scale_tile.png",
+    "rarity": "legendary",
+    "requiredLevel": 18,
+    "price": 2950,
+    "collection": "Storybook Treasures",
+    "readabilityTone": "light"
+  },
+  {
     "id": "tile-dragon-scales",
     "fileName": "dragon_scales_tile.png",
     "name": "Dragon Scales",
@@ -1311,6 +1323,18 @@
     "requiredLevel": 4,
     "price": 720,
     "collection": "Storybook",
+    "readabilityTone": "light"
+  },
+  {
+    "id": "tile-enchanted-moss",
+    "fileName": "enchanted_moss_tile.png",
+    "name": "Enchanted Moss",
+    "description": "Deep woodland moss framed by clover, vines, and tiny flowers.",
+    "assetPath": "/tiles/enchanted_moss_tile.png",
+    "rarity": "epic",
+    "requiredLevel": 12,
+    "price": 1780,
+    "collection": "Storybook Treasures",
     "readabilityTone": "light"
   },
   {
@@ -2385,6 +2409,18 @@
     "requiredLevel": 5,
     "price": 800,
     "collection": "Storybook",
+    "readabilityTone": "light"
+  },
+  {
+    "id": "tile-moonlit-observatory",
+    "fileName": "moonlit_observatory_tile.png",
+    "name": "Moonlit Observatory",
+    "description": "Midnight blue enamel charted with brass moons and quiet stars.",
+    "assetPath": "/tiles/moonlit_observatory_tile.png",
+    "rarity": "legendary",
+    "requiredLevel": 16,
+    "price": 2600,
+    "collection": "Storybook Treasures",
     "readabilityTone": "light"
   },
   {
@@ -3603,6 +3639,18 @@
     "requiredLevel": 12,
     "price": 1800,
     "collection": "Candy Shop",
+    "readabilityTone": "dark"
+  },
+  {
+    "id": "tile-strawberry-picnic",
+    "fileName": "strawberry_picnic_tile.png",
+    "name": "Strawberry Picnic",
+    "description": "Soft cream gingham with strawberries, leaves, and ribbon corners.",
+    "assetPath": "/tiles/strawberry_picnic_tile.png",
+    "rarity": "common",
+    "requiredLevel": 4,
+    "price": 650,
+    "collection": "Storybook Treasures",
     "readabilityTone": "dark"
   },
   {

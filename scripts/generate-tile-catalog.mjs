@@ -28,6 +28,42 @@ for (const collection of collectionDefinitions) {
 // existing entries stable when new artwork is added, while allowing every new
 // tile to receive a deliberately authored progression slot.
 const NEW_TILE_CHARACTERISTICS = {
+  'dragon_scale_tile.png': {
+    name: 'Dragon Scale',
+    description: 'Emerald story-dragon scales with restrained gilded edges.',
+    rarity: 'legendary',
+    requiredLevel: 18,
+    price: 2950,
+    readabilityTone: 'light',
+    collection: 'Storybook Treasures',
+  },
+  'enchanted_moss_tile.png': {
+    name: 'Enchanted Moss',
+    description: 'Deep woodland moss framed by clover, vines, and tiny flowers.',
+    rarity: 'epic',
+    requiredLevel: 12,
+    price: 1780,
+    readabilityTone: 'light',
+    collection: 'Storybook Treasures',
+  },
+  'moonlit_observatory_tile.png': {
+    name: 'Moonlit Observatory',
+    description: 'Midnight blue enamel charted with brass moons and quiet stars.',
+    rarity: 'legendary',
+    requiredLevel: 16,
+    price: 2600,
+    readabilityTone: 'light',
+    collection: 'Storybook Treasures',
+  },
+  'strawberry_picnic_tile.png': {
+    name: 'Strawberry Picnic',
+    description: 'Soft cream gingham with strawberries, leaves, and ribbon corners.',
+    rarity: 'common',
+    requiredLevel: 4,
+    price: 650,
+    readabilityTone: 'dark',
+    collection: 'Storybook Treasures',
+  },
   'aquatic_tile.png': {
     name: 'Aquatic',
     description: 'A luminous underwater finish rippled with cool teal currents.',
