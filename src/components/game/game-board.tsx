@@ -51,6 +51,12 @@ function Cell({
 
   const canInteract = !!(onClick || onDrop);
   const isMultiplier = type === 'DL' || type === 'TL' || type === 'DW' || type === 'TW';
+  const multiplierLabel = {
+    DL: { value: '2×', target: 'LETTER', accessible: 'Double letter' },
+    TL: { value: '3×', target: 'LETTER', accessible: 'Triple letter' },
+    DW: { value: '2×', target: 'WORD', accessible: 'Double word' },
+    TW: { value: '3×', target: 'WORD', accessible: 'Triple word' },
+  }[type];
 
   return (
     <div
@@ -67,31 +73,27 @@ function Cell({
       data-board-row={row}
       data-board-col={col}
       data-board-cell-placeable={isPlaceable ? 'true' : 'false'}
+      data-board-bonus={isMultiplier ? type : type === '★' ? 'START' : undefined}
+      aria-label={!children && multiplierLabel ? `${multiplierLabel.accessible} bonus square, row ${row + 1}, column ${col + 1}` : undefined}
       onClick={canInteract ? onClick : undefined}
       onDrop={canInteract ? onDrop : undefined}
       onDragOver={canInteract ? onDragOver : undefined}
     >
       {children ||
         (type === '★' ? (
-          <div className="flex flex-col items-center justify-center gap-0.5">
+          <div className="flex items-center justify-center">
             <Star
               className="h-3.5 w-3.5 fill-current min-[420px]:h-4.5 min-[420px]:w-4.5 sm:h-6 sm:w-6"
               style={{ filter: 'drop-shadow(0 0 6px rgba(255,255,255,0.35))' }}
             />
-            <span
-              className="text-[0.42rem] font-black uppercase tracking-[0.14em] text-[color:inherit] min-[420px]:text-[0.56rem] sm:text-[0.72rem] sm:tracking-[0.22em]"
-              style={{ textShadow: 'var(--board-cell-start-shadow)' }}
-            >
-              STAR
-            </span>
           </div>
         ) : isMultiplier ? (
-          <div className="flex items-center justify-center">
-            <span
-              className="text-[0.45rem] font-black tracking-widest text-[color:inherit] min-[420px]:text-[0.55rem] sm:text-[0.65rem] md:text-[0.75rem] whitespace-nowrap"
-              style={{ textShadow: 'var(--board-cell-text-shadow)' }}
-            >
-              {type}
+          <div className="relative z-10 flex flex-col items-center justify-center leading-[0.78]" aria-hidden="true">
+            <span className="text-[0.48rem] font-black min-[420px]:text-[0.62rem] sm:text-[0.78rem] md:text-[0.86rem]" style={{ textShadow: 'var(--board-cell-text-shadow)' }}>
+              {multiplierLabel?.value}
+            </span>
+            <span className="hidden text-[0.3rem] font-black tracking-[0.08em] min-[420px]:block min-[420px]:text-[0.36rem] sm:text-[0.46rem] md:text-[0.5rem]">
+              {multiplierLabel?.target}
             </span>
           </div>
         ) : null)}

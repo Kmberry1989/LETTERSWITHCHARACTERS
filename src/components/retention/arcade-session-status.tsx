@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MODE_METADATA, type GameSessionOutcome, type RetentionModeId, type RetentionState } from '@/lib/retention';
 import { cn } from '@/lib/utils';
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@/components/ui/dialog';
 
 type ArcadeSessionStatusProps = {
   modeId: RetentionModeId;
@@ -112,29 +113,28 @@ export function ArcadeSessionStatus({
   );
 
   const frame = (children: React.ReactNode) => (
-    <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-950/30 p-3 backdrop-blur-sm" role="dialog" aria-modal="true" aria-labelledby={`result-${sessionId}`}>
-      <div className={cn('w-full max-w-xl rounded-[2rem] border border-white/80 bg-white/95 p-5 shadow-2xl sm:p-7', className)}>
+    <Dialog open onOpenChange={() => undefined}>
+      <DialogContent showClose={false} className={cn('max-h-[calc(100dvh-1.5rem)] w-[calc(100%-1.5rem)] max-w-xl overflow-y-auto rounded-[2rem] border-white/80 bg-white/95 p-5 shadow-2xl sm:p-7', className)} onEscapeKeyDown={(event) => event.preventDefault()} onPointerDownOutside={(event) => event.preventDefault()}>
         <div className="mb-4 flex items-center gap-3">
           <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-amber-100 text-amber-700"><Trophy className="h-6 w-6" /></span>
-          <div><div className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">{mode.title}</div><h2 id={`result-${sessionId}`} className="font-headline text-3xl font-black text-slate-950">{outcomeTitle}</h2></div>
+          <div><div className="text-xs font-black uppercase tracking-[0.2em] text-slate-500">{mode.title}</div><DialogTitle className="font-headline text-3xl font-black text-slate-950">{outcomeTitle}</DialogTitle></div>
         </div>
+        <DialogDescription className="sr-only">Your game result, earned progress, and choices for what to play next.</DialogDescription>
         {children}
-      </div>
-    </div>
+      </DialogContent>
+    </Dialog>
   );
 
   if (saveState === 'signed-out') {
     return frame(
       <div className="rounded-3xl border border-amber-200 bg-amber-50/90 p-4 text-amber-950 shadow-sm">
-        <div className="flex items-start justify-between gap-3">
-          <div>
-            <div className="flex items-center gap-2 text-sm font-black uppercase tracking-[0.18em]">
-              <Sparkles className="h-4 w-4" />
-              {mode.scoreLabel}: {score}
-            </div>
-            <p className="mt-2 text-sm text-amber-900">Sign in to save future runs, build your streak, and collect rewards. This practice result was not saved.</p>
+        <div>
+          <div className="flex items-center gap-2 text-sm font-black uppercase tracking-[0.18em]">
+            <Sparkles className="h-4 w-4" />
+            {mode.scoreLabel}: {score}
           </div>
-          <Button asChild size="sm" variant="secondary" className="rounded-full">
+          <p className="mt-2 text-sm text-amber-900">Sign in to save future runs, build your streak, and collect rewards. This practice result was not saved.</p>
+          <Button asChild size="sm" variant="secondary" className="mt-3 w-full rounded-full sm:w-auto">
             <Link href="/">Sign in to save</Link>
           </Button>
         </div>

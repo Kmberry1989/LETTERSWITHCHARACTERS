@@ -267,7 +267,7 @@
   }
 
   .board-cell-dl {
-    background: var(--board-cell-dl-bg);
+    background: var(--board-cell-dl-bg), var(--board-cell-base);
     color: var(--board-cell-dl-text);
     --board-cell-text-shadow: var(--board-cell-dl-shadow);
     box-shadow:
@@ -276,7 +276,7 @@
       0 0 0 1px var(--board-cell-dl-ring);
   }
   .board-cell-tl {
-    background: var(--board-cell-tl-bg);
+    background: var(--board-cell-tl-bg), var(--board-cell-base);
     color: var(--board-cell-tl-text);
     --board-cell-text-shadow: var(--board-cell-tl-shadow);
     box-shadow:
@@ -285,7 +285,7 @@
       0 0 0 1px var(--board-cell-tl-ring);
   }
   .board-cell-dw {
-    background: var(--board-cell-dw-bg);
+    background: var(--board-cell-dw-bg), var(--board-cell-base);
     color: var(--board-cell-dw-text);
     --board-cell-text-shadow: var(--board-cell-dw-shadow);
     box-shadow:
@@ -294,7 +294,7 @@
       0 0 0 1px var(--board-cell-dw-ring);
   }
   .board-cell-tw {
-    background: var(--board-cell-tw-bg);
+    background: var(--board-cell-tw-bg), var(--board-cell-base);
     color: var(--board-cell-tw-text);
     --board-cell-text-shadow: var(--board-cell-tw-shadow);
     box-shadow:
@@ -303,7 +303,7 @@
       0 0 0 2px var(--board-cell-tw-ring);
   }
   .board-cell-start {
-    background: var(--board-cell-start-bg);
+    background: var(--board-cell-start-bg), var(--board-cell-base);
     color: var(--board-cell-start-text);
     --board-cell-text-shadow: var(--board-cell-start-shadow);
     box-shadow:

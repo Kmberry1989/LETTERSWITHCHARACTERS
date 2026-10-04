@@ -3,7 +3,7 @@
 import { useEffect, type ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, CircleHelp, RotateCcw, Volume2 } from 'lucide-react';
+import { ArrowLeft, CircleHelp, LoaderCircle, RotateCcw, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -47,7 +47,7 @@ export function GameModeHeader({ modeId, statLabel, statValue, onRestart, hasPro
   );
 
   return (
-    <header className="ml-11 flex min-h-12 items-center gap-2 rounded-2xl border border-white/70 bg-white/78 px-3 py-2 shadow-sm backdrop-blur md:ml-0">
+    <header className="ml-11 flex min-h-12 items-center gap-2 rounded-2xl border border-white/80 bg-white/90 px-3 py-2 shadow-sm backdrop-blur md:ml-0">
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <h1 className="truncate font-headline text-lg font-black text-slate-950 md:text-xl">{mode.title}</h1>
@@ -93,6 +93,24 @@ export function GameModeHeader({ modeId, statLabel, statValue, onRestart, hasPro
         </Button>
       </div>
     </header>
+  );
+}
+
+export function GameLoadingState({ modeId, message }: { modeId: RetentionModeId; message: string }) {
+  const mode = MODE_METADATA[modeId];
+  return (
+    <GameScreen>
+      <div className="flex min-h-0 flex-1 flex-col gap-3 rounded-[1.5rem] border border-white/80 bg-white/90 p-2 shadow-xl md:p-5">
+        <GameModeHeader modeId={modeId} statLabel="Status" statValue="Loading" onRestart={() => window.location.reload()} />
+        <div className={`flex min-h-0 flex-1 items-center justify-center rounded-[1.4rem] bg-gradient-to-br ${mode.accent} p-6 text-center`} role="status" aria-live="polite">
+          <div className="rounded-[1.5rem] border border-white/80 bg-white/80 px-8 py-7 shadow-lg backdrop-blur">
+            <LoaderCircle className="mx-auto h-8 w-8 animate-spin text-emerald-700 motion-reduce:animate-none" />
+            <div className="mt-3 font-headline text-xl font-black text-slate-950">Opening {mode.title}</div>
+            <p className="mt-1 text-sm font-semibold text-slate-600">{message}</p>
+          </div>
+        </div>
+      </div>
+    </GameScreen>
   );
 }
 

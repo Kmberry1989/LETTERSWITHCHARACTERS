@@ -48,3 +48,35 @@ test('claw crane exposes deterministic state and a keyboard-accessible joystick'
   await expect(page.getByTestId('claw-drop')).toBeVisible();
   await expect.poll(() => page.evaluate(() => typeof (window as any).render_game_to_text), { timeout: 20_000 }).toBe('function');
 });
+
+test('liquid sort supports a keyboard-only clear, accessible result, replay, and arcade return', async ({ page }) => {
+  await page.goto('/minigames/liquid-sort', { waitUntil: 'domcontentloaded' });
+  const moves = [[1, 4], [3, 1], [2, 3], [2, 4], [1, 2], [3, 1], [3, 4], [2, 3], [1, 2], [1, 4]];
+
+  for (const [source, target] of moves) {
+    const sourceTube = page.getByRole('button', { name: new RegExp(`^Tube ${source},`) });
+    await sourceTube.focus();
+    await page.keyboard.press('Enter');
+    const targetTube = page.getByRole('button', { name: new RegExp(`^Tube ${target},`) });
+    await targetTube.focus();
+    await page.keyboard.press('Enter');
+  }
+
+  const result = page.getByRole('dialog', { name: /story cleared/i });
+  await expect(result).toBeVisible();
+  await expect(result.getByText(/practice result was not saved/i)).toBeVisible();
+  await expect.poll(() => page.evaluate(() => Boolean(document.activeElement?.closest('[role="dialog"]')))).toBe(true);
+
+  await result.getByRole('button', { name: /play again/i }).click();
+  await expect(result).toBeHidden();
+  await expect(page.getByRole('button', { name: /tube 1, rose, sky, amber, rose/i })).toBeVisible();
+
+  await page.goto('/minigames/liquid-sort', { waitUntil: 'domcontentloaded' });
+  for (const [source, target] of moves) {
+    await page.getByRole('button', { name: new RegExp(`^Tube ${source},`) }).press('Enter');
+    await page.getByRole('button', { name: new RegExp(`^Tube ${target},`) }).press('Enter');
+  }
+  await page.getByRole('dialog', { name: /story cleared/i }).getByRole('link', { name: /back to arcade/i }).click();
+  await expect(page).toHaveURL(/\/minigames$/);
+  await expect(page.getByRole('heading', { name: /storybook arcade/i })).toBeVisible();
+});

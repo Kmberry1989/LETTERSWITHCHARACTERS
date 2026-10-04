@@ -116,3 +116,137 @@ Validation:
 - `npm run test:e2e -- --workers=2`: all 18 desktop/mobile cases passed with installed Chrome.
 - The required web-game harness successfully interacted with Wheel; screenshots for Wheel and the categorized Arcade were visually inspected.
 - Live Supabase auth, two-user remote play, OAuth, production persistence, and production deployment remain outside this local verification run.
+
+---
+
+Current prompt: Continue with the next accessibility, playability, and return-value improvement slice.
+
+Implementation:
+- Added a prominent Today’s Story card to the dashboard whenever no live duel turn needs attention. It names the activity, goal, estimated play time, exact berry/XP reward, completion state, and direct next action.
+- Added canonical estimated play time to every game-mode definition so timing copy remains shared rather than drifting between surfaces.
+- Replaced the hand-built result overlay with the existing Radix dialog primitive, providing focus entry, focus containment, accessible title/description, and protected outside-click/Escape behavior while a result requires a next action.
+- Expanded Liquid Sort tube labels to expose ordered color contents and selection state to assistive technology.
+- Added a complete keyboard-driven Liquid Sort browser journey covering clear, accessible result, practice-state explanation, replay reset, and return to the Arcade.
+- Corrected a mobile result-card clipping issue found during visual inspection by moving the sign-in action into a responsive full-width row.
+
+Validation:
+- `npm test`: 52 tests passed.
+- `npm run typecheck`: passed.
+- `npm run lint`: 0 errors and the same 13 existing warnings.
+- `npm run test:e2e -- --workers=2`: 20 desktop/mobile cases passed before the final responsive-only layout correction; repeated in the final validation pass.
+- The required web-game harness rendered Liquid Sort without console output, and both the initial board and completed mobile result were visually inspected.
+- The authenticated dashboard card could not be visually exercised locally because Supabase environment variables are not configured; its code and types were validated locally.
+
+---
+
+Current prompt: Make the board bonus squares quickly identifiable with color-coded transparent overlays, remove the visible STAR label, and demo a game with a bot.
+
+Implementation:
+- Retained the center star icon but removed its visible STAR text.
+- Changed bonus squares to consistent translucent overlays layered over the currently selected board skin: blue double-letter, green triple-letter, pink double-word, and orange-red triple-word.
+- Replaced terse DL/TL/DW/TW text with compact 2x/3x plus LETTER/WORD labels; the secondary label hides only at the narrowest board size to avoid overlap.
+- Added semantic bonus-square labels with the full bonus name and row/column, plus deterministic `data-board-bonus` attributes.
+
+Validation and blocker:
+- `npm run typecheck`, `npm test` (52 passing), and `git diff --check` pass.
+- A live bot demo could not start: production guest entry reports `Document storage is unavailable`, while the local checkout has no database/auth or Gemini/Google AI environment configured. No working bot match was claimed.
+
+---
+
+Current prompt: Visually audit and polish the game suite, especially the mini-games, and redesign Wheel.
+
+Implementation:
+- Rebuilt Wheel as a compact storybook game-show stage with a larger gold-rimmed wheel, clearer wedge hierarchy, visible category, spin-value feedback, phrase board, vowel pricing, score bank, responsive solo/duel control, and a live status banner.
+- Preserved Wheel's existing mechanics while making the spin, landed value, allowed next action, and solve path visually explicit.
+- Strengthened the shared game header contrast so controls remain readable over branded game backdrops.
+- Added a shared branded loading state and applied it to Word Search and Word Connect, replacing blank pulse panels that could look like broken screens.
+- Audited production Arcade, Wheel, Word Search, Liquid Sort, Goods Sort, and Solitaire on the live site, then inspected the redesigned Wheel locally at desktop and 390x844 mobile sizes.
+
+Visual audit findings:
+- Arcade has a sound category structure, but the hero and shelves still need a stronger featured-game focal point and less undifferentiated white space.
+- Liquid Sort is clear and playable but needs a more distinctive story setting and character presence.
+- Goods Sort's shelf language fits the suite, but character/prize artwork should become the dominant objects rather than decorative material swatches.
+- Solitaire is familiar and readable, but remains the most visually generic mode and should receive the next full art-direction pass.
+- Production Word Search's blank loading panel was the most visible continuity break; the new shared loading state addresses it locally.
+
+Validation:
+- Required web-game harness spun Wheel and captured the landed-value/consonant state; the screenshot was visually inspected.
+- Desktop and 390x844 mobile Wheel states were visually inspected after an actual spin, with no clipped controls.
+- `npm run typecheck`: passed.
+- `npm test`: 52 tests passed.
+- `npm run lint`: 0 errors and 13 existing warnings.
+- `npm run build`: passed.
+- `npm run test:e2e -- --workers=2`: 20 desktop/mobile cases passed.
+- `git diff --check`: passed.
+- Production bot play and persistent rewards remain unverified because production document storage is unavailable and local service credentials are not configured.
+
+---
+
+Current prompt: Continue the visual audit and game-suite polish.
+
+Implementation:
+- Rethemed Solitaire Sprint as the Royal Reading Room with a deep storybook table, gold-accented card backs, clearer foundation and tableau zones, a visible stock count, and a more distinctive visual identity without changing Klondike mechanics.
+- Added useful accessible labels for Solitaire stock, waste, suit foundations, and tableau columns.
+- Added a prominent daily featured-story card to the Arcade between the suite overview and categorized shelves, including the current game, objective, play time, reward summary, best score state, and direct action.
+- Reframed Goods Sort's misleading texture-based “characters” as truthful storybook parcels: Feathers, Yarn, Gadget, and Toast. Added visible parcel badges plus selection and shelf labels for assistive technology.
+- Preserved all existing routes, progression, and game mechanics.
+
+Validation:
+- Required web-game harness captured and visually verified a Solitaire draw state, the Arcade featured story, and Goods Sort after the parcel-label polish.
+- Direct mobile QA at 390x844 verified Solitaire layout and a complete Goods Sort select-to-matching-shelf interaction with visible and announced progress.
+- `npm run typecheck`: passed.
+- `npm test`: 52 tests passed.
+- `npm run lint`: 0 errors and 13 existing warnings.
+- `npm run build`: passed.
+- `npm run test:e2e -- --workers=2`: 20 desktop/mobile cases passed.
+- `git diff --check`: passed.
+
+Next visual priorities:
+- Give Liquid Sort a stronger story setting and collection/result spectacle.
+- Create actual 2D character/prize portraits for lightweight use outside the GLB crane; the existing tile textures should not be represented as character art.
+- Add meaningful interaction coverage for Solitaire, Goods Sort, Wheel, Word Search, Word Connect, and Five in Six rather than relying only on route/overflow checks.
+
+---
+
+Current prompt: Implement a deployment-safe local bot demo that works without production document storage or Gemini credentials, remains isolated from accounts/rewards/economy, preserves production, and is fully verified locally.
+
+Implementation:
+- Added `/demo/bot` as a self-contained, deterministic CAT -> CATS practice duel with no auth, API, storage, Gemini, retention, or economy dependency.
+- Added a clear login-screen entry and repeated practice-only/no-save disclosures in the demo.
+- Kept the production `/api/games/bot`, `/game`, authentication, reward, and persistence flows unchanged.
+- Added deterministic `render_game_to_text` and `advanceTime` hooks plus unit and browser coverage for the complete interaction and zero production API calls.
+
+Validation in progress:
+- Unit test and typecheck pass.
+- First browser run exposed unstable hover-moving rack buttons; removed target-position animation before rerunning the full interaction.
+- Desktop and 390x844 browser journeys pass the complete CAT -> CATS -> restart flow with zero production API requests.
+- Deterministic state reports no persistence, disabled rewards, no credential requirement, the final CATS board, and 10-6 scores.
+- Completed desktop and mobile screenshots were visually inspected; no console errors or horizontal overflow were observed.
+- Final verification passed: `npm test` (54 tests), `npm run typecheck`, `npm run build`, targeted Playwright entry/full-interaction tests on desktop and 390x844 mobile, required web-game harness, and `git diff --check`.
+- The build retains the repository's existing 13 lint warnings; no new warning was introduced by this slice.
+
+Additional customization:
+- Added four original 512x512 Storybook Treasures tile finishes: Moonlit Observatory, Strawberry Picnic, Enchanted Moss, and Dragon Scale.
+- Authored explicit rarity, level, berry price, description, collection, and light/dark letter-readability metadata for each finish.
+- Added catalog coverage confirming all four generated entries resolve through the shared shop/profile/gameplay tile system.
+- Removed the rounded pill border/background/shadow around the mobile header logo while preserving its size and placement.
+
+---
+
+Current prompt: Move the app from PostgreSQL/Supabase to Firebase with a clean account/economy reset, preserving the production API authorization flow and the credential-free local bot demo.
+
+Firebase cutover:
+- Connected the existing Firebase web app for project `studio-1704097120-f2816`; confirmed Email/Password, Google, and Anonymous Auth plus Firestore in `us-central1`.
+- Replaced Supabase/local sessions with Firebase Auth ID tokens exchanged for revocable, HTTP-only Admin SDK session cookies.
+- Replaced the Prisma document store and bot-game transaction with Firestore, including atomic profile mutations and deterministic idempotent economy-ledger documents.
+- Kept persistent access behind the existing Next.js API authorization and projection boundaries; direct browser Firestore access is denied by checked-in rules.
+- Added Auth/Firestore emulator configuration and a credential-free local workflow. `/demo/bot` remains independent of Firebase, Gemini, accounts, and economy state.
+- Removed the obsolete Supabase, Prisma, callback, middleware, and password-store runtime paths; rewrote the berry grant for Firestore.
+
+Validation:
+- Firebase emulator browser flow passed: username account -> secure session -> 1,250-berry profile -> Medium Bitty Botty game -> dashboard live-game card -> playable 15x15 game board with a seven-tile rack.
+- API evidence confirmed the profile and game persisted in Firestore and used the verified Firebase UID for both player ownership and current turn.
+- `npm run typecheck`, `npm test` (55 tests), `npm run build`, required web-game harness, visual screenshot inspection, and `git diff --check` passed.
+
+Remaining deployment step:
+- Publish `firestore.rules` / indexes and provide Application Default Credentials (Firebase App Hosting / Google Cloud) or `FIREBASE_SERVICE_ACCOUNT_JSON` on a non-Google host.

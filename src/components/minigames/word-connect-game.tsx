@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { GameModeHeader, GameScreen } from '@/components/game-screen';
+import { GameLoadingState, GameModeHeader, GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -128,11 +128,7 @@ export default function WordConnectGame() {
   };
 
   if (loading || !puzzle) {
-    return (
-      <GameScreen>
-        <div className="mt-12 h-full animate-pulse rounded-[28px] bg-white/80 md:mt-0" />
-      </GameScreen>
-    );
+    return <GameLoadingState modeId="word-connect" message="Shuffling a fresh set of story letters…" />;
   }
 
   const center = 50;

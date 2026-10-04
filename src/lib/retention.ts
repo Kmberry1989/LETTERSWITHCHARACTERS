@@ -32,6 +32,7 @@ export type GameModeDefinition = {
   iconPath: string;
   description: string;
   controls: string;
+  estimatedMinutes: number;
   difficulty: 'Easy' | 'Medium' | 'Hard';
   reward: string;
 };
@@ -117,7 +118,7 @@ export const MODE_METADATA: Record<RetentionModeId, GameModeDefinition> = {
     accent: 'from-amber-200 via-orange-100 to-rose-100',
     iconPath: '/arcade-icons/word-duel.png',
     description: 'Play the main word game against another player.',
-    controls: 'Tap or drag tiles', difficulty: 'Medium', reward: 'Match rewards',
+    controls: 'Tap or drag tiles', estimatedMinutes: 12, difficulty: 'Medium', reward: 'Match rewards',
   },
   'word-search': {
     id: 'word-search',
@@ -133,7 +134,7 @@ export const MODE_METADATA: Record<RetentionModeId, GameModeDefinition> = {
     accent: 'from-sky-200 via-cyan-100 to-emerald-100',
     iconPath: '/arcade-icons/word-search.png',
     description: 'Trace every hidden word in the letter grid.',
-    controls: 'Drag across letters', difficulty: 'Easy', reward: 'Clear rewards + daily bonuses',
+    controls: 'Drag across letters', estimatedMinutes: 4, difficulty: 'Easy', reward: 'Clear rewards + daily bonuses',
   },
   'five-in-six': {
     id: 'five-in-six',
@@ -149,7 +150,7 @@ export const MODE_METADATA: Record<RetentionModeId, GameModeDefinition> = {
     accent: 'from-emerald-200 via-lime-100 to-slate-100',
     iconPath: '/arcade-icons/five-in-six.png',
     description: 'Find the five-letter answer in six guesses.',
-    controls: 'Keyboard or tap', difficulty: 'Medium', reward: 'Participation on loss; clear bonus on win',
+    controls: 'Keyboard or tap', estimatedMinutes: 5, difficulty: 'Medium', reward: 'Participation on loss; clear bonus on win',
   },
   'word-connect': {
     id: 'word-connect',
@@ -165,7 +166,7 @@ export const MODE_METADATA: Record<RetentionModeId, GameModeDefinition> = {
     accent: 'from-fuchsia-200 via-rose-100 to-orange-100',
     iconPath: '/arcade-icons/word-connect.png',
     description: 'Connect letters into as many valid words as you can.',
-    controls: 'Tap letters', difficulty: 'Easy', reward: 'Clear rewards + daily bonuses',
+    controls: 'Tap letters', estimatedMinutes: 4, difficulty: 'Easy', reward: 'Clear rewards + daily bonuses',
   },
   'liquid-sort': {
     id: 'liquid-sort',
@@ -181,7 +182,7 @@ export const MODE_METADATA: Record<RetentionModeId, GameModeDefinition> = {
     accent: 'from-cyan-200 via-sky-100 to-indigo-100',
     iconPath: '/arcade-icons/liquid-sort.png',
     description: 'Pour matching colors together until every tube is sorted.',
-    controls: 'Tap two vials', difficulty: 'Medium', reward: 'Clear rewards + daily bonuses',
+    controls: 'Tap two vials', estimatedMinutes: 4, difficulty: 'Medium', reward: 'Clear rewards + daily bonuses',
   },
   'match-sort': {
     id: 'match-sort',
@@ -189,7 +190,7 @@ export const MODE_METADATA: Record<RetentionModeId, GameModeDefinition> = {
     shortTitle: 'Goods Sort',
     href: '/minigames/match-sort',
     category: 'puzzle-shelf',
-    objective: 'Return every character parcel to its matching story shelf.',
+    objective: 'Sort every storybook parcel onto its matching shelf.',
     instructions: 'Select a parcel from the tray, then select the shelf with the same character.',
     accessibilityInstructions: 'Parcels and shelves are labeled buttons. Correct placement and errors are announced.',
     scoreLabel: 'Parcels sorted',
@@ -197,7 +198,7 @@ export const MODE_METADATA: Record<RetentionModeId, GameModeDefinition> = {
     accent: 'from-amber-200 via-yellow-100 to-orange-100',
     iconPath: '/arcade-icons/goods-sort.png',
     description: 'Move each object to its matching shelf.',
-    controls: 'Tap parcel, then shelf', difficulty: 'Easy', reward: 'Clear rewards + daily bonuses',
+    controls: 'Tap parcel, then shelf', estimatedMinutes: 3, difficulty: 'Easy', reward: 'Clear rewards + daily bonuses',
   },
   solitaire: {
     id: 'solitaire',
@@ -213,7 +214,7 @@ export const MODE_METADATA: Record<RetentionModeId, GameModeDefinition> = {
     accent: 'from-violet-200 via-purple-100 to-pink-100',
     iconPath: '/arcade-icons/solitaire.png',
     description: 'Build the foundations before the sprint runs out.',
-    controls: 'Tap cards and stock', difficulty: 'Hard', reward: 'Clear rewards + daily bonuses',
+    controls: 'Tap cards and stock', estimatedMinutes: 7, difficulty: 'Hard', reward: 'Clear rewards + daily bonuses',
   },
   wheel: {
     id: 'wheel',
@@ -229,7 +230,7 @@ export const MODE_METADATA: Record<RetentionModeId, GameModeDefinition> = {
     accent: 'from-emerald-200 via-lime-100 to-yellow-100',
     iconPath: '/arcade-icons/wheel.png',
     description: 'Flick the wheel, guess letters, and solve the phrase.',
-    controls: 'Spin and tap', difficulty: 'Medium', reward: 'Clear rewards + daily bonuses',
+    controls: 'Spin and tap', estimatedMinutes: 5, difficulty: 'Medium', reward: 'Clear rewards + daily bonuses',
   },
   'claw-crane': {
     id: 'claw-crane',
@@ -245,7 +246,7 @@ export const MODE_METADATA: Record<RetentionModeId, GameModeDefinition> = {
     accent: 'from-rose-200 via-amber-100 to-sky-100',
     iconPath: '/arcade-icons/claw-crane.svg',
     description: 'Guide the claw to collect characters for your cabinet.',
-    controls: 'Joystick, WASD, or touch', difficulty: 'Hard', reward: 'Claw Tokens cost 25 berries',
+    controls: 'Joystick, WASD, or touch', estimatedMinutes: 2, difficulty: 'Hard', reward: 'Claw Tokens cost 25 berries',
   },
 };
 

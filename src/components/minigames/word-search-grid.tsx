@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
-import { GameModeHeader, GameScreen } from '@/components/game-screen';
+import { GameLoadingState, GameModeHeader, GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
 import { useAudio } from '@/hooks/use-audio';
 import { createArcadeSessionId } from '@/lib/arcade/session-id';
@@ -245,11 +245,7 @@ export default function WordSearchGrid() {
   };
 
   if (loading || !puzzle) {
-    return (
-      <GameScreen>
-        <div className="mt-12 h-full animate-pulse rounded-[28px] bg-white/80 md:mt-0" />
-      </GameScreen>
-    );
+    return <GameLoadingState modeId="word-search" message="Hiding today’s words in the letter grid…" />;
   }
 
   const cellSize = BOARD_VIEWBOX_SIZE / puzzle.size;

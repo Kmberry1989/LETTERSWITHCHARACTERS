@@ -27,36 +27,36 @@ type GoodsItem = GoodsDefinition & {
 const GOODS: Record<GoodsSku, GoodsDefinition> = {
   chick: {
     sku: 'chick',
-    label: 'Chick',
+    label: 'Feathers',
     imagePath: '/tiles/parrot_tile.png',
-    sticker: 'PEEP',
+    sticker: 'FEATHER',
     shell: 'from-[#fff4a8] via-[#ffe37e] to-[#ffc85a]',
     text: 'text-[#9b5e16]',
     shadow: 'rgba(255, 194, 93, 0.42)',
   },
   bunny: {
     sku: 'bunny',
-    label: 'Bunny',
+    label: 'Yarn',
     imagePath: '/tiles/tabby_cat_tile.png',
-    sticker: 'HOP',
+    sticker: 'YARN',
     shell: 'from-[#ffd3ef] via-[#ffb7de] to-[#f591c2]',
     text: 'text-[#9d3b73]',
     shadow: 'rgba(246, 155, 205, 0.38)',
   },
   robot: {
     sku: 'robot',
-    label: 'Robot',
+    label: 'Gadget',
     imagePath: '/tiles/copper_circuit_tile.png',
-    sticker: 'BEEP',
+    sticker: 'GADGET',
     shell: 'from-[#bbf2ff] via-[#8be5fb] to-[#63c7ff]',
     text: 'text-[#1f6893]',
     shadow: 'rgba(96, 202, 255, 0.34)',
   },
   chips: {
     sku: 'chips',
-    label: 'Chips',
+    label: 'Toast',
     imagePath: '/tiles/toast_tile.png',
-    sticker: 'SNACK',
+    sticker: 'TOAST',
     shell: 'from-[#ffd0ae] via-[#ffb58f] to-[#ff9367]',
     text: 'text-[#9b4529]',
     shadow: 'rgba(255, 150, 103, 0.34)',
@@ -109,6 +109,9 @@ function GoodsFigure({
       <span className={cn('relative z-10', compact ? 'h-9 w-9' : 'h-12 w-12 md:h-14 md:w-14')}>
         <Image src={item.imagePath} alt="" fill sizes="56px" className="object-contain drop-shadow-[0_2px_0_rgba(255,255,255,0.5)]" />
       </span>
+      <span className={cn('relative z-10 rounded-full border border-white/70 bg-white/80 font-black uppercase leading-none tracking-[0.12em] shadow-sm backdrop-blur-sm', item.text, compact ? 'mt-0.5 px-1.5 py-0.5 text-[0.38rem] md:text-[0.45rem]' : 'mt-1 px-2 py-1 text-[0.48rem] md:text-[0.56rem]')}>
+        {item.sticker}
+      </span>
     </div>
   );
 }
@@ -147,7 +150,7 @@ export default function MatchSortGame() {
   const [shelves, setShelves] = useState<Record<GoodsSku, GoodsItem[]>>(() => createShelves());
   const [selectedItemId, setSelectedItemId] = useState<string | null>(null);
   const [sessionId, setSessionId] = useState(() => createArcadeSessionId());
-  const [message, setMessage] = useState('Select a character parcel, then its matching story shelf.');
+  const [message, setMessage] = useState('Select a storybook parcel, then its matching shelf.');
 
   const sortedCount = useMemo(() => ORDER.reduce((sum, sku) => sum + shelves[sku].length, 0), [shelves]);
   const solved = tray.length === 0 && ORDER.every((sku) => shelves[sku].length === 3);
@@ -159,7 +162,7 @@ export default function MatchSortGame() {
     setShelves(createShelves());
     setSelectedItemId(null);
     setSessionId(createArcadeSessionId());
-    setMessage('Select a character parcel, then its matching story shelf.');
+    setMessage('Select a storybook parcel, then its matching shelf.');
   };
 
   const placeOnShelf = (sku: GoodsSku) => {
@@ -202,6 +205,7 @@ export default function MatchSortGame() {
                   key={sku}
                   type="button"
                   onClick={() => placeOnShelf(sku)}
+                  aria-label={`${definition.label} shelf, ${shelves[sku].length} of 3 parcels${canReceive ? ', selected parcel belongs here' : ''}`}
                   className={cn(
                     'relative flex min-h-[13rem] flex-col rounded-[1.4rem] border-2 border-[#dba15d] bg-[linear-gradient(180deg,#f4b66f_0%,#d98d41_100%)] p-2 text-left shadow-[inset_0_2px_0_rgba(255,255,255,0.36),0_14px_30px_rgba(116,66,19,0.14)] transition-all',
                     canReceive && 'scale-[1.01] border-[#77ceff] ring-4 ring-[#dff6ff]'
@@ -232,6 +236,8 @@ export default function MatchSortGame() {
               <button
                 key={item.id}
                 type="button"
+                aria-label={`Select ${item.label} parcel`}
+                aria-pressed={selectedItemId === item.id}
                 onClick={() => {
                   playSfx('arcadeSelect');
                   setSelectedItemId((current) => (current === item.id ? null : item.id));

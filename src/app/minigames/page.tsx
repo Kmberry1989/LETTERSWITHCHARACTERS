@@ -2,7 +2,7 @@
 
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowRight, Cherry, CircleHelp, Clock3, Coins, Gauge, Sparkles, Trophy } from 'lucide-react';
+import { ArrowRight, BookOpen, Cherry, CircleHelp, Clock3, Coins, Gauge, Sparkles, Trophy } from 'lucide-react';
 import AppLayout from '@/components/app-layout';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
@@ -36,6 +36,8 @@ export default function MinigamesPage() {
   const { data: profile } = useDoc<UserProfile>(userRef);
   const retention = normalizeRetentionState(profile?.retention);
   const daily = getDailyChallenge();
+  const dailyMode = MODE_METADATA[daily.modeId];
+  const dailyProgress = retention.modeProgress[daily.modeId];
 
   return (
     <AppLayout>
@@ -52,6 +54,32 @@ export default function MinigamesPage() {
               <div className="soft-card rounded-2xl px-4 py-3"><Sparkles className="mb-1 h-4 w-4 text-amber-500" /><strong>{retention.streakCount}</strong><div className="text-xs text-slate-500">day streak</div></div>
               <div className="soft-card col-span-2 rounded-2xl px-4 py-3 sm:col-span-1"><Coins className="mb-1 h-4 w-4 text-sky-500" /><strong>25 berries</strong><div className="text-xs text-slate-500">per Claw Token</div></div>
             </div>
+          </div>
+        </section>
+
+        <section aria-labelledby="daily-story-title" className="relative overflow-hidden rounded-[2rem] border border-[#ead27c] bg-[radial-gradient(circle_at_78%_18%,rgba(255,255,255,0.42),transparent_24%),linear-gradient(120deg,#182c53_0%,#384186_48%,#a24984_100%)] p-5 text-white shadow-[0_22px_55px_rgba(43,47,102,0.24)] sm:p-7">
+          <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-30 [background-image:radial-gradient(circle,rgba(255,255,255,0.8)_1px,transparent_1px)] [background-size:20px_20px]" />
+          <div className="relative grid items-center gap-5 md:grid-cols-[minmax(0,1fr)_auto]">
+            <div className="flex min-w-0 items-center gap-4">
+              <span className={`flex h-20 w-20 shrink-0 items-center justify-center rounded-[1.5rem] border border-white/30 bg-gradient-to-br ${dailyMode.accent} shadow-[0_16px_35px_rgba(7,13,40,0.26)] sm:h-24 sm:w-24`}>
+                <Image src={dailyMode.iconPath} alt="" width={58} height={58} className="drop-shadow-md" />
+              </span>
+              <div className="min-w-0">
+                <div className="inline-flex items-center gap-1.5 rounded-full border border-[#f7e6a9]/40 bg-[#f7e6a9]/15 px-3 py-1 text-[0.68rem] font-black uppercase tracking-[0.2em] text-[#fff0ad]">
+                  <BookOpen aria-hidden="true" className="h-3.5 w-3.5" />Today’s featured story
+                </div>
+                <h2 id="daily-story-title" className="mt-2 font-headline text-2xl font-black sm:text-3xl">{dailyMode.title}</h2>
+                <p className="mt-1 max-w-2xl text-sm font-semibold leading-relaxed text-white/78 sm:text-base">{dailyMode.objective}</p>
+                <div className="mt-3 flex flex-wrap gap-x-4 gap-y-1 text-xs font-bold text-white/70">
+                  <span>{dailyMode.estimatedMinutes} min</span>
+                  <span>{dailyMode.reward}</span>
+                  <span>{dailyProgress.bestScore > 0 ? `Best ${dailyProgress.bestScore}` : 'First attempt waiting'}</span>
+                </div>
+              </div>
+            </div>
+            <Link href={dailyMode.href} className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-[#fff1ad] px-6 py-3 text-sm font-black text-[#24305f] shadow-[0_10px_24px_rgba(9,16,50,0.24)] transition hover:-translate-y-0.5 hover:bg-white focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-white/55">
+              Play today’s story <ArrowRight aria-hidden="true" className="h-4 w-4" />
+            </Link>
           </div>
         </section>
 

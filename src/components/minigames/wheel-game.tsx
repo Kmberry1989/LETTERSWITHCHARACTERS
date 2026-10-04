@@ -1,7 +1,8 @@
 'use client';
 
+import Image from 'next/image';
 import { useMemo, useRef, useState } from 'react';
-import { Users } from 'lucide-react';
+import { BookOpen, Coins, Users } from 'lucide-react';
 import { GameModeHeader, GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
 import { Button } from '@/components/ui/button';
@@ -11,7 +12,7 @@ import { createArcadeSessionId } from '@/lib/arcade/session-id';
 import { cn } from '@/lib/utils';
 
 const WHEEL_VALUES = [150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900];
-const WHEEL_COLORS = ['#22C55E', '#14B8A6', '#06B6D4', '#3B82F6', '#F59E0B', '#F97316'];
+const WHEEL_COLORS = ['#0F766E', '#2563EB', '#7C3AED', '#DB2777', '#EA580C', '#CA8A04'];
 const VOWELS = new Set(['A', 'E', 'I', 'O', 'U']);
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
@@ -219,20 +220,25 @@ export default function WheelGame() {
 
   return (
     <GameScreen>
-      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden rounded-[1.4rem] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(236,253,245,0.94))] p-2 shadow-[0_20px_60px_rgba(22,163,74,0.1)] md:gap-4 md:p-5">
+      <div className="relative flex min-h-0 flex-1 flex-col gap-2 overflow-hidden rounded-[1.6rem] border border-indigo-200/40 bg-[radial-gradient(circle_at_50%_-15%,rgba(250,204,21,0.2),transparent_34%),radial-gradient(circle_at_8%_74%,rgba(45,212,191,0.16),transparent_28%),linear-gradient(145deg,#18204b_0%,#25245d_48%,#152c4b_100%)] p-2 shadow-[0_28px_80px_rgba(30,41,90,0.3)] md:gap-4 md:p-5">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-25 [background-image:radial-gradient(circle,rgba(255,255,255,0.75)_1px,transparent_1px)] [background-size:22px_22px]" />
         <div className="flex items-center gap-2">
           <div className="min-w-0 flex-1"><GameModeHeader modeId="wheel" statLabel={duelMode ? `Player ${activePlayer + 1}` : 'Bank'} statValue={duelMode ? `${scores[0]}-${scores[1]}` : bank} onRestart={reset} hasProgress={bank > 0 || guessedLetters.length > 0} /></div>
-          <Button variant="outline" size="icon" className="rounded-full" onClick={() => setDuelMode((value) => !value)} aria-label="Toggle duel">
+          <Button variant="outline" className="h-11 rounded-full border-white/60 bg-white/90 px-3 shadow-lg" onClick={() => setDuelMode((value) => !value)} aria-label={`Switch to ${duelMode ? 'solo' : 'duel'} mode`} aria-pressed={duelMode}>
             <Users className="h-4 w-4" />
+            <span className="hidden sm:inline">{duelMode ? 'Duel' : 'Solo'}</span>
           </Button>
         </div>
         {solved ? <ArcadeSessionStatus sessionId={sessionId} modeId="wheel" score={Math.max(bank, 500)} outcome="completed" onPlayAgain={reset} /> : null}
 
-        <div className="grid min-h-0 flex-1 grid-rows-[auto_auto_minmax(0,1fr)] gap-2 md:grid-cols-[18rem_minmax(0,1fr)] md:grid-rows-1 md:gap-6">
-          <div className="flex items-center justify-center rounded-[1.4rem] border border-white/70 bg-white/90 p-2 md:p-6">
+        <div className="relative grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] gap-2 md:grid-cols-[minmax(18rem,0.85fr)_minmax(0,1.35fr)] md:grid-rows-1 md:gap-4">
+          <div className="relative flex items-center justify-center overflow-hidden rounded-[1.5rem] border border-white/20 bg-[radial-gradient(circle_at_50%_45%,rgba(255,255,255,0.16),rgba(11,18,51,0.58)_68%)] p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.16)] md:p-5">
+            <div className="absolute left-3 top-3 flex items-center gap-2 rounded-full border border-amber-200/50 bg-slate-950/45 px-3 py-1.5 text-[0.65rem] font-black uppercase tracking-[0.18em] text-amber-100 backdrop-blur">
+              <Coins className="h-3.5 w-3.5" /> {currentValue ? `${currentValue} per letter` : 'Spin value'}
+            </div>
             <button
               type="button"
-              className="relative aspect-square w-[min(52vw,11.5rem)] touch-none md:w-full md:max-w-[17.5rem]"
+              className="relative mt-5 aspect-square w-[min(62vw,14.5rem)] touch-none rounded-full outline-none focus-visible:ring-4 focus-visible:ring-amber-300 md:mt-0 md:w-full md:max-w-[21rem]"
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
@@ -240,13 +246,9 @@ export default function WheelGame() {
               style={{ touchAction: 'none' }}
               aria-label="Flick wheel"
             >
-              <div className="absolute left-1/2 top-[-2px] z-20 h-0 w-0 -translate-x-1/2 border-l-[12px] border-r-[12px] border-b-[20px] border-l-transparent border-r-transparent border-b-slate-950 md:border-l-[18px] md:border-r-[18px] md:border-b-[26px]" />
-              {currentValue ? (
-                <div className="absolute left-1/2 top-6 z-30 -translate-x-1/2 rounded-full bg-slate-950 px-3 py-1 text-xs font-black text-white shadow-lg">
-                  {currentValue}
-                </div>
-              ) : null}
-              <svg viewBox="0 0 280 280" className="h-full w-full transition-transform ease-out" style={{ transform: `rotate(${rotation}deg)`, transitionDuration: spinning ? '1300ms' : '200ms' }}>
+              <div className="absolute left-1/2 top-[-4px] z-20 h-0 w-0 -translate-x-1/2 drop-shadow-[0_5px_3px_rgba(0,0,0,0.35)] border-l-[14px] border-r-[14px] border-b-[24px] border-l-transparent border-r-transparent border-b-amber-300 md:border-l-[19px] md:border-r-[19px] md:border-b-[30px]" />
+              <div className="absolute inset-0 rounded-full border-[7px] border-amber-200/90 shadow-[0_0_0_4px_rgba(120,53,15,0.55),0_0_30px_rgba(250,204,21,0.35),inset_0_0_18px_rgba(15,23,42,0.55)]" />
+              <svg viewBox="0 0 280 280" className="h-full w-full rounded-full p-[7px] transition-transform ease-out" style={{ transform: `rotate(${rotation}deg)`, transitionDuration: spinning ? '1300ms' : '200ms' }}>
                 {WHEEL_VALUES.map((value, index) => {
                   const segmentAngle = (Math.PI * 2) / WHEEL_VALUES.length;
                   const startAngle = -Math.PI / 2 + index * segmentAngle;
@@ -255,29 +257,39 @@ export default function WheelGame() {
                   const label = polarPoint(140, 140, 92, labelAngle);
                   return (
                     <g key={value}>
-                      <path d={wedgePath(140, 140, 126, startAngle, endAngle)} fill={WHEEL_COLORS[index % WHEEL_COLORS.length]} />
-                      <text x={label.x} y={label.y} fill="white" fontSize="16" fontWeight="800" textAnchor="middle" dominantBaseline="middle" transform={`rotate(${(labelAngle * 180) / Math.PI + 90} ${label.x} ${label.y})`}>
+                      <path d={wedgePath(140, 140, 126, startAngle, endAngle)} fill={WHEEL_COLORS[index % WHEEL_COLORS.length]} stroke="rgba(255,255,255,0.32)" strokeWidth="1.4" />
+                      <text x={label.x} y={label.y} fill="white" fontSize="15" fontWeight="900" textAnchor="middle" dominantBaseline="middle" transform={`rotate(${(labelAngle * 180) / Math.PI + 90} ${label.x} ${label.y})`} style={{ textShadow: '0 1px 2px rgba(0,0,0,0.6)' }}>
                         {value}
                       </text>
                     </g>
                   );
                 })}
-                <circle cx="140" cy="140" r="42" fill="#0F172A" />
-                <text x="140" y="140" fill="white" fontSize="13" fontWeight="900" textAnchor="middle" dominantBaseline="middle">
-                  FLICK
+                <circle cx="140" cy="140" r="43" fill="#111827" stroke="#FDE68A" strokeWidth="4" />
+                <text x="140" y="140" fill="#FEF3C7" fontSize="14" fontWeight="900" textAnchor="middle" dominantBaseline="middle">
+                  {spinning ? 'SPIN!' : 'FLICK'}
                 </text>
               </svg>
             </button>
+            <div className="pointer-events-none absolute bottom-2 right-2 hidden h-24 w-24 opacity-80 md:block">
+              <Image src="/tiles/parrot_tile.png" alt="Parrot feather prize tile" fill sizes="96px" className="object-contain drop-shadow-[0_8px_12px_rgba(0,0,0,0.35)]" />
+            </div>
           </div>
 
-          <div className="flex min-h-0 flex-col gap-2 rounded-[1.4rem] border border-white/70 bg-white/90 p-2 md:p-5">
-            <div className="flex flex-col items-center gap-1">
+          <div className="flex min-h-0 flex-col gap-2 overflow-y-auto rounded-[1.5rem] border border-white/25 bg-white/95 p-2 shadow-[0_18px_42px_rgba(8,15,45,0.25)] md:gap-3 md:p-5">
+            <div className="flex items-center justify-between gap-2">
+              <div className="inline-flex items-center gap-2 rounded-full bg-indigo-950 px-3 py-1.5 text-[0.65rem] font-black uppercase tracking-[0.2em] text-amber-100">
+                <BookOpen className="h-3.5 w-3.5" /> {round.category}
+              </div>
+              <div className="text-xs font-black text-slate-500">{guessedLetters.length} guessed</div>
+            </div>
+
+            <div className="flex min-h-[5.1rem] flex-col items-center justify-center gap-1 rounded-[1.2rem] border border-indigo-900/10 bg-[linear-gradient(180deg,#203267,#172450)] px-2 py-3 shadow-inner md:min-h-[8rem]">
               {phraseRows.map((row, rowIndex) => (
                 <div key={`${row}-${rowIndex}`} className="flex flex-wrap justify-center gap-1">
                   {Array.from(row).map((char, index) => {
                     const revealed = guessedLetters.includes(char) || solved;
                     return (
-                      <div key={`${row}-${char}-${index}`} className="flex h-8 w-6 items-center justify-center rounded-lg border border-slate-200 bg-slate-50 text-sm font-black text-slate-900 min-[360px]:h-9 min-[360px]:w-7 md:h-14 md:w-10 md:text-lg">
+                      <div key={`${row}-${char}-${index}`} className="flex h-8 w-6 items-center justify-center rounded-md border border-white/55 bg-[linear-gradient(180deg,#fffef2,#e7f5ee)] text-sm font-black text-indigo-950 shadow-[0_2px_0_rgba(8,15,45,0.35)] min-[360px]:h-9 min-[360px]:w-7 md:h-12 md:w-9 md:text-lg">
                         {revealed ? char : ''}
                       </div>
                     );
@@ -286,12 +298,12 @@ export default function WheelGame() {
               ))}
             </div>
 
-            <div className="grid grid-cols-9 gap-1 md:grid-cols-7 md:gap-2">
+            <div className="grid grid-cols-9 gap-1 rounded-[1rem] bg-slate-100 p-1.5 md:grid-cols-7 md:gap-1.5 md:p-2">
               {ALPHABET.map((letter) => {
                 const isVowel = VOWELS.has(letter);
                 const disabled = solved || spinning || guessedLetters.includes(letter) || (isVowel ? bank < 250 : !currentValue);
                 return (
-                  <Button key={letter} variant={isVowel ? 'secondary' : 'outline'} size="sm" className={cn('h-7 rounded-full px-0 text-xs md:h-9 md:px-3', guessedLetters.includes(letter) && 'opacity-40')} onClick={() => guessLetter(letter)} disabled={disabled}>
+                  <Button key={letter} variant={isVowel ? 'secondary' : 'outline'} size="sm" className={cn('h-7 rounded-lg border-slate-200 px-0 text-xs font-black disabled:opacity-35 md:h-9 md:px-3', isVowel && 'bg-amber-100 text-amber-950 hover:bg-amber-200', guessedLetters.includes(letter) && 'opacity-30')} onClick={() => guessLetter(letter)} disabled={disabled} aria-label={`${letter}${isVowel ? ', vowel costs 250' : ''}`}>
                     {letter}
                   </Button>
                 );
@@ -302,12 +314,13 @@ export default function WheelGame() {
               <input
                 value={guess}
                 onChange={(event) => setGuess(event.target.value.toUpperCase())}
-                className="min-w-0 rounded-2xl border border-slate-200 bg-white px-3 py-2 text-xs font-black tracking-[0.12em] text-slate-900 outline-none md:text-sm"
-                placeholder="SOLVE"
+                className="min-w-0 rounded-xl border-2 border-indigo-100 bg-white px-3 py-2 text-xs font-black tracking-[0.12em] text-slate-900 outline-none focus:border-indigo-400 md:text-sm"
+                placeholder="TYPE THE PHRASE"
+                aria-label="Solve the phrase"
               />
-              <Button onClick={solve} size="sm">Solve</Button>
+              <Button onClick={solve} size="sm" className="rounded-xl bg-indigo-700 hover:bg-indigo-800">Solve</Button>
             </div>
-            <div className="min-h-5 text-center text-xs font-semibold text-slate-600 md:text-sm">
+            <div className={cn('min-h-7 rounded-xl px-3 py-1.5 text-center text-xs font-black md:text-sm', currentValue ? 'bg-amber-100 text-amber-950' : 'bg-emerald-50 text-emerald-900')} role="status" aria-live="polite">
               {status}
             </div>
           </div>

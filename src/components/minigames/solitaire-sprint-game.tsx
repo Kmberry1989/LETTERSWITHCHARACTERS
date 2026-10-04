@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
+import { BookOpen, Sparkles } from 'lucide-react';
 import { GameModeHeader, GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
 import { Button } from '@/components/ui/button';
@@ -152,7 +153,7 @@ function CardFace({
       className={`h-[3.7rem] w-[2.25rem] rounded-lg border px-1 py-1 shadow-sm min-[360px]:h-[4.1rem] min-[360px]:w-[2.55rem] sm:h-28 sm:w-20 sm:rounded-2xl sm:px-3 sm:py-2 ${
         card.faceUp
           ? `bg-white ${active ? 'border-amber-400 ring-4 ring-amber-200' : 'border-slate-200'}`
-          : 'border-slate-300 bg-[linear-gradient(135deg,#1e293b,#334155)]'
+          : 'border-[#d6b763] bg-[linear-gradient(145deg,#35245c,#1b4160)] shadow-[0_6px_14px_rgba(23,32,62,0.28)]'
       }`}
     >
       {card.faceUp ? (
@@ -162,8 +163,8 @@ function CardFace({
           <div className="self-end text-[0.58rem] font-black leading-none min-[360px]:text-xs sm:text-lg">{rankLabel(card.rank)}</div>
         </div>
       ) : (
-        <div className="flex h-full items-center justify-center rounded-[0.55rem] border border-white/10 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),rgba(255,255,255,0.02))] text-[0.48rem] font-black uppercase tracking-[0.12em] text-slate-200 min-[360px]:text-[0.56rem] sm:rounded-xl sm:text-sm sm:tracking-[0.2em]">
-          Deck
+        <div className="flex h-full items-center justify-center rounded-[0.55rem] border border-[#f3dc8b]/40 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.18),rgba(255,255,255,0.02))] text-[#f8e9ac] min-[360px]:text-[0.56rem] sm:rounded-xl sm:text-sm">
+          <Sparkles aria-hidden="true" className="h-3.5 w-3.5 sm:h-6 sm:w-6" />
         </div>
       )}
     </motion.div>
@@ -329,21 +330,27 @@ export default function SolitaireSprintGame() {
 
   return (
     <GameScreen>
-      <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden rounded-[1.4rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(241,245,249,0.94))] p-2 shadow-[0_24px_70px_rgba(15,23,42,0.1)] md:gap-4 md:p-5">
+      <div className="relative flex min-h-0 flex-1 flex-col gap-2 overflow-hidden rounded-[1.4rem] border border-[#d9c278] bg-[radial-gradient(circle_at_50%_-10%,rgba(255,239,173,0.22),transparent_32%),linear-gradient(160deg,#263f55_0%,#173f3d_46%,#202c48_100%)] p-2 shadow-[0_28px_80px_rgba(16,37,49,0.28)] md:gap-4 md:p-5">
+        <div aria-hidden="true" className="pointer-events-none absolute inset-0 opacity-25 [background-image:radial-gradient(circle,rgba(255,255,255,0.7)_1px,transparent_1px)] [background-size:18px_18px]" />
         <GameModeHeader modeId="solitaire" statLabel="Score" statValue={score} onRestart={reset} hasProgress={stockCount < 24 || score > 0} />
         {solved ? <ArcadeSessionStatus sessionId={sessionId} modeId="solitaire" score={300 + score} outcome="completed" onPlayAgain={reset} /> : null}
         <div className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] gap-2 md:gap-4">
-          <div className="rounded-[1.2rem] border border-slate-200 bg-white/85 p-2 shadow-sm md:p-5">
+          <div className="relative rounded-[1.2rem] border border-[#f1db91]/50 bg-[#102f35]/78 p-2 shadow-[inset_0_1px_0_rgba(255,255,255,0.14),0_12px_30px_rgba(7,20,27,0.2)] backdrop-blur-sm md:p-5">
+            <div className="mb-2 flex items-center justify-between text-[0.62rem] font-black uppercase tracking-[0.18em] text-[#f8e7a2] sm:text-xs">
+              <span className="inline-flex items-center gap-1.5"><BookOpen aria-hidden="true" className="h-3.5 w-3.5" />Royal reading room</span>
+              <span>{stockCount} cards left</span>
+            </div>
             <div className="flex flex-wrap justify-center gap-1.5 min-[360px]:gap-2 sm:gap-4">
               <button
                 type="button"
                 onClick={drawFromStock}
-                className="flex h-[3.7rem] w-[2.25rem] items-center justify-center rounded-lg border border-dashed border-slate-300 bg-slate-100 text-[0.48rem] font-black uppercase tracking-[0.1em] text-slate-700 min-[360px]:h-[4.1rem] min-[360px]:w-[2.55rem] min-[360px]:text-[0.56rem] sm:h-28 sm:w-20 sm:rounded-2xl sm:text-xs sm:tracking-[0.18em]"
+                aria-label={stockCount > 0 ? `Draw a card. ${stockCount} cards remain` : 'Recycle the waste pile'}
+                className="flex h-[3.7rem] w-[2.25rem] items-center justify-center rounded-lg border border-dashed border-[#f2dc91]/65 bg-[#f8e7a2]/10 text-[0.48rem] font-black uppercase tracking-[0.1em] text-[#f8e7a2] min-[360px]:h-[4.1rem] min-[360px]:w-[2.55rem] min-[360px]:text-[0.56rem] sm:h-28 sm:w-20 sm:rounded-2xl sm:text-xs sm:tracking-[0.18em]"
               >
                 {stockCount > 0 ? 'Draw' : 'Recycle'}
               </button>
 
-              <button type="button" onClick={handleWasteClick} className="relative h-[3.7rem] w-[2.25rem] min-[360px]:h-[4.1rem] min-[360px]:w-[2.55rem] sm:h-28 sm:w-20">
+              <button type="button" onClick={handleWasteClick} aria-label={game.waste.length ? `Waste pile: ${rankLabel(game.waste[game.waste.length - 1].rank)} of ${game.waste[game.waste.length - 1].suit}` : 'Empty waste pile'} className="relative h-[3.7rem] w-[2.25rem] min-[360px]:h-[4.1rem] min-[360px]:w-[2.55rem] sm:h-28 sm:w-20">
                 <AnimatePresence initial={false}>
                   {game.waste.length > 0 ? (
                     <CardFace card={game.waste[game.waste.length - 1]} active={selection?.kind === 'waste'} />
@@ -351,7 +358,7 @@ export default function SolitaireSprintGame() {
                     <motion.div
                       initial={{ opacity: 0.4 }}
                       animate={{ opacity: 1 }}
-                      className="flex h-[3.7rem] w-[2.25rem] items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white text-[0.48rem] font-semibold text-slate-400 min-[360px]:h-[4.1rem] min-[360px]:w-[2.55rem] min-[360px]:text-[0.56rem] sm:h-28 sm:w-20 sm:rounded-2xl sm:text-xs"
+                      className="flex h-[3.7rem] w-[2.25rem] items-center justify-center rounded-lg border border-dashed border-[#f2dc91]/35 bg-white/10 text-[0.48rem] font-semibold text-[#f8e7a2]/55 min-[360px]:h-[4.1rem] min-[360px]:w-[2.55rem] min-[360px]:text-[0.56rem] sm:h-28 sm:w-20 sm:rounded-2xl sm:text-xs"
                     >
                       Waste
                     </motion.div>
@@ -366,6 +373,7 @@ export default function SolitaireSprintGame() {
                     key={suit}
                     type="button"
                     onClick={() => handleFoundationClick(suit)}
+                    aria-label={`${suit} foundation${topCard ? `, ${rankLabel(topCard.rank)} on top` : ', empty'}`}
                     className="h-[3.7rem] w-[2.25rem] min-[360px]:h-[4.1rem] min-[360px]:w-[2.55rem] sm:h-28 sm:w-20"
                   >
                     {topCard ? (
@@ -374,7 +382,7 @@ export default function SolitaireSprintGame() {
                         active={selection?.kind === 'foundation' && selection.suit === suit}
                       />
                     ) : (
-                      <div className="flex h-[3.7rem] w-[2.25rem] items-center justify-center rounded-lg border border-dashed border-slate-300 bg-white text-base text-slate-300 min-[360px]:h-[4.1rem] min-[360px]:w-[2.55rem] min-[360px]:text-xl sm:h-28 sm:w-20 sm:rounded-2xl sm:text-3xl">
+                      <div className={`flex h-[3.7rem] w-[2.25rem] items-center justify-center rounded-lg border border-dashed border-[#f2dc91]/45 bg-white/10 text-base min-[360px]:h-[4.1rem] min-[360px]:w-[2.55rem] min-[360px]:text-xl sm:h-28 sm:w-20 sm:rounded-2xl sm:text-3xl ${isRed(suit) ? 'text-rose-300/65' : 'text-[#f8e7a2]/60'}`}>
                         {suitSymbol(suit)}
                       </div>
                     )}
@@ -384,18 +392,19 @@ export default function SolitaireSprintGame() {
             </div>
           </div>
 
-          <div className="min-h-0 rounded-[1.2rem] border border-slate-200 bg-white/85 p-1.5 shadow-sm md:p-5">
+          <div className="relative min-h-0 rounded-[1.2rem] border border-[#f1db91]/45 bg-[#102f35]/74 p-1.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_16px_34px_rgba(7,20,27,0.24)] backdrop-blur-sm md:p-5">
             <div className="grid h-full grid-cols-7 gap-1 min-[360px]:gap-1.5 sm:gap-3">
               {game.tableau.map((column, columnIndex) => (
                 <button
                   key={columnIndex}
                   type="button"
                   onClick={() => handleTableauClick(columnIndex)}
-                  className="relative h-full min-h-[16rem] rounded-[0.8rem] border border-dashed border-slate-200 bg-slate-50/60 p-0.5 text-left min-[360px]:min-h-[18rem] sm:min-h-[360px] sm:rounded-[22px] sm:p-2"
+                  aria-label={`Tableau column ${columnIndex + 1}, ${column.length} cards`}
+                  className="relative h-full min-h-[16rem] rounded-[0.8rem] border border-dashed border-[#e7d489]/30 bg-black/10 p-0.5 text-left min-[360px]:min-h-[18rem] sm:min-h-[360px] sm:rounded-[22px] sm:p-2"
                 >
                   {column.length === 0 ? (
-                    <div className="flex h-[3.7rem] items-center justify-center rounded-lg border border-dashed border-slate-200 text-[0.48rem] font-black uppercase tracking-[0.1em] text-slate-300 min-[360px]:h-[4.1rem] min-[360px]:text-[0.56rem] sm:h-28 sm:rounded-2xl sm:text-xs sm:tracking-[0.18em]">
-                      Empty
+                    <div className="flex h-[3.7rem] items-center justify-center rounded-lg border border-dashed border-[#e7d489]/35 text-[0.48rem] font-black uppercase tracking-[0.1em] text-[#f8e7a2]/45 min-[360px]:h-[4.1rem] min-[360px]:text-[0.56rem] sm:h-28 sm:rounded-2xl sm:text-xs sm:tracking-[0.18em]">
+                      King
                     </div>
                   ) : (
                     column.map((card, cardIndex) => (

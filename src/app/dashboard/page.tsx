@@ -17,7 +17,8 @@ import { resolveAvatarImage } from '@/lib/avatar-catalog';
 import { usePlayableGate } from '@/hooks/use-playable-gate';
 import { useTurnNotifications } from '@/hooks/use-turn-notifications';
 import { DashboardTaskbar } from '@/components/dashboard/dashboard-taskbar';
-import { Sparkles, Swords } from 'lucide-react';
+import { CheckCircle2, Clock3, Gift, Sparkles, Swords } from 'lucide-react';
+import { getRetentionSummary, MODE_METADATA, normalizeRetentionState } from '@/lib/retention';
 
 interface PlayerData {
   displayName: string;
@@ -189,12 +190,43 @@ function useUserGames() {
     void fetchGames();
   }, [games.length, userProfile, user]);
 
-  return { games, loading };
+  return { games, loading, userProfile };
+}
+
+function TodayStoryCard({ profile }: { profile?: UserProfile | null }) {
+  const summary = getRetentionSummary(normalizeRetentionState(profile?.retention));
+  const daily = summary.dailyChallenge;
+  const mode = MODE_METADATA[daily.modeId];
+  const complete = summary.dailyChallengeCompleted;
+
+  return (
+    <Card className={`overflow-hidden rounded-[1.75rem] border-white/70 bg-gradient-to-br ${mode.accent}`} data-testid="today-story">
+      <CardHeader className="gap-4 p-5 sm:p-6">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div>
+            <div className="text-xs font-black uppercase tracking-[0.22em] text-slate-600">Today’s story</div>
+            <CardTitle className="mt-1 font-headline text-3xl font-black text-slate-950">{daily.title}</CardTitle>
+            <CardDescription className="mt-2 max-w-2xl font-semibold text-slate-700">{daily.description} {daily.targetLabel}</CardDescription>
+          </div>
+          {complete ? <Badge className="rounded-full bg-emerald-600 text-white"><CheckCircle2 className="mr-1 h-4 w-4" />Complete</Badge> : <Badge className="rounded-full bg-white/80 text-slate-900 hover:bg-white/80">New today</Badge>}
+        </div>
+        <div className="flex flex-wrap gap-2 text-sm font-bold text-slate-700">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-1.5"><Clock3 className="h-4 w-4" />About {mode.estimatedMinutes} min</span>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/70 px-3 py-1.5"><Gift className="h-4 w-4" />+{daily.rewardBerries} berries · +{daily.rewardExperience} XP</span>
+        </div>
+      </CardHeader>
+      <CardFooter className="p-5 pt-0 sm:p-6 sm:pt-0">
+        <Button asChild size="lg" variant={complete ? 'outline' : 'default'} className="w-full rounded-full sm:w-auto">
+          <Link href={complete ? '/minigames' : mode.href}>{complete ? 'Choose another story' : `Play ${mode.title}`}</Link>
+        </Button>
+      </CardFooter>
+    </Card>
+  );
 }
 
 export default function DashboardPage() {
   const { user, isUserLoading, canPlay } = usePlayableGate();
-  const { games, loading: gamesLoading } = useUserGames();
+  const { games, loading: gamesLoading, userProfile } = useUserGames();
   const loading = isUserLoading || gamesLoading || !user || !canPlay;
 
   const sortedGames = useMemo(() => {
@@ -273,6 +305,7 @@ export default function DashboardPage() {
             </div>
 
             {loading && <Skeleton className="h-44 rounded-[2rem]" />}
+            {!loading && !usersTurnGame ? <TodayStoryCard profile={userProfile} /> : null}
             {!loading && featuredGame ? <FeaturedGameCard game={featuredGame} /> : null}
             {!loading && !featuredGame ? (
               <Card className="soft-card flex flex-col items-center justify-center rounded-[1.75rem] border-dashed p-8 text-center">

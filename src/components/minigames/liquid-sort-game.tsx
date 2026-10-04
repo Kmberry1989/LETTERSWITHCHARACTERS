@@ -137,6 +137,7 @@ export default function LiquidSortGame() {
               const selected = selectedSource === index;
               const source = selectedSource !== null ? tubes[selectedSource] : null;
               const validTarget = selectedSource !== null && selectedSource !== index && canPour(source || [], tube);
+              const contents = tube.length ? tube.map((color) => COLOR_MAP[color].label).join(', ') : 'empty';
 
               return (
                 <button
@@ -148,7 +149,7 @@ export default function LiquidSortGame() {
                     selected && 'scale-[1.02] ring-4 ring-sky-100',
                     validTarget && 'ring-4 ring-emerald-100'
                   )}
-                  aria-label={`Tube ${index + 1}`}
+                  aria-label={`Tube ${index + 1}, ${contents}${selected ? ', selected' : ''}`}
                 >
                   <span className="pointer-events-none absolute left-1/2 top-1 z-20 -translate-x-1/2 rounded-full bg-white/90 px-2 py-0.5 text-[0.55rem] font-black uppercase tracking-[0.16em] text-slate-500">
                     {index + 1}

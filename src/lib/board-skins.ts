@@ -376,31 +376,31 @@ export function resolveBoardAppearance(boardThemeId?: string | null, boardColor?
   const neutralBottom = shiftColor(accent, { s: -accent.s * 0.56, l: 16 });
 
   const dl = {
-    background: 'linear-gradient(180deg, #cfe9ff 0%, #5ea9ea 100%)',
-    text: '#ffffff',
-    ring: 'rgba(56, 119, 186, 0.42)',
-    shadow: '0 1px 0 rgba(20,47,84,0.44), 0 0 9px rgba(255,255,255,0.22)',
+    background: 'linear-gradient(145deg, rgba(125, 211, 252, 0.72), rgba(14, 165, 233, 0.42))',
+    text: '#075985',
+    ring: 'rgba(2, 132, 199, 0.7)',
+    shadow: '0 1px 0 rgba(255,255,255,0.72), 0 0 8px rgba(56,189,248,0.32)',
   };
   const tl = {
-    background: 'linear-gradient(180deg, #d8efaf 0%, #9ec45d 100%)',
-    text: '#ffffff',
-    ring: 'rgba(111, 144, 54, 0.44)',
-    shadow: '0 1px 0 rgba(55,79,20,0.42), 0 0 9px rgba(255,255,255,0.2)',
+    background: 'linear-gradient(145deg, rgba(110, 231, 183, 0.72), rgba(16, 185, 129, 0.42))',
+    text: '#065f46',
+    ring: 'rgba(5, 150, 105, 0.7)',
+    shadow: '0 1px 0 rgba(255,255,255,0.72), 0 0 8px rgba(52,211,153,0.3)',
   };
   const dw = {
-    background: 'linear-gradient(180deg, #ffd9d0 0%, #e98a6c 100%)',
-    text: '#ffffff',
-    ring: 'rgba(195, 110, 77, 0.42)',
-    shadow: '0 1px 0 rgba(104,47,24,0.38), 0 0 9px rgba(255,255,255,0.22)',
+    background: 'linear-gradient(145deg, rgba(251, 207, 232, 0.78), rgba(236, 72, 153, 0.4))',
+    text: '#9d174d',
+    ring: 'rgba(219, 39, 119, 0.68)',
+    shadow: '0 1px 0 rgba(255,255,255,0.76), 0 0 8px rgba(244,114,182,0.3)',
   };
   const tw = {
-    background: 'linear-gradient(180deg, #ffc493 0%, #ee9b5d 100%)',
-    text: '#ffffff',
-    ring: 'rgba(198, 120, 61, 0.46)',
-    shadow: '0 1px 0 rgba(111,55,20,0.4), 0 0 10px rgba(255,255,255,0.18)',
+    background: 'linear-gradient(145deg, rgba(253, 186, 116, 0.8), rgba(239, 68, 68, 0.46))',
+    text: '#9a3412',
+    ring: 'rgba(220, 38, 38, 0.72)',
+    shadow: '0 1px 0 rgba(255,255,255,0.74), 0 0 9px rgba(251,113,133,0.32)',
   };
   const start = {
-    background: 'linear-gradient(180deg, #fde68a 0%, #f59e0b 100%)',
+    background: 'linear-gradient(145deg, rgba(253, 230, 138, 0.82), rgba(245, 158, 11, 0.46))',
     text: '#78350f',
     ring: 'rgba(180, 83, 9, 0.44)',
     shadow: '0 1px 0 rgba(255,255,255,0.82), 0 0 8px rgba(255,244,214,0.34)',
