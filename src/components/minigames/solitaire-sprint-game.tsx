@@ -2,10 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { RefreshCcw } from 'lucide-react';
-import { GameScreen } from '@/components/game-screen';
+import { GameModeHeader, GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAudio } from '@/hooks/use-audio';
 import { createArcadeSessionId } from '@/lib/arcade/session-id';
@@ -332,19 +330,8 @@ export default function SolitaireSprintGame() {
   return (
     <GameScreen>
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden rounded-[1.4rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.97),rgba(241,245,249,0.94))] p-2 shadow-[0_24px_70px_rgba(15,23,42,0.1)] md:gap-4 md:p-5">
-        <div className="ml-11 flex min-h-10 items-center justify-end gap-2 md:ml-0 md:justify-between">
-          <Badge variant="secondary" className="rounded-full px-3 py-1">
-            {stockCount}
-          </Badge>
-          <Badge variant="outline" className="rounded-full px-3 py-1">
-            {score}
-          </Badge>
-          <Button variant="outline" size="icon" className="rounded-full md:w-auto md:px-4" onClick={reset} aria-label="New shuffle">
-            <RefreshCcw className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">New Shuffle</span>
-          </Button>
-          {solved && <ArcadeSessionStatus sessionId={sessionId} modeId="solitaire" score={300 + score} />}
-        </div>
+        <GameModeHeader modeId="solitaire" statLabel="Score" statValue={score} onRestart={reset} hasProgress={stockCount < 24 || score > 0} />
+        {solved ? <ArcadeSessionStatus sessionId={sessionId} modeId="solitaire" score={300 + score} outcome="completed" onPlayAgain={reset} /> : null}
         <div className="grid min-h-0 flex-1 grid-rows-[auto_minmax(0,1fr)] gap-2 md:gap-4">
           <div className="rounded-[1.2rem] border border-slate-200 bg-white/85 p-2 shadow-sm md:p-5">
             <div className="flex flex-wrap justify-center gap-1.5 min-[360px]:gap-2 sm:gap-4">

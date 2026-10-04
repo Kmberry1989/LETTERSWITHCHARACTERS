@@ -6,7 +6,7 @@ import { Gamepad2, Sparkles, Store, Swords, Trophy, UserCircle } from 'lucide-re
 import { cn } from '@/lib/utils';
 
 const items = [
-  { href: '/dashboard', label: 'Play', icon: Gamepad2 },
+  { href: '/dashboard', label: 'Duels', icon: Gamepad2 },
   { href: '/minigames', label: 'Arcade', icon: Sparkles },
   { href: '/lobby', label: 'Lobby', icon: Swords },
   { href: '/leaderboard', label: 'Ranks', icon: Trophy },

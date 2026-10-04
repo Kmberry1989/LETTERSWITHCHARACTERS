@@ -4,7 +4,7 @@ Human-only multiplayer word game built with Next.js 15, PostgreSQL, Prisma, loca
 
 ## Requirements
 
-- Node.js 20+
+- Node.js 22+
 - npm
 - PostgreSQL database URL
 - Optional: Google AI / Genkit credentials if you want hints and AI word validation to work
@@ -59,7 +59,11 @@ npm run genkit:dev
 ```bash
 npm run typecheck
 npm run build
+npm run test
+npm run test:e2e
 ```
+
+`npm run test:all` runs lint, typecheck, unit tests, and the production build in one release check.
 
 ## Notifications
 
@@ -109,7 +113,12 @@ Primary document collections currently stored in Postgres:
 ## Notes
 
 - Firebase dependencies have been removed from `package.json`.
-- Local session auth is intentionally lightweight for development/prototyping. Before a public launch, replace it with a hardened auth provider such as Auth.js, Clerk, or a full credential system with password hashing and OAuth.
+- The application session adapter in `src/lib/server/auth.ts` is the canonical server auth boundary. Username/password and guest accounts use the local session table; Google/Apple use Supabase OAuth and are normalized into the same application user/profile shape. Routes should call `getCurrentUser()` rather than reading provider state directly.
+- Local sessions use secure, HTTP-only cookies, expire after 30 days, rotate on sign-in, and can be revoked for the current account with `DELETE /api/auth/session?all=1`. Password recovery still needs a provider-backed email flow before public launch.
 - Realtime Firestore listeners have been replaced with API-backed polling hooks. For production multiplayer, add Socket.IO or a hosted realtime layer.
 - Bot gameplay remains behind existing API routes if present.
 - AI hints remain optional. If AI credentials are not configured, the app should still boot and human-vs-human gameplay should still work.
+
+## Production data changes
+
+Run `npm run db:push` only for local development or an explicitly reviewed staging change. Production schema changes should use a reviewed Prisma migration and a backup/rollback plan. Economy mutations are recorded in `economy_transactions` with per-user idempotency keys so berry and Claw Token changes can be audited.

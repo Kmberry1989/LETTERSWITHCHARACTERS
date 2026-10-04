@@ -1,10 +1,9 @@
 'use client';
 
 import { useMemo, useRef, useState } from 'react';
-import { RefreshCcw, Users } from 'lucide-react';
-import { GameScreen } from '@/components/game-screen';
+import { Users } from 'lucide-react';
+import { GameModeHeader, GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { useAudio } from '@/hooks/use-audio';
 import { WHEEL_PHRASES } from '@/lib/arcade/wheel-phrases';
@@ -221,18 +220,13 @@ export default function WheelGame() {
   return (
     <GameScreen>
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden rounded-[1.4rem] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(236,253,245,0.94))] p-2 shadow-[0_20px_60px_rgba(22,163,74,0.1)] md:gap-4 md:p-5">
-        <div className="ml-11 flex min-h-10 items-center justify-end gap-2 md:ml-0 md:justify-between">
-          <Badge variant="secondary" className="rounded-full px-3 py-1">{duelMode ? `P${activePlayer + 1}` : round.category}</Badge>
-          <Badge variant="outline" className="rounded-full px-3 py-1">{duelMode ? `${scores[0]}-${scores[1]}` : bank}</Badge>
+        <div className="flex items-center gap-2">
+          <div className="min-w-0 flex-1"><GameModeHeader modeId="wheel" statLabel={duelMode ? `Player ${activePlayer + 1}` : 'Bank'} statValue={duelMode ? `${scores[0]}-${scores[1]}` : bank} onRestart={reset} hasProgress={bank > 0 || guessedLetters.length > 0} /></div>
           <Button variant="outline" size="icon" className="rounded-full" onClick={() => setDuelMode((value) => !value)} aria-label="Toggle duel">
             <Users className="h-4 w-4" />
           </Button>
-          <Button variant="outline" size="icon" className="rounded-full md:w-auto md:px-4" onClick={reset} aria-label="New round">
-            <RefreshCcw className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">New Round</span>
-          </Button>
-          {solved ? <ArcadeSessionStatus sessionId={sessionId} modeId="wheel" score={Math.max(bank, 500)} /> : null}
         </div>
+        {solved ? <ArcadeSessionStatus sessionId={sessionId} modeId="wheel" score={Math.max(bank, 500)} outcome="completed" onPlayAgain={reset} /> : null}
 
         <div className="grid min-h-0 flex-1 grid-rows-[auto_auto_minmax(0,1fr)] gap-2 md:grid-cols-[18rem_minmax(0,1fr)] md:grid-rows-1 md:gap-6">
           <div className="flex items-center justify-center rounded-[1.4rem] border border-white/70 bg-white/90 p-2 md:p-6">

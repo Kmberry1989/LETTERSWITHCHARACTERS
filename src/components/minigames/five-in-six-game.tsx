@@ -1,11 +1,8 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { RefreshCcw } from 'lucide-react';
-import { GameScreen } from '@/components/game-screen';
+import { GameModeHeader, GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { useAudio } from '@/hooks/use-audio';
 import { createArcadeSessionId } from '@/lib/arcade/session-id';
 import { FIVE_IN_SIX_WORDS } from '@/lib/arcade/five-in-six-words';
@@ -215,19 +212,11 @@ export default function FiveInSixGame() {
   return (
     <GameScreen>
       <div className="flex min-h-0 flex-1 flex-col gap-1.5 overflow-hidden rounded-[1.4rem] border border-white/70 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(242,247,255,0.94))] p-2 shadow-[0_20px_60px_rgba(59,130,246,0.12)] md:gap-3 md:p-4">
-        <div className="ml-11 flex min-h-10 flex-wrap items-center justify-end gap-2 md:ml-0 md:min-h-9 md:flex-nowrap md:justify-between">
-          <Badge variant="secondary" className="rounded-full px-3 py-1">
-            {triesUsed} / {MAX_TRIES}
-          </Badge>
-          <Button variant="outline" size="icon" className="rounded-full md:w-auto md:px-4" onClick={resetGame} aria-label="New puzzle">
-            <RefreshCcw className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">New Puzzle</span>
-          </Button>
-          {gameOver ? <ArcadeSessionStatus sessionId={sessionId} modeId="five-in-six" score={score} completed className="w-full md:w-auto" /> : null}
-        </div>
+        <GameModeHeader modeId="five-in-six" statLabel="Guesses" statValue={`${triesUsed}/${MAX_TRIES}`} onRestart={resetGame} hasProgress={triesUsed > 0 || currentTile > 0} />
+        {gameOver ? <ArcadeSessionStatus sessionId={sessionId} modeId="five-in-six" score={score} outcome={won ? 'won' : 'lost'} completed={won} onPlayAgain={resetGame} /> : null}
 
         <div className="flex min-h-0 flex-1 flex-col justify-between gap-1.5 md:gap-2.5">
-          <div className="min-h-4 text-center text-[0.7rem] font-semibold text-slate-600 md:min-h-5 md:text-sm">
+          <div className="min-h-4 text-center text-[0.7rem] font-semibold text-slate-600 md:min-h-5 md:text-sm" role="status" aria-live="polite">
             {gameOver ? (won ? 'Solved.' : `Answer: ${targetWord.toUpperCase()}`) : message || 'Guess the hidden five-letter word.'}
           </div>
 

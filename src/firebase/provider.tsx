@@ -5,7 +5,7 @@ import type { Provider as SupabaseProvider } from '@supabase/supabase-js';
 import { resolveBoardColor } from '@/lib/board-skins';
 import { createClient as createSupabaseClient } from '@/lib/supabase/client';
 import { hasSupabaseEnv } from '@/lib/supabase/config';
-import { normalizeUsername, usernameToAuthEmail } from '@/lib/auth-identity';
+import { normalizeUsername } from '@/lib/auth-identity';
 
 export type AppUser = {
   uid: string;
@@ -118,6 +118,23 @@ async function loadCurrentUser() {
   return withTokenGetter(data?.user);
 }
 
+async function signInWithLocalSession(payload: SignInPayload) {
+  const response = await fetch('/api/auth/session', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(payload),
+  });
+  const data = await response.json().catch(() => null);
+
+  if (!response.ok) {
+    throw new Error(data?.error || 'Could not sign in.');
+  }
+
+  return withTokenGetter(data?.user);
+}
+
 function getOAuthRedirectUrl() {
   if (typeof window === 'undefined') {
     return undefined;
@@ -179,11 +196,11 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
     () => ({
       currentUser: userAuthState.user,
       signIn: async (payload: SignInPayload) => {
-        if (!supabase) {
-          throw new Error('Authentication is unavailable because Supabase env vars are not configured.');
-        }
-
         if (payload?.mode === 'google' || payload?.mode === 'apple') {
+          if (!supabase) {
+            throw new Error('Authentication is unavailable because Supabase env vars are not configured.');
+          }
+
           const provider = payload.mode as SupabaseProvider;
           const { error } = await supabase.auth.signInWithOAuth({
             provider,
@@ -200,19 +217,10 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
         }
 
         if (payload?.mode === 'guest') {
-          const { error } = await supabase.auth.signInAnonymously({
-            options: {
-              data: {
-                display_name: payload.displayName?.trim() || 'Guest Player',
-              },
-            },
+          const user = await signInWithLocalSession({
+            mode: 'guest',
+            displayName: payload.displayName?.trim() || 'Guest Player',
           });
-
-          if (error) {
-            throw new Error(error.message || 'Guest sign-in failed.');
-          }
-
-          const user = await loadCurrentUser();
           setUserAuthState({ user, isUserLoading: false, userError: null });
           return user!;
         }
@@ -224,48 +232,30 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) 
           throw new Error('Username and password are required.');
         }
 
-        if (payload?.action === 'signup') {
-          const { data, error } = await supabase.auth.signUp({
-            email: usernameToAuthEmail(username),
-            password,
-            options: {
-              data: {
-                username,
-                display_name: payload.displayName?.trim() || username,
-              },
-            },
-          });
-
-          if (error) {
-            throw new Error(error.message || 'Could not create the account.');
-          }
-
-          if (!data.session) {
-            throw new Error('Account created, but email confirmation is still required in Supabase Auth.');
-          }
-        } else {
-          const { error } = await supabase.auth.signInWithPassword({
-            email: usernameToAuthEmail(username),
-            password,
-          });
-
-          if (error) {
-            throw new Error(error.message || 'Could not sign in.');
-          }
-        }
-
-        const user = await loadCurrentUser();
+        const user = await signInWithLocalSession({
+          mode: 'email',
+          action: payload?.action === 'signup' ? 'signup' : 'signin',
+          username,
+          password,
+          displayName: payload.displayName?.trim() || username,
+        });
         setUserAuthState({ user, isUserLoading: false, userError: null });
         return user!;
       },
       signOut: async () => {
-        if (!supabase) {
-          throw new Error('Authentication is unavailable because Supabase env vars are not configured.');
+        if (supabase) {
+          const { error } = await supabase.auth.signOut();
+          if (error && error.message !== 'Auth session missing!') {
+            throw new Error(error.message || 'Could not sign out.');
+          }
         }
 
-        const { error } = await supabase.auth.signOut();
-        if (error) {
-          throw new Error(error.message || 'Could not sign out.');
+        const response = await fetch('/api/auth/session', {
+          method: 'DELETE',
+        });
+        if (!response.ok) {
+          const data = await response.json().catch(() => null);
+          throw new Error(data?.error || 'Could not sign out.');
         }
 
         setUserAuthState({ user: null, isUserLoading: false, userError: null });

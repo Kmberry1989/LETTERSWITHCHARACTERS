@@ -107,7 +107,7 @@ function CompactActionButton({
       title={label}
       aria-label={label}
       className={cn(
-        'relative h-10 w-10 shrink-0 rounded-xl shadow-sm md:h-11 md:w-11',
+        'relative h-11 w-auto flex-1 sm:h-12 md:h-14 shrink-0 rounded-xl shadow-sm',
         className
       )}
       {...props}
@@ -347,7 +347,7 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
               </AnimatePresence>
             </motion.div>
             {isExchanging ? (
-                 <div className="flex w-full items-center justify-center gap-2 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                 <div className="flex w-full items-center justify-center gap-2 sm:gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <CompactActionButton variant="secondary" onClick={onToggleExchange} label="Cancel exchange">
                       <X className="h-4.5 w-4.5" />
                     </CompactActionButton>
@@ -355,7 +355,6 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
                       variant="destructive"
                       onClick={triggerExchangeDialog}
                       disabled={exchangeSelection.length === 0 || isSubmitting}
-                      className="h-10 w-10 md:h-11 md:w-11"
                       label={`Confirm exchange of ${exchangeSelection.length} tile${exchangeSelection.length === 1 ? '' : 's'}`}
                       badge={exchangeSelection.length > 0 ? exchangeSelection.length : undefined}
                     >
@@ -363,7 +362,7 @@ export default function TileRack({ tiles, selectedTileIndex, isPlayerTurn, isSub
                     </CompactActionButton>
                  </div>
             ) : (
-                <div className="flex w-full items-center gap-1.5 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                <div className="flex w-full items-center gap-2 sm:gap-3 overflow-x-auto pb-1 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     <CompactActionButton variant="secondary" onClick={onShuffle} label="Shuffle rack">
                       <Shuffle className="h-4.5 w-4.5" />
                     </CompactActionButton>

@@ -1,0 +1,1729 @@
+[
+  {
+    "id": "animals",
+    "name": "Animal Prints",
+    "descriptionTemplate": "A tactile {name} animal pattern.",
+    "tiles": [
+      {
+        "fileName": "zebra_tile.png",
+        "name": "Zebra",
+        "order": 0,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "leopard_tile.png",
+        "name": "Leopard",
+        "order": 1,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "tiger_tile.png",
+        "name": "Tiger",
+        "order": 2,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "giraffe_tile.png",
+        "name": "Giraffe",
+        "order": 3,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "cheetah_tile.png",
+        "name": "Cheetah",
+        "order": 4,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "jaguar_tile.png",
+        "name": "Jaguar",
+        "order": 5,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "cow_tile.png",
+        "name": "Cow",
+        "order": 6,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "dalmatian_tile.png",
+        "name": "Dalmatian",
+        "order": 7,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "calico_cat_tile.png",
+        "name": "Calico Cat",
+        "order": 8,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "tabby_cat_tile.png",
+        "name": "Tabby Cat",
+        "order": 9,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "panda_tile.png",
+        "name": "Panda",
+        "order": 10,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "skunk_tile.png",
+        "name": "Skunk",
+        "order": 11,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "peacock_tile.png",
+        "name": "Peacock",
+        "order": 12,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "python_tile.png",
+        "name": "Python",
+        "order": 13,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "crocodile_tile.png",
+        "name": "Crocodile",
+        "order": 14,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "tortoise_tile.png",
+        "name": "Tortoise",
+        "order": 15,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "koi_tile.png",
+        "name": "Koi",
+        "order": 16,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "fox_tile.png",
+        "name": "Fox",
+        "order": 17,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "wolf_tile.png",
+        "name": "Wolf",
+        "order": 18,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "horse_tile.png",
+        "name": "Horse",
+        "order": 19,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "fawn_tile.png",
+        "name": "Fawn",
+        "order": 20,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "owl_tile.png",
+        "name": "Owl",
+        "order": 21,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "parrot_tile.png",
+        "name": "Parrot",
+        "order": 22,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "tortie_cat_tile.png",
+        "name": "Tortie Cat",
+        "order": 23,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "cream_cat_tile.png",
+        "name": "Cream Cat",
+        "order": 24,
+        "readabilityTone": "dark"
+      }
+    ]
+  },
+  {
+    "id": "candy-shop",
+    "name": "Candy Shop",
+    "descriptionTemplate": "A sugar-bright {name} finish from the candy counter.",
+    "tiles": [
+      {
+        "fileName": "peppermint_swirl_tile.png",
+        "name": "Peppermint Swirl",
+        "order": 0,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "rainbow_lollipop_tile.png",
+        "name": "Rainbow Lollipop",
+        "order": 1,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "green_gummy_bear_tile.png",
+        "name": "Green Gummy Bear",
+        "order": 2,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "jellybean_ring_tile.png",
+        "name": "Jellybean Ring",
+        "order": 3,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "sprinkle_cookie_frame_tile.png",
+        "name": "Sprinkle Cookie Frame",
+        "order": 4,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "chocolate_bar_tile.png",
+        "name": "Chocolate Bar",
+        "order": 5,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "chocolate_drizzle_tile.png",
+        "name": "Chocolate Drizzle",
+        "order": 6,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "caramel_swirl_tile.png",
+        "name": "Caramel Swirl",
+        "order": 7,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "wrapped_candy_corner_tile.png",
+        "name": "Wrapped Candy Corner",
+        "order": 8,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "cotton_candy_puff_tile.png",
+        "name": "Cotton Candy Puff",
+        "order": 9,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "marshmallow_frame_tile.png",
+        "name": "Marshmallow Frame",
+        "order": 10,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "pink_bubblegum_tile.png",
+        "name": "Pink Bubblegum",
+        "order": 11,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "red_hard_candy_gem_tile.png",
+        "name": "Red Hard Candy Gem",
+        "order": 12,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "rock_candy_crystals_tile.png",
+        "name": "Rock Candy Crystals",
+        "order": 13,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "black_licorice_twist_tile.png",
+        "name": "Black Licorice Twist",
+        "order": 14,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "candy_cane_stripe_tile.png",
+        "name": "Candy Cane Stripe",
+        "order": 15,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "lemon_drop_slices_tile.png",
+        "name": "Lemon Drop Slices",
+        "order": 16,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "orange_cream_twist_tile.png",
+        "name": "Orange Cream Twist",
+        "order": 17,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "strawberry_gel_tile.png",
+        "name": "Strawberry Gel",
+        "order": 18,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "blueberry_cream_tile.png",
+        "name": "Blueberry Cream",
+        "order": 19,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "waffle_cone_tile.png",
+        "name": "Waffle Cone",
+        "order": 20,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "frosted_sprinkle_donut_tile.png",
+        "name": "Frosted Sprinkle Donut",
+        "order": 21,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "sugar_gumdrops_tile.png",
+        "name": "Sugar Gumdrops",
+        "order": 22,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "caramel_drip_tile.png",
+        "name": "Caramel Drip",
+        "order": 23,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "wrapped_candy_border_tile.png",
+        "name": "Wrapped Candy Border",
+        "order": 24,
+        "readabilityTone": "dark"
+      }
+    ]
+  },
+  {
+    "id": "classroom",
+    "name": "Classroom",
+    "descriptionTemplate": "A school-day {name} finish for clever wordplay.",
+    "tiles": [
+      {
+        "fileName": "notebook_paper_tile.png",
+        "name": "Notebook Paper",
+        "order": 0,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "graph_paper_tile.png",
+        "name": "Graph Paper",
+        "order": 1,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "chalkboard_tile.png",
+        "name": "Chalkboard",
+        "order": 2,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "whiteboard_tile.png",
+        "name": "Whiteboard",
+        "order": 3,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "corkboard_tile.png",
+        "name": "Corkboard",
+        "order": 4,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "sticky_note_tile.png",
+        "name": "Sticky Note",
+        "order": 5,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "index_card_tile.png",
+        "name": "Index Card",
+        "order": 6,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "pencil_tile_tile.png",
+        "name": "Pencil Tile",
+        "order": 7,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "pink_eraser_tile.png",
+        "name": "Pink Eraser",
+        "order": 8,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "purple_crayon_tile.png",
+        "name": "Purple Crayon",
+        "order": 9,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "doodle_paper_tile.png",
+        "name": "Doodle Paper",
+        "order": 10,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "watercolor_palette_tile.png",
+        "name": "Watercolor Palette",
+        "order": 11,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "wooden_ruler_tile.png",
+        "name": "Wooden Ruler",
+        "order": 12,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "composition_notebook_label_tile.png",
+        "name": "Composition Notebook Label",
+        "order": 13,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "ledger_paper_tile.png",
+        "name": "Ledger Paper",
+        "order": 14,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "blue_book_cover_tile.png",
+        "name": "Blue Book Cover",
+        "order": 15,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "construction_paper_stack_tile.png",
+        "name": "Construction Paper Stack",
+        "order": 16,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "confetti_paper_tile.png",
+        "name": "Confetti Paper",
+        "order": 17,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "paperclip_border_tile.png",
+        "name": "Paperclip Border",
+        "order": 18,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "alphabet_blocks_tile.png",
+        "name": "Alphabet Blocks",
+        "order": 19,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "heart_notebook_page_tile.png",
+        "name": "Heart Notebook Page",
+        "order": 20,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "bulletin_board_frame_tile.png",
+        "name": "Bulletin Board Frame",
+        "order": 21,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "spiral_notebook_tile.png",
+        "name": "Spiral Notebook",
+        "order": 22,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "file_folder_tile.png",
+        "name": "File Folder",
+        "order": 23,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "pastel_binder_divider_tile.png",
+        "name": "Pastel Binder Divider",
+        "order": 24,
+        "readabilityTone": "dark"
+      }
+    ]
+  },
+  {
+    "id": "storybook",
+    "name": "Storybook",
+    "descriptionTemplate": "An illustrated {name} finish from a storybook realm.",
+    "tiles": [
+      {
+        "fileName": "parchment_bookmark_page_tile.png",
+        "name": "Parchment Bookmark Page",
+        "order": 0,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "ancient_leather_book_tile.png",
+        "name": "Ancient Leather Book",
+        "order": 1,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "royal_gold_frame_tile.png",
+        "name": "Royal Gold Frame",
+        "order": 2,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "castle_stone_wall_tile.png",
+        "name": "Castle Stone Wall",
+        "order": 3,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "enchanted_forest_leaves_tile.png",
+        "name": "Enchanted Forest Leaves",
+        "order": 4,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "moonlit_night_sky_tile.png",
+        "name": "Moonlit Night Sky",
+        "order": 5,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "dragon_scales_tile.png",
+        "name": "Dragon Scales",
+        "order": 6,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "potion_bottle_glass_tile.png",
+        "name": "Potion Bottle Glass",
+        "order": 7,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "treasure_map_tile.png",
+        "name": "Treasure Map",
+        "order": 8,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "golden_key_tile.png",
+        "name": "Golden Key",
+        "order": 9,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "royal_theater_curtain_tile.png",
+        "name": "Royal Theater Curtain",
+        "order": 10,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "quill_and_ink_tile.png",
+        "name": "Quill and Ink",
+        "order": 11,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "magic_rune_circle_tile.png",
+        "name": "Magic Rune Circle",
+        "order": 12,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "stained_glass_castle_tile.png",
+        "name": "Stained Glass Castle",
+        "order": 13,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "cloud_kingdom_tile.png",
+        "name": "Cloud Kingdom",
+        "order": 14,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "mushroom_forest_tile.png",
+        "name": "Mushroom Forest",
+        "order": 15,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "lantern_grove_tile.png",
+        "name": "Lantern Grove",
+        "order": 16,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "candy_castle_tile.png",
+        "name": "Candy Castle",
+        "order": 17,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "knight_shield_tile.png",
+        "name": "Knight Shield",
+        "order": 18,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "princess_crown_tile.png",
+        "name": "Princess Crown",
+        "order": 19,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "wizard_night_tile.png",
+        "name": "Wizard Night",
+        "order": 20,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "floral_fairy_tale_page_tile.png",
+        "name": "Floral Fairy Tale Page",
+        "order": 21,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "carved_storybook_wood_tile.png",
+        "name": "Carved Storybook Wood",
+        "order": 22,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "wax_sealed_scroll_tile.png",
+        "name": "Wax-Sealed Scroll",
+        "order": 23,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "compass_quest_map_tile.png",
+        "name": "Compass Quest Map",
+        "order": 24,
+        "readabilityTone": "dark"
+      }
+    ]
+  },
+  {
+    "id": "seasonal",
+    "name": "Seasonal",
+    "descriptionTemplate": "A celebratory {name} finish inspired by the turning year.",
+    "tiles": [
+      {
+        "fileName": "spring_cherry_blossoms_tile.png",
+        "name": "Spring Cherry Blossoms",
+        "order": 0,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "rainy_day_tile.png",
+        "name": "Rainy Day",
+        "order": 1,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "easter_eggs_tile.png",
+        "name": "Easter Eggs",
+        "order": 2,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "fresh_spring_grass_tile.png",
+        "name": "Fresh Spring Grass",
+        "order": 3,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "summer_sunshine_tile.png",
+        "name": "Summer Sunshine",
+        "order": 4,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "pool_day_tile.png",
+        "name": "Pool Day",
+        "order": 5,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "beach_shore_tile.png",
+        "name": "Beach Shore",
+        "order": 6,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "tropical_leaves_tile.png",
+        "name": "Tropical Leaves",
+        "order": 7,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "watermelon_summer_tile.png",
+        "name": "Watermelon Summer",
+        "order": 8,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "lemonade_stand_tile.png",
+        "name": "Lemonade Stand",
+        "order": 9,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "seasonal_autumn_leaves_tile.png",
+        "name": "Autumn Leaves",
+        "order": 10,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "pumpkin_patch_tile.png",
+        "name": "Pumpkin Patch",
+        "order": 11,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "fall_plaid_tile.png",
+        "name": "Fall Plaid",
+        "order": 12,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "acorn_oak_leaves_tile.png",
+        "name": "Acorn Oak Leaves",
+        "order": 13,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "cozy_knit_border_tile.png",
+        "name": "Cozy Knit Border",
+        "order": 14,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "snowy_winter_scene_tile.png",
+        "name": "Snowy Winter Scene",
+        "order": 15,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "frosted_ice_crystals_tile.png",
+        "name": "Frosted Ice Crystals",
+        "order": 16,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "evergreen_pine_tile.png",
+        "name": "Evergreen Pine",
+        "order": 17,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "hot_cocoa_tile.png",
+        "name": "Hot Cocoa",
+        "order": 18,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "holiday_lights_tile.png",
+        "name": "Holiday Lights",
+        "order": 19,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "valentine_hearts_tile.png",
+        "name": "Valentine Hearts",
+        "order": 20,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "st_patricks_clover_tile.png",
+        "name": "St. Patrick’s Clover",
+        "order": 21,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "halloween_treats_tile.png",
+        "name": "Halloween Treats",
+        "order": 22,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "fireworks_night_tile.png",
+        "name": "Fireworks Night",
+        "order": 23,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "birthday_confetti_tile.png",
+        "name": "Birthday Confetti",
+        "order": 24,
+        "readabilityTone": "dark"
+      }
+    ]
+  },
+  {
+    "id": "minerals",
+    "name": "Mineral & Gemstone",
+    "descriptionTemplate": "A polished {name} finish shaped by stone and crystal.",
+    "tiles": [
+      {
+        "fileName": "amethyst_geode_tile.png",
+        "name": "Amethyst Geode",
+        "order": 0,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "rose_quartz_tile.png",
+        "name": "Rose Quartz",
+        "order": 1,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "green_jade_tile.png",
+        "name": "Green Jade",
+        "order": 2,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "emerald_crystal_tile.png",
+        "name": "Emerald Crystal",
+        "order": 3,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "sapphire_crystal_tile.png",
+        "name": "Sapphire Crystal",
+        "order": 4,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "ruby_gem_tile.png",
+        "name": "Ruby Gem",
+        "order": 5,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "fire_opal_tile.png",
+        "name": "Fire Opal",
+        "order": 6,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "turquoise_stone_tile.png",
+        "name": "Turquoise Stone",
+        "order": 7,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "malachite_rings_tile.png",
+        "name": "Malachite Rings",
+        "order": 8,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "lapis_lazuli_tile.png",
+        "name": "Lapis Lazuli",
+        "order": 9,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "black_obsidian_tile.png",
+        "name": "Black Obsidian",
+        "order": 10,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "white_marble_tile.png",
+        "name": "White Marble",
+        "order": 11,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "pink_granite_tile.png",
+        "name": "Pink Granite",
+        "order": 12,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "agate_slice_tile.png",
+        "name": "Agate Slice",
+        "order": 13,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "citrine_crystals_tile.png",
+        "name": "Citrine Crystals",
+        "order": 14,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "aquamarine_gem_tile.png",
+        "name": "Aquamarine Gem",
+        "order": 15,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "diamond_facet_tile.png",
+        "name": "Diamond Facet",
+        "order": 16,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "moonstone_tile.png",
+        "name": "Moonstone",
+        "order": 17,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "pyrite_cubes_tile.png",
+        "name": "Pyrite Cubes",
+        "order": 18,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "clear_quartz_tile.png",
+        "name": "Clear Quartz",
+        "order": 19,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "blue_quartz_cluster_tile.png",
+        "name": "Blue Quartz Cluster",
+        "order": 20,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "smoky_quartz_tile.png",
+        "name": "Smoky Quartz",
+        "order": 21,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "petrified_wood_tile.png",
+        "name": "Petrified Wood",
+        "order": 22,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "lava_rock_tile.png",
+        "name": "Lava Rock",
+        "order": 23,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "mother_of_pearl_tile.png",
+        "name": "Mother of Pearl",
+        "order": 24,
+        "readabilityTone": "dark"
+      }
+    ]
+  },
+  {
+    "id": "food-textures",
+    "name": "Food Textures",
+    "descriptionTemplate": "A playful {name} finish from the wordplay kitchen.",
+    "tiles": [
+      {
+        "fileName": "buttered_waffle_tile.png",
+        "name": "Buttered Waffle",
+        "order": 0,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "food_honeycomb_tile.png",
+        "name": "Honeycomb",
+        "order": 1,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "toast_tile.png",
+        "name": "Toast",
+        "order": 2,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "grilled_bread_tile.png",
+        "name": "Grilled Bread",
+        "order": 3,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "food_chocolate_bar_tile.png",
+        "name": "Chocolate Bar",
+        "order": 4,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "chocolate_drizzle_pastry_tile.png",
+        "name": "Chocolate Drizzle Pastry",
+        "order": 5,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "food_caramel_swirl_tile.png",
+        "name": "Caramel Swirl",
+        "order": 6,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "peanut_butter_swirl_tile.png",
+        "name": "Peanut Butter Swirl",
+        "order": 7,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "frosted_donut_tile.png",
+        "name": "Frosted Donut",
+        "order": 8,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "strawberry_cream_tile.png",
+        "name": "Strawberry Cream",
+        "order": 9,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "food_blueberry_cream_tile.png",
+        "name": "Blueberry Cream",
+        "order": 10,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "citrus_slices_tile.png",
+        "name": "Citrus Slices",
+        "order": 11,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "kiwi_slice_tile.png",
+        "name": "Kiwi Slice",
+        "order": 12,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "watermelon_slice_tile.png",
+        "name": "Watermelon Slice",
+        "order": 13,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "avocado_tile.png",
+        "name": "Avocado",
+        "order": 14,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "popcorn_frame_tile.png",
+        "name": "Popcorn Frame",
+        "order": 15,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "food_marshmallow_frame_tile.png",
+        "name": "Marshmallow Frame",
+        "order": 16,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "chocolate_chip_cookie_tile.png",
+        "name": "Chocolate Chip Cookie",
+        "order": 17,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "butter_cracker_tile.png",
+        "name": "Butter Cracker",
+        "order": 18,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "cereal_ring_border_tile.png",
+        "name": "Cereal Ring Border",
+        "order": 19,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "sushi_rice_tile.png",
+        "name": "Sushi Rice",
+        "order": 20,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "ramen_noodles_tile.png",
+        "name": "Ramen Noodles",
+        "order": 21,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "pizza_tile_tile.png",
+        "name": "Pizza Tile",
+        "order": 22,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "candy_sprinkle_border_tile.png",
+        "name": "Candy Sprinkle Border",
+        "order": 23,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "rainbow_cake_tile.png",
+        "name": "Rainbow Cake",
+        "order": 24,
+        "readabilityTone": "dark"
+      }
+    ]
+  },
+  {
+    "id": "crafty",
+    "name": "Crafty",
+    "descriptionTemplate": "A handmade {name} finish rich with tactile detail.",
+    "tiles": [
+      {
+        "fileName": "denim_stitch_tile.png",
+        "name": "Denim Stitch",
+        "order": 0,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "patchwork_quilt_tile.png",
+        "name": "Patchwork Quilt",
+        "order": 1,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "felt_blanket_stitch_tile.png",
+        "name": "Felt Blanket Stitch",
+        "order": 2,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "corduroy_tile.png",
+        "name": "Corduroy",
+        "order": 3,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "tufted_velvet_tile.png",
+        "name": "Tufted Velvet",
+        "order": 4,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "pink_satin_fold_tile.png",
+        "name": "Pink Satin Fold",
+        "order": 5,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "burlap_weave_tile.png",
+        "name": "Burlap Weave",
+        "order": 6,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "braided_yarn_tile.png",
+        "name": "Braided Yarn",
+        "order": 7,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "buffalo_plaid_tile.png",
+        "name": "Buffalo Plaid",
+        "order": 8,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "lace_doily_tile.png",
+        "name": "Lace Doily",
+        "order": 9,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "paint_splattered_canvas_tile.png",
+        "name": "Paint-Splattered Canvas",
+        "order": 10,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "leather_patch_tile.png",
+        "name": "Leather Patch",
+        "order": 11,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "embroidered_floral_tile.png",
+        "name": "Embroidered Floral",
+        "order": 12,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "crochet_granny_square_tile.png",
+        "name": "Crochet Granny Square",
+        "order": 13,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "button_border_tile.png",
+        "name": "Button Border",
+        "order": 14,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "origami_paper_frame_tile.png",
+        "name": "Origami Paper Frame",
+        "order": 15,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "woven_ribbon_tile.png",
+        "name": "Woven Ribbon",
+        "order": 16,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "rope_weave_tile.png",
+        "name": "Rope Weave",
+        "order": 17,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "macrame_tile.png",
+        "name": "Macramé",
+        "order": 18,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "sewing_kit_tile.png",
+        "name": "Sewing Kit",
+        "order": 19,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "denim_pocket_tile.png",
+        "name": "Denim Pocket",
+        "order": 20,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "red_polka_dot_fabric_tile.png",
+        "name": "Red Polka Dot Fabric",
+        "order": 21,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "blue_gingham_tile.png",
+        "name": "Blue Gingham",
+        "order": 22,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "rainbow_cord_braid_tile.png",
+        "name": "Rainbow Cord Braid",
+        "order": 23,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "scrapbook_collage_tile.png",
+        "name": "Scrapbook Collage",
+        "order": 24,
+        "readabilityTone": "dark"
+      }
+    ]
+  },
+  {
+    "id": "nature",
+    "name": "Nature",
+    "descriptionTemplate": "An organic {name} finish gathered from the outdoors.",
+    "tiles": [
+      {
+        "fileName": "mossy_stones_tile.png",
+        "name": "Mossy Stones",
+        "order": 0,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "tree_bark_frame_tile.png",
+        "name": "Tree Bark Frame",
+        "order": 1,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "fern_canopy_tile.png",
+        "name": "Fern Canopy",
+        "order": 2,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "leaf_veins_tile.png",
+        "name": "Leaf Veins",
+        "order": 3,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "river_rock_border_tile.png",
+        "name": "River Rock Border",
+        "order": 4,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "smooth_stone_tile.png",
+        "name": "Smooth Stone",
+        "order": 5,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "windblown_sand_tile.png",
+        "name": "Windblown Sand",
+        "order": 6,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "seashell_shore_tile.png",
+        "name": "Seashell Shore",
+        "order": 7,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "driftwood_frame_tile.png",
+        "name": "Driftwood Frame",
+        "order": 8,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "pine_branches_tile.png",
+        "name": "Pine Branches",
+        "order": 9,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "pinecone_forest_floor_tile.png",
+        "name": "Pinecone Forest Floor",
+        "order": 10,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "tree_rings_tile.png",
+        "name": "Tree Rings",
+        "order": 11,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "lichen_stone_tile.png",
+        "name": "Lichen Stone",
+        "order": 12,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "ivy_vines_tile.png",
+        "name": "Ivy Vines",
+        "order": 13,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "succulent_garden_tile.png",
+        "name": "Succulent Garden",
+        "order": 14,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "lily_pond_tile.png",
+        "name": "Lily Pond",
+        "order": 15,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "flower_petals_tile.png",
+        "name": "Flower Petals",
+        "order": 16,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "mushroom_grove_tile.png",
+        "name": "Mushroom Grove",
+        "order": 17,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "cracked_dry_earth_tile.png",
+        "name": "Cracked Dry Earth",
+        "order": 18,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "frosted_winter_branches_tile.png",
+        "name": "Frosted Winter Branches",
+        "order": 19,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "autumn_maple_leaves_tile.png",
+        "name": "Autumn Maple Leaves",
+        "order": 20,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "meadow_grass_tile.png",
+        "name": "Meadow Grass",
+        "order": 21,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "twisting_vines_tile.png",
+        "name": "Twisting Vines",
+        "order": 22,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "bamboo_grove_tile.png",
+        "name": "Bamboo Grove",
+        "order": 23,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "roots_and_soil_tile.png",
+        "name": "Roots and Soil",
+        "order": 24,
+        "readabilityTone": "light"
+      }
+    ]
+  },
+  {
+    "id": "retro-arcade",
+    "name": "Retro Arcade",
+    "descriptionTemplate": "An electric {name} finish inspired by classic arcades.",
+    "tiles": [
+      {
+        "fileName": "neon_grid_horizon_tile.png",
+        "name": "Neon Grid Horizon",
+        "order": 0,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "crt_scanlines_tile.png",
+        "name": "CRT Scanlines",
+        "order": 1,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "pixel_star_tile.png",
+        "name": "Pixel Star",
+        "order": 2,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "pixel_heart_tile.png",
+        "name": "Pixel Heart",
+        "order": 3,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "space_invaders_tile.png",
+        "name": "Space Invaders",
+        "order": 4,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "arcade_buttons_tile.png",
+        "name": "Arcade Buttons",
+        "order": 5,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "joystick_controls_tile.png",
+        "name": "Joystick Controls",
+        "order": 6,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "insert_coin_slot_tile.png",
+        "name": "Insert Coin Slot",
+        "order": 7,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "pac_man_chase_border_tile.png",
+        "name": "Pac-Man Chase Border",
+        "order": 8,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "high_score_display_tile.png",
+        "name": "High Score Display",
+        "order": 9,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "pinball_bumper_tile.png",
+        "name": "Pinball Bumper",
+        "order": 10,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "arcade_carpet_pattern_tile.png",
+        "name": "Arcade Carpet Pattern",
+        "order": 11,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "falling_blocks_puzzle_tile.png",
+        "name": "Falling Blocks Puzzle",
+        "order": 12,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "brick_breaker_wall_tile.png",
+        "name": "Brick Breaker Wall",
+        "order": 13,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "glitch_screen_tile.png",
+        "name": "Glitch Screen",
+        "order": 14,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "equalizer_bars_tile.png",
+        "name": "Equalizer Bars",
+        "order": 15,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "pixel_lightning_bolt_tile.png",
+        "name": "Pixel Lightning Bolt",
+        "order": 16,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "synthwave_sunset_tile.png",
+        "name": "Synthwave Sunset",
+        "order": 17,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "checkerboard_floor_tile.png",
+        "name": "Checkerboard Floor",
+        "order": 18,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "neon_triangle_tile.png",
+        "name": "Neon Triangle",
+        "order": 19,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "arcade_circuit_board_tile.png",
+        "name": "Circuit Board",
+        "order": 20,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "pixel_confetti_tile.png",
+        "name": "Pixel Confetti",
+        "order": 21,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "arcade_cabinet_tile.png",
+        "name": "Arcade Cabinet",
+        "order": 22,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "laser_grid_tile.png",
+        "name": "Laser Grid",
+        "order": 23,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "pixel_power_up_mushroom_tile.png",
+        "name": "Pixel Power-Up Mushroom",
+        "order": 24,
+        "readabilityTone": "light"
+      }
+    ]
+  },
+  {
+    "id": "role-playing",
+    "name": "Role Playing",
+    "descriptionTemplate": "A characterful {name} finish ready for a new adventure.",
+    "tiles": [
+      {
+        "fileName": "wizard_tile.png",
+        "name": "Wizard",
+        "order": 0,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "pirate_tile.png",
+        "name": "Pirate",
+        "order": 1,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "detective_tile.png",
+        "name": "Detective",
+        "order": 2,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "chef_tile.png",
+        "name": "Chef",
+        "order": 3,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "robot_tile.png",
+        "name": "Robot",
+        "order": 4,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "knight_tile.png",
+        "name": "Knight",
+        "order": 5,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "fairy_tile.png",
+        "name": "Fairy",
+        "order": 6,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "astronaut_tile.png",
+        "name": "Astronaut",
+        "order": 7,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "artist_tile.png",
+        "name": "Artist",
+        "order": 8,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "musician_tile.png",
+        "name": "Musician",
+        "order": 9,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "scientist_tile.png",
+        "name": "Scientist",
+        "order": 10,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "explorer_tile.png",
+        "name": "Explorer",
+        "order": 11,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "gardener_tile.png",
+        "name": "Gardener",
+        "order": 12,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "athlete_tile.png",
+        "name": "Athlete",
+        "order": 13,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "librarian_tile.png",
+        "name": "Librarian",
+        "order": 14,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "inventor_tile.png",
+        "name": "Inventor",
+        "order": 15,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "jester_tile.png",
+        "name": "Jester",
+        "order": 16,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "beekeeper_tile.png",
+        "name": "Beekeeper",
+        "order": 17,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "mermaid_tile.png",
+        "name": "Mermaid",
+        "order": 18,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "cowboy_tile.png",
+        "name": "Cowboy",
+        "order": 19,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "ninja_tile.png",
+        "name": "Ninja",
+        "order": 20,
+        "readabilityTone": "light"
+      },
+      {
+        "fileName": "princess_tile.png",
+        "name": "Princess",
+        "order": 21,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "dragon_tamer_tile.png",
+        "name": "Dragon Tamer",
+        "order": 22,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "ghost_hunter_tile.png",
+        "name": "Ghost Hunter",
+        "order": 23,
+        "readabilityTone": "dark"
+      },
+      {
+        "fileName": "superhero_tile.png",
+        "name": "Superhero",
+        "order": 24,
+        "readabilityTone": "dark"
+      }
+    ]
+  }
+]

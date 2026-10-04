@@ -18,6 +18,6 @@ export * from './firestore/use-collection';
 export * from './firestore/use-doc';
 export * from './firestore/use-users';
 export * from './non-blocking-updates';
-export * from './non-blocking-login';
+
 export * from './errors';
 export * from './error-emitter';

@@ -1,4 +1,4 @@
-const USERNAME_EMAIL_DOMAIN = 'letterswithcharacters.local';
+const USERNAME_EMAIL_DOMAIN = 'letterswithcharacters.example.com';
 
 export function normalizeUsername(rawUsername: string) {
   return rawUsername.trim().toLowerCase();

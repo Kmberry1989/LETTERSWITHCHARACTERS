@@ -77,6 +77,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   await gameRef.update(updatePayload);
   if (updatePayload.status === 'finished') {
     await recordCompletedGame({
+      id: gameId,
       players: gameData.players,
       playerData: gameData.playerData,
       winner: typeof updatePayload.winner === 'string' ? updatePayload.winner : undefined,
@@ -84,7 +85,8 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
   }
   const winnerBonus = await awardWinnerBonusIfNeeded(
     typeof updatePayload.winner === 'string' ? updatePayload.winner : undefined,
-    gameData.status === 'finished'
+    gameData.status === 'finished',
+    gameId
   );
   if (opponentUid && updatePayload.status !== 'finished') {
     await notifyUserTurn({

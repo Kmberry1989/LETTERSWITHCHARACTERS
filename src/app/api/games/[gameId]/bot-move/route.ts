@@ -4,7 +4,7 @@ import type { PlacedTile, Tile } from '@/lib/game/types';
 import { calculateScore } from '@/lib/scoring';
 import { drawTiles } from '@/lib/game-logic';
 import { generateBotMove } from '@/ai/ai-bot-move';
-import { awardWinnerBonusIfNeeded } from '@/lib/server/game-rewards';
+import { awardWinnerBonusIfNeeded, recordCompletedGame } from '@/lib/server/game-rewards';
 import { notifyUserGame, notifyUserTurn } from '@/lib/server/turn-notifications';
 export const dynamic = 'force-dynamic';
 
@@ -114,9 +114,18 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
         }
 
         await gameRef.update(updatePayload);
+        if (opponentUid && updatePayload.status === 'finished') {
+            await recordCompletedGame({
+                id: gameId,
+                players: [opponentUid],
+                playerData: gameData.playerData,
+                winner: typeof updatePayload.winner === 'string' ? updatePayload.winner : undefined,
+            });
+        }
         const winnerBonus = await awardWinnerBonusIfNeeded(
-            typeof updatePayload.winner === 'string' ? updatePayload.winner : undefined,
-            false
+            updatePayload.winner === opponentUid ? opponentUid : undefined,
+            false,
+            gameId
         );
         if (opponentUid && updatePayload.status !== 'finished') {
             await notifyUserTurn({
@@ -227,7 +236,18 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     }
 
     await gameRef.update(updatePayload);
-    const winnerBonus = await awardWinnerBonusIfNeeded(isGameFinished ? botUid : undefined, false);
+    if (opponentUid && isGameFinished) {
+        await recordCompletedGame({
+            id: gameId,
+            players: [opponentUid],
+            playerData: {
+                ...gameData.playerData,
+                [botUid]: { ...gameData.playerData[botUid], score: updatedScore },
+            },
+            winner: botUid,
+        });
+    }
+    const winnerBonus = await awardWinnerBonusIfNeeded(undefined, false, gameId);
     if (opponentUid && !isGameFinished) {
         await notifyUserTurn({
             userId: opponentUid,

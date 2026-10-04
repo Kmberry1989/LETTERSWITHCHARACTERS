@@ -1,0 +1,36 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e4]:
+    - generic [ref=e7]:
+      - generic [ref=e8]:
+        - paragraph [ref=e9]: Storybook Lobby
+        - paragraph [ref=e10]: Sign in to jump into matches, chat in the lobby, and keep building your character collection.
+      - img "Letters with Characters logo" [ref=e12]
+    - generic [ref=e14]:
+      - generic [ref=e15]:
+        - generic [ref=e16]: Letters with Characters
+        - paragraph [ref=e17]: Pick a sign-in method and head straight into the clubhouse.
+      - generic [ref=e18]:
+        - alert [ref=e19]:
+          - heading "Authentication unavailable" [level=5] [ref=e20]
+          - generic [ref=e21]: Authentication is unavailable because Supabase env vars are not configured.
+        - generic [ref=e22]:
+          - generic [ref=e23]:
+            - text: Username
+            - textbox "Username" [disabled] [ref=e24]:
+              - /placeholder: wordplayer
+          - generic [ref=e25]:
+            - text: Password
+            - textbox "Password" [disabled] [ref=e26]:
+              - /placeholder: At least 8 characters
+          - generic [ref=e27]:
+            - button "Sign In" [disabled]
+            - button "Create Account" [disabled]
+          - generic [ref=e28]:
+            - paragraph [ref=e29]: Or continue with
+            - generic [ref=e30]:
+              - button "Sign in with Google" [disabled]
+              - button "Sign in with Apple" [disabled]
+          - button "Continue as Guest" [disabled]
+  - region "Notifications (F8)":
+    - list
+  - alert [ref=e31]

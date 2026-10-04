@@ -250,7 +250,12 @@ export default function DashboardPage() {
 
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr),320px]">
           <div className="space-y-4">
-            <div className="flex items-center justify-end gap-4">
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <div className="text-xs font-black uppercase tracking-[0.22em] text-emerald-700">Home base</div>
+                <h1 className="font-headline text-3xl font-black text-slate-950">Word Duels</h1>
+                <p className="text-sm font-semibold text-slate-600">Take your turn, find a new opponent, or visit the Storybook Arcade while you wait.</p>
+              </div>
               <div className="hidden gap-2 sm:flex">
                 <Button asChild variant="outline">
                   <Link href="/minigames">

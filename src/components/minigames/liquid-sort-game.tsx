@@ -1,11 +1,8 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { RotateCcw } from 'lucide-react';
-import { GameScreen } from '@/components/game-screen';
+import { GameModeHeader, GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { useAudio } from '@/hooks/use-audio';
 import { createArcadeSessionId } from '@/lib/arcade/session-id';
 import { cn } from '@/lib/utils';
@@ -128,16 +125,8 @@ export default function LiquidSortGame() {
   return (
     <GameScreen>
       <div className="flex min-h-0 flex-1 flex-col gap-2 overflow-hidden rounded-[1.4rem] border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.98),rgba(232,244,255,0.96))] p-2 shadow-[0_24px_70px_rgba(14,116,144,0.14)] md:gap-4 md:p-5">
-        <div className="ml-11 flex min-h-10 items-center justify-end gap-2 md:ml-0 md:justify-between">
-          <Badge variant="secondary" className="rounded-full px-3 py-1">
-            {moves}
-          </Badge>
-          <Button variant="outline" size="icon" className="rounded-full md:w-auto md:px-4" onClick={reset} aria-label="Reset">
-            <RotateCcw className="h-4 w-4 md:mr-2" />
-            <span className="hidden md:inline">Reset</span>
-          </Button>
-          {solved ? <ArcadeSessionStatus sessionId={sessionId} modeId="liquid-sort" score={Math.max(100, 180 - moves * 8)} /> : null}
-        </div>
+        <GameModeHeader modeId="liquid-sort" statLabel="Moves" statValue={moves} onRestart={reset} hasProgress={moves > 0} />
+        {solved ? <ArcadeSessionStatus sessionId={sessionId} modeId="liquid-sort" score={Math.max(100, 180 - moves * 8)} outcome="completed" onPlayAgain={reset} /> : null}
 
         <div
           className="flex min-h-0 flex-1 flex-col justify-start rounded-[1.4rem] border border-white/80 bg-[radial-gradient(circle_at_top,rgba(255,255,255,0.96),rgba(219,235,248,0.92))] p-2 pt-5 shadow-inner md:justify-center md:p-4"
@@ -189,7 +178,7 @@ export default function LiquidSortGame() {
           </div>
         </div>
 
-        <div className="min-h-5 text-center text-xs font-semibold text-slate-600 md:text-sm">
+        <div className="min-h-5 text-center text-xs font-semibold text-slate-600 md:text-sm" role="status" aria-live="polite">
           {solved ? 'Sorted.' : message}
         </div>
       </div>

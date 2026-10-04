@@ -45,3 +45,22 @@ model AppCredential {
   @@index([username])
   @@map("app_credentials")
 }
+
+/// Auditable, replay-safe currency mutations for berries, Claw Tokens, and rewards.
+model EconomyTransaction {
+  id           String   @id @default(cuid())
+  userId       String
+  requestId    String
+  kind         String
+  currency     String
+  amount       Int
+  balanceAfter Int?
+  result       Json
+  metadata     Json?
+  createdAt    DateTime @default(now())
+
+  @@unique([userId, requestId])
+  @@index([userId, createdAt])
+  @@index([kind, createdAt])
+  @@map("economy_transactions")
+}

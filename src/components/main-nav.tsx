@@ -7,7 +7,7 @@ import { SidebarMenu, SidebarMenuButton, SidebarMenuItem } from '@/components/ui
 import { cn } from '@/lib/utils';
 
 const menuItems = [
-  { href: '/dashboard', label: 'Play', iconPath: '/interface/sidebar-icons/play.png' },
+  { href: '/dashboard', label: 'Word Duels', iconPath: '/interface/sidebar-icons/play.png' },
   { href: '/minigames', label: 'Arcade', iconPath: '/interface/sidebar-icons/arcade.png' },
   { href: '/lobby', label: 'Lobby', iconPath: '/interface/sidebar-icons/lobby.png' },
   { href: '/leaderboard', label: 'Leaderboard', iconPath: '/interface/sidebar-icons/leaderboard.svg' },

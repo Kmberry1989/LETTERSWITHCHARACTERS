@@ -16,7 +16,7 @@ import { FirestorePermissionError, type SecurityRuleContext } from '@/firebase/e
 import type { UserProfile } from '@/firebase/firestore/use-users';
 import { Skeleton } from '../ui/skeleton';
 import { normalizeUserCosmetics } from '@/lib/user-profile';
-import { canAccessTileTier, TILE_COSMETICS } from '@/lib/tile-cosmetics';
+import { canAccessTileTier, getTileCosmetic, TILE_COLLECTIONS, TILE_COSMETICS } from '@/lib/tile-cosmetics';
 import { Badge } from '@/components/ui/badge';
 import BoardChrome from '@/components/game/board-chrome';
 import GameBoard from '@/components/game/game-board';
@@ -60,6 +60,7 @@ export default function AppearanceEditor() {
   const [ownedTileSetIds, setOwnedTileSetIds] = useState<string[]>([]);
   const [level, setLevel] = useState<number>(1);
   const [savingBoard, setSavingBoard] = useState(false);
+  const [tileCollectionFilter, setTileCollectionFilter] = useState('Classic Collection');
 
   useEffect(() => {
     if (userProfile) {
@@ -67,6 +68,7 @@ export default function AppearanceEditor() {
       const nextTheme = userProfile.boardThemeId || 'board-green';
       const nextColor = resolveBoardColor(nextTheme, userProfile.boardColor || null, userProfile.boardTintId || null);
       setSelectedTileSet(normalized.equippedTileSetId);
+      setTileCollectionFilter(getTileCosmetic(normalized.equippedTileSetId).collection);
       setOwnedTileSetIds(normalized.ownedTileSetIds);
       setLevel(normalized.level ?? 1);
       setSelectedBoardTheme(nextTheme);
@@ -146,6 +148,10 @@ export default function AppearanceEditor() {
   const tileImage = TILE_COSMETICS.find((p) => p.id === selectedTileSet);
   const boardAppearance = resolveBoardAppearance(selectedBoardTheme, selectedBoardColor, null);
   const isBoardDirty = selectedBoardTheme !== savedBoardTheme || selectedBoardColor !== savedBoardColor;
+  const visibleTileSets =
+    tileCollectionFilter === 'all'
+      ? TILE_COSMETICS
+      : TILE_COSMETICS.filter((tileSet) => tileSet.collection === tileCollectionFilter);
 
   if (isLoading || !userProfile) {
     return <AppearanceEditorSkeleton />;
@@ -241,9 +247,27 @@ export default function AppearanceEditor() {
             </div>
           </TabsContent>
           <TabsContent value="tiles">
+            <div className="mb-3 flex items-center justify-between gap-3 pr-4">
+              <label className="text-xs font-black uppercase tracking-[0.16em] text-slate-500" htmlFor="appearance-tile-collection">
+                Collection
+              </label>
+              <select
+                id="appearance-tile-collection"
+                value={tileCollectionFilter}
+                onChange={(event) => setTileCollectionFilter(event.target.value)}
+                className="h-10 min-w-48 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-slate-900 outline-none focus:ring-2 focus:ring-slate-200"
+              >
+                <option value="all">All collections</option>
+                {TILE_COLLECTIONS.map((collection) => (
+                  <option key={collection} value={collection}>
+                    {collection}
+                  </option>
+                ))}
+              </select>
+            </div>
             <ScrollArea className="h-96">
               <div className="grid grid-cols-2 gap-4 pr-4 sm:grid-cols-3">
-                {TILE_COSMETICS.map((item) => {
+                {visibleTileSets.map((item) => {
                   const isOwned = ownedTileSetIds.includes(item.id);
                   const isUnlocked = canAccessTileTier(level, item.id);
                   return (
@@ -259,12 +283,13 @@ export default function AppearanceEditor() {
                           src={item.assetPath}
                           alt={item.name}
                           fill
-                          className={`object-cover ${!isUnlocked ? 'opacity-35 grayscale' : !isOwned ? 'opacity-55 saturate-75' : ''}`}
+                          sizes="5rem"
+                          className={`object-cover ${!isOwned ? 'opacity-90 saturate-90' : ''}`}
                         />
                         {!isUnlocked && (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/25 bg-slate-950/65 shadow-lg">
-                              <Lock className="h-5 w-5 text-white" />
+                          <div className="pointer-events-none absolute inset-0">
+                            <div className="absolute right-1.5 top-1.5 flex h-8 w-8 items-center justify-center rounded-lg border border-white/60 bg-white/70 shadow-md backdrop-blur-[1px]">
+                              <Lock className="h-4 w-4 text-slate-700/80" />
                             </div>
                           </div>
                         )}

@@ -5,12 +5,6 @@ import { MUSIC_TRACKS, getMusicTrackForPathname, type MusicTrackId } from '@/lib
 import { usePathname } from 'next/navigation';
 import { useEffect, useRef } from 'react';
 
-const GENERATED_MUSIC: Record<MusicTrackId, { frequencies: number[]; pulseMs: number }> = {
-  menu: { frequencies: [261.63, 329.63, 392], pulseMs: 2200 },
-  arcade: { frequencies: [293.66, 369.99, 440], pulseMs: 1500 },
-  game: { frequencies: [196, 246.94, 293.66], pulseMs: 2600 },
-};
-
 const CROSSFADE_MS = 1800;
 const LOOP_GUARD_SECONDS = 0.08;
 
@@ -20,16 +14,6 @@ type AudioChannel = {
   trackId: MusicTrackId;
   token: number;
 };
-
-let generatedAudioContext: AudioContext | null = null;
-
-function getGeneratedAudioContext() {
-  if (typeof window === 'undefined') return null;
-  const AudioContextCtor = window.AudioContext || (window as Window & typeof globalThis & { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
-  if (!AudioContextCtor) return null;
-  if (!generatedAudioContext) generatedAudioContext = new AudioContextCtor();
-  return generatedAudioContext;
-}
 
 function stopAudio(audio: HTMLAudioElement | null) {
   if (!audio) return;
@@ -48,15 +32,9 @@ export default function MusicPlayer() {
   const fadeFrameRef = useRef<number | null>(null);
   const trackIdRef = useRef<MusicTrackId | null>(null);
   const hasStartedRef = useRef(false);
-  const unavailableTracksRef = useRef<Set<MusicTrackId>>(new Set());
-  const fallbackRef = useRef<{
-    gain: GainNode;
-    oscillators: OscillatorNode[];
-    timer: number | null;
-  } | null>(null);
 
   const trackId = getMusicTrackForPathname(pathname);
-  const trackUrl = process.env.NEXT_PUBLIC_BACKGROUND_MUSIC_URL || MUSIC_TRACKS[trackId];
+  const trackUrl = MUSIC_TRACKS[trackId];
 
   const clearLoopTimer = () => {
     if (loopTimeoutRef.current) {
@@ -70,20 +48,6 @@ export default function MusicPlayer() {
       window.cancelAnimationFrame(fadeFrameRef.current);
       fadeFrameRef.current = null;
     }
-  };
-
-  const stopGeneratedMusic = () => {
-    if (fallbackRef.current?.timer) {
-      window.clearInterval(fallbackRef.current.timer);
-    }
-    fallbackRef.current?.oscillators.forEach((oscillator) => {
-      try {
-        oscillator.stop();
-      } catch {
-        // Oscillator may already be stopped during route changes.
-      }
-    });
-    fallbackRef.current = null;
   };
 
   const getTargetVolume = () => {
@@ -100,51 +64,6 @@ export default function MusicPlayer() {
     stopAudio(fadeChannelRef.current?.audio || null);
     activeChannelRef.current = null;
     fadeChannelRef.current = null;
-  };
-
-  const startGeneratedMusic = () => {
-    if (fallbackRef.current || getTargetVolume() <= 0) return;
-    const context = getGeneratedAudioContext();
-    if (!context) return;
-    if (context.state === 'suspended') {
-      void context.resume();
-    }
-
-    const gain = context.createGain();
-    const config = GENERATED_MUSIC[trackIdRef.current || trackId];
-    const volume = getTargetVolume() * 0.035;
-    gain.gain.setValueAtTime(volume, context.currentTime);
-    gain.connect(context.destination);
-
-    const oscillators = config.frequencies.map((frequency, index) => {
-      const oscillator = context.createOscillator();
-      oscillator.type = index === 0 ? 'sine' : 'triangle';
-      oscillator.frequency.setValueAtTime(frequency, context.currentTime);
-      oscillator.connect(gain);
-      oscillator.start();
-      return oscillator;
-    });
-
-    const timer = window.setInterval(() => {
-      const now = context.currentTime;
-      config.frequencies.forEach((frequency, index) => {
-        const offset = index === 0 ? 0 : 0.06 * index;
-        oscillators[index]?.frequency.setTargetAtTime(frequency * (index % 2 === 0 ? 1 : 1.125), now + offset, 0.12);
-        oscillators[index]?.frequency.setTargetAtTime(frequency, now + 0.38 + offset, 0.18);
-      });
-    }, config.pulseMs);
-
-    fallbackRef.current = { gain, oscillators, timer };
-    hasStartedRef.current = true;
-  };
-
-  const updateFallbackVolume = () => {
-    if (!fallbackRef.current) return;
-    fallbackRef.current.gain.gain.setTargetAtTime(
-      getTargetVolume() * 0.035,
-      getGeneratedAudioContext()?.currentTime || 0,
-      0.04,
-    );
   };
 
   const promoteChannel = (channel: AudioChannel) => {
@@ -239,12 +158,6 @@ export default function MusicPlayer() {
   const startTrack = async (nextTrackId: MusicTrackId, nextTrackUrl: string, isLoopRestart = false) => {
     trackIdRef.current = nextTrackId;
 
-    if (unavailableTracksRef.current.has(nextTrackId)) {
-      stopAllAudioChannels();
-      startGeneratedMusic();
-      return;
-    }
-
     if (fadeChannelRef.current) {
       stopAudio(fadeChannelRef.current.audio);
       fadeChannelRef.current = null;
@@ -263,16 +176,13 @@ export default function MusicPlayer() {
     };
 
     audio.addEventListener('error', () => {
-      unavailableTracksRef.current.add(nextTrackId);
       stopAudio(audio);
-      stopAllAudioChannels();
-      startGeneratedMusic();
+      hasStartedRef.current = false;
     }, { once: true });
 
     try {
       await audio.play();
       hasStartedRef.current = true;
-      stopGeneratedMusic();
 
       const outgoing = isLoopRestart ? activeChannelRef.current : activeChannelRef.current;
       if (isLoopRestart) {
@@ -283,35 +193,28 @@ export default function MusicPlayer() {
       scheduleLoopCrossfade(channel);
     } catch {
       stopAudio(audio);
-      stopAllAudioChannels();
-      startGeneratedMusic();
+      hasStartedRef.current = false;
     }
   };
 
   useEffect(() => {
     const targetVolume = getTargetVolume();
-    updateFallbackVolume();
 
     if (targetVolume <= 0) {
       clearLoopTimer();
       stopFade();
       activeChannelRef.current?.audio.pause();
       fadeChannelRef.current?.audio.pause();
-      stopGeneratedMusic();
       return;
     }
 
     const activeAudio = activeChannelRef.current?.audio;
     const fadeAudio = fadeChannelRef.current?.audio;
     if (activeAudio) {
-      void activeAudio.play().catch(() => {
-        startGeneratedMusic();
-      });
+      void activeAudio.play().catch(() => {});
     }
     if (fadeAudio) {
-      void fadeAudio.play().catch(() => {
-        startGeneratedMusic();
-      });
+      void fadeAudio.play().catch(() => {});
     }
   }, [isMuted, masterVolume, musicVolume]);
 
@@ -323,7 +226,6 @@ export default function MusicPlayer() {
       if (activeChannelRef.current) {
         activeChannelRef.current.audio.volume = targetVolume;
       }
-      updateFallbackVolume();
       return;
     }
 
@@ -346,11 +248,6 @@ export default function MusicPlayer() {
         return;
       }
 
-      if (unavailableTracksRef.current.has(trackId)) {
-        startGeneratedMusic();
-        return;
-      }
-
       void startTrack(trackId, trackUrl, false);
     };
 
@@ -366,7 +263,6 @@ export default function MusicPlayer() {
   useEffect(() => {
     return () => {
       stopAllAudioChannels();
-      stopGeneratedMusic();
     };
   }, []);
 

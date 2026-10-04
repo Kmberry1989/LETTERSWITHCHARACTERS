@@ -1,0 +1,83 @@
+- generic [active] [ref=f1e1]:
+  - main [ref=f1e3]:
+    - main [ref=f1e4]:
+      - generic [ref=f1e6]:
+        - generic [ref=f1e7]:
+          - generic [ref=f1e8]: 0/5
+          - button "New grid" [ref=f1e9] [cursor=pointer]
+        - generic [ref=f1e10]:
+          - generic [ref=f1e13]:
+            - button "I" [ref=f1e14] [cursor=pointer]
+            - button "G" [ref=f1e15] [cursor=pointer]
+            - button "E" [ref=f1e16] [cursor=pointer]
+            - button "O" [ref=f1e17] [cursor=pointer]
+            - button "P" [ref=f1e18] [cursor=pointer]
+            - button "M" [ref=f1e19] [cursor=pointer]
+            - button "K" [ref=f1e20] [cursor=pointer]
+            - button "X" [ref=f1e21] [cursor=pointer]
+            - button "P" [ref=f1e22] [cursor=pointer]
+            - button "A" [ref=f1e23] [cursor=pointer]
+            - button "O" [ref=f1e24] [cursor=pointer]
+            - button "S" [ref=f1e25] [cursor=pointer]
+            - button "M" [ref=f1e26] [cursor=pointer]
+            - button "D" [ref=f1e27] [cursor=pointer]
+            - button "R" [ref=f1e28] [cursor=pointer]
+            - button "A" [ref=f1e29] [cursor=pointer]
+            - button "G" [ref=f1e30] [cursor=pointer]
+            - button "I" [ref=f1e31] [cursor=pointer]
+            - button "S" [ref=f1e32] [cursor=pointer]
+            - button "T" [ref=f1e33] [cursor=pointer]
+            - button "C" [ref=f1e34] [cursor=pointer]
+            - button "H" [ref=f1e35] [cursor=pointer]
+            - button "Y" [ref=f1e36] [cursor=pointer]
+            - button "Y" [ref=f1e37] [cursor=pointer]
+            - button "X" [ref=f1e38] [cursor=pointer]
+            - button "R" [ref=f1e39] [cursor=pointer]
+            - button "Z" [ref=f1e40] [cursor=pointer]
+            - button "B" [ref=f1e41] [cursor=pointer]
+            - button "O" [ref=f1e42] [cursor=pointer]
+            - button "P" [ref=f1e43] [cursor=pointer]
+            - button "E" [ref=f1e44] [cursor=pointer]
+            - button "B" [ref=f1e45] [cursor=pointer]
+            - button "C" [ref=f1e46] [cursor=pointer]
+            - button "C" [ref=f1e47] [cursor=pointer]
+            - button "E" [ref=f1e48] [cursor=pointer]
+            - button "Z" [ref=f1e49] [cursor=pointer]
+            - button "R" [ref=f1e50] [cursor=pointer]
+            - button "A" [ref=f1e51] [cursor=pointer]
+            - button "I" [ref=f1e52] [cursor=pointer]
+            - button "Z" [ref=f1e53] [cursor=pointer]
+            - button "C" [ref=f1e54] [cursor=pointer]
+            - button "Y" [ref=f1e55] [cursor=pointer]
+            - button "M" [ref=f1e56] [cursor=pointer]
+            - button "E" [ref=f1e57] [cursor=pointer]
+            - button "A" [ref=f1e58] [cursor=pointer]
+            - button "E" [ref=f1e59] [cursor=pointer]
+            - button "S" [ref=f1e60] [cursor=pointer]
+            - button "P" [ref=f1e61] [cursor=pointer]
+            - button "C" [ref=f1e62] [cursor=pointer]
+            - button "Y" [ref=f1e63] [cursor=pointer]
+            - button "F" [ref=f1e64] [cursor=pointer]
+            - button "A" [ref=f1e65] [cursor=pointer]
+            - button "N" [ref=f1e66] [cursor=pointer]
+            - button "H" [ref=f1e67] [cursor=pointer]
+            - button "A" [ref=f1e68] [cursor=pointer]
+            - button "T" [ref=f1e69] [cursor=pointer]
+            - button "Y" [ref=f1e70] [cursor=pointer]
+            - button "F" [ref=f1e71] [cursor=pointer]
+            - button "T" [ref=f1e72] [cursor=pointer]
+            - button "R" [ref=f1e73] [cursor=pointer]
+            - button "A" [ref=f1e74] [cursor=pointer]
+            - button "I" [ref=f1e75] [cursor=pointer]
+            - button "N" [ref=f1e76] [cursor=pointer]
+            - button "D" [ref=f1e77] [cursor=pointer]
+          - generic [ref=f1e79]:
+            - generic [ref=f1e80]: TRAIN
+            - generic [ref=f1e81]: PIZZA
+            - generic [ref=f1e82]: BREAD
+            - generic [ref=f1e83]: TOAST
+            - generic [ref=f1e84]: GREEN
+    - button "Go back" [ref=f1e85] [cursor=pointer]
+  - region "Notifications (F8)":
+    - list
+  - alert [ref=f1e86]

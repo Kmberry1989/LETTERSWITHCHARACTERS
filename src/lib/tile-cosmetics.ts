@@ -13,6 +13,7 @@ export type TileCosmetic = {
   rarity: TileRarity;
   requiredLevel: number;
   readabilityTone: TileReadabilityTone;
+  collection: string;
 };
 
 export const STARTER_TILE_SET_ID = 'tile-minimalist';
@@ -68,16 +69,49 @@ const TILE_READABILITY_TONES: Record<string, TileReadabilityTone> = {
   'tile-stitched-felt': 'light',
   'tile-winter-chill': 'dark',
   'tile-zen-garden': 'dark',
+  'tile-aquatic': 'light',
+  'tile-blue-and-white': 'dark',
+  'tile-cartography': 'dark',
+  'tile-cavernous': 'light',
+  'tile-chilled-field': 'dark',
+  'tile-copper-plate': 'light',
+  'tile-crated': 'light',
+  'tile-crevice': 'light',
+  'tile-deserted': 'dark',
+  'tile-floral-green': 'light',
+  'tile-galactic-swirl': 'light',
+  'tile-geologic': 'dark',
+  'tile-glassy': 'light',
+  'tile-green-gold': 'light',
+  'tile-leather-bound': 'light',
+  'tile-lilac': 'dark',
+  'tile-magma': 'light',
+  'tile-part-voronoi': 'light',
+  'tile-pearl': 'dark',
+  'tile-purple-swirl': 'light',
+  'tile-red-tuft': 'light',
+  'tile-runic': 'light',
+  'tile-sandy-greenery': 'dark',
+  'tile-sandy-rune': 'dark',
+  'tile-sun-sand': 'dark',
 };
 
-export const TILE_COSMETICS = (generatedTileCosmetics as Omit<TileCosmetic, 'readabilityTone'>[]).map((tileSet) => ({
+type GeneratedTileCosmetic = Omit<TileCosmetic, 'readabilityTone'> & {
+  readabilityTone?: TileReadabilityTone;
+};
+
+export const TILE_COSMETICS = (generatedTileCosmetics as GeneratedTileCosmetic[]).map((tileSet) => ({
   ...tileSet,
-  readabilityTone: TILE_READABILITY_TONES[tileSet.id] || 'dark',
+  readabilityTone: tileSet.readabilityTone || TILE_READABILITY_TONES[tileSet.id] || 'dark',
 }));
 
 export const TILE_COSMETICS_BY_ID = Object.fromEntries(
   TILE_COSMETICS.map((tileSet) => [tileSet.id, tileSet])
 ) as Record<string, TileCosmetic>;
+
+export const TILE_COLLECTIONS = Array.from(new Set(TILE_COSMETICS.map((tileSet) => tileSet.collection))).sort(
+  (left, right) => left.localeCompare(right)
+);
 
 const LEGACY_TILE_ID_ALIASES: Record<string, string> = {
   'tile-plastic': STARTER_TILE_SET_ID,

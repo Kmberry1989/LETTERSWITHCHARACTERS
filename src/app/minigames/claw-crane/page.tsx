@@ -1,5 +1,5 @@
 import AppLayout from '@/components/app-layout';
-import ClawCraneGame from '@/components/minigames/claw-crane-game';
+import ClawCraneGame from '@/app/minigames/claw-crane/client';
 
 export default function ClawCranePage() {
   return (
