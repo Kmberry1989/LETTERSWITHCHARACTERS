@@ -1,10 +1,10 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // All persistent mutations pass through the authenticated Next.js API.
+    // The Admin SDK enforces participant, profile, and economy boundaries.
     match /{document=**} {
-      // Allow read and write access to all documents for all users.
-      // WARNING: This is insecure and should only be used for development.
-      allow read, write: if true;
+      allow read, write: if false;
     }
   }
 }

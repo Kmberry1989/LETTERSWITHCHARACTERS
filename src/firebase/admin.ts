@@ -1,93 +1,30 @@
-import { addDocument, getDocument, listDocuments, setDocument, updateDocument } from '@/lib/server/document-store';
-import { createBackendClient } from '@/lib/supabase/config';
+import { applicationDefault, cert, getApps, initializeApp } from 'firebase-admin/app';
+import { getAuth } from 'firebase-admin/auth';
+import { getFirestore } from 'firebase-admin/firestore';
 
-function makeSnapshot(collection: string, documentId: string, data: any | null) {
-  return {
-    id: documentId,
-    exists: Boolean(data),
-    data: () => {
-      if (!data) return undefined;
-      const { id, ...rest } = data;
-      return rest;
-    },
-  };
+function credentialFromEnvironment() {
+  const encoded = process.env.FIREBASE_SERVICE_ACCOUNT_JSON?.trim();
+  if (encoded) {
+    const value = encoded.startsWith('{') ? encoded : Buffer.from(encoded, 'base64').toString('utf8');
+    return cert(JSON.parse(value));
+  }
+  if (process.env.FIRESTORE_EMULATOR_HOST) return undefined;
+  return applicationDefault();
 }
 
 export function getAdminApp() {
-  return { name: 'local-postgres-app' };
+  if (getApps().length) return getApps()[0]!;
+  const credential = credentialFromEnvironment();
+  return initializeApp({
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID || 'studio-1704097120-f2816',
+    ...(credential ? { credential } : {}),
+  });
 }
 
 export function getAdminAuth() {
-  return {
-    async verifyIdToken(token: string) {
-      const supabase = createBackendClient();
-      const { data, error } = await supabase.auth.getUser(token);
-      if (error || !data.user) {
-        throw new Error('Invalid or expired session token.');
-      }
-
-      const profile = await getDocument<any>('users', data.user.id);
-      return {
-        uid: data.user.id,
-        email: profile?.email ?? data.user.email ?? null,
-        name: profile?.displayName ?? data.user.user_metadata?.display_name ?? data.user.email ?? 'Player',
-        picture: profile?.photoURL ?? data.user.user_metadata?.avatar_url ?? null,
-      };
-    },
-  };
+  return getAuth(getAdminApp());
 }
 
 export function getAdminFirestore() {
-  return {
-    collection(collectionName: string) {
-      return {
-        doc(documentId?: string) {
-          const id = documentId || crypto.randomUUID();
-          return {
-            id,
-            path: `${collectionName}/${id}`,
-            async get() {
-              return makeSnapshot(collectionName, id, await getDocument(collectionName, id));
-            },
-            async set(data: Record<string, any>, options?: { merge?: boolean }) {
-              return setDocument(collectionName, id, data, Boolean(options?.merge));
-            },
-            async update(patch: Record<string, any>) {
-              return updateDocument(collectionName, id, patch);
-            },
-          };
-        },
-        async add(data: Record<string, any>) {
-          const created = await addDocument(collectionName, data);
-          return { id: created.id, path: `${collectionName}/${created.id}` };
-        },
-        orderBy(field: string, direction: 'asc' | 'desc' = 'desc') {
-          return {
-            limit(count: number) {
-              return {
-                async get() {
-                  const docs = await listDocuments(collectionName, { orderBy: field, direction, limit: count });
-                  return { docs: docs.map((doc: Record<string, any> & { id: string }) => makeSnapshot(collectionName, doc.id, doc)) };
-                },
-              };
-            },
-          };
-        },
-      };
-    },
-    async runTransaction<T>(callback: (transaction: any) => Promise<T>) {
-      const transaction = {
-        async get(ref: any) {
-          return ref.get();
-        },
-        set(ref: any, data: Record<string, any>) {
-          return ref.set(data);
-        },
-        update(ref: any, patch: Record<string, any>) {
-          return ref.update(patch);
-        },
-      };
-      return callback(transaction);
-    },
-  };
+  return getFirestore(getAdminApp());
 }

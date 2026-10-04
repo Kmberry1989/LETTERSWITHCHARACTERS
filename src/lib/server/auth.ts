@@ -1,5 +1,6 @@
 import { cookies } from 'next/headers';
-import type { User as SupabaseAuthUser } from '@supabase/supabase-js';
+import type { DecodedIdToken } from 'firebase-admin/auth';
+import { getAdminAuth } from '@/firebase/admin';
 import {
   normalizeOwnedTileSetIds,
   resolveEquippedTileSetId,
@@ -11,11 +12,8 @@ import { DEFAULT_PLAYER_STATS } from '@/lib/player-stats';
 import { DEFAULT_NOTIFICATION_PREFERENCES } from '@/lib/notifications';
 import { DEFAULT_RETENTION_STATE } from '@/lib/retention';
 import { getDefaultBoardTintId, resolveBoardColor } from '@/lib/board-skins';
-import { prisma } from '@/lib/prisma';
 import { getDocument, setDocument } from '@/lib/server/document-store';
-import { createBackendClient } from '@/lib/supabase/config';
-import { createClient as createServerSupabaseClient } from '@/lib/supabase/server';
-import { isGeneratedAuthEmail, mapSupabaseProviderToAppProvider } from '@/lib/auth-identity';
+import { isGeneratedAuthEmail } from '@/lib/auth-identity';
 
 export type AppUser = {
   uid: string;
@@ -39,48 +37,14 @@ export type AppUser = {
 };
 
 const SESSION_COOKIE = 'lwc_session';
-const SESSION_DAYS = 30;
+const SESSION_DAYS = 14;
+export const SESSION_MAX_AGE_MS = SESSION_DAYS * 24 * 60 * 60 * 1000;
 
-function sessionExpiry() {
-  const expiresAt = new Date();
-  expiresAt.setDate(expiresAt.getDate() + SESSION_DAYS);
-  return expiresAt;
-}
-
-function getProfileDisplayName(authUser: SupabaseAuthUser, profile: Record<string, any> | null) {
-  if (typeof profile?.displayName === 'string' && profile.displayName.trim()) {
-    return profile.displayName;
-  }
-
-  const metadata = authUser.user_metadata || {};
-  const preferred =
-    metadata.display_name ||
-    metadata.full_name ||
-    metadata.name ||
-    metadata.username ||
-    (typeof authUser.email === 'string' ? authUser.email.split('@')[0] : null);
-
-  return typeof preferred === 'string' && preferred.trim() ? preferred : 'Player';
-}
-
-function toPublicEmail(authUser: SupabaseAuthUser) {
-  if (!authUser.email || isGeneratedAuthEmail(authUser.email)) {
-    return null;
-  }
-
-  return authUser.email;
-}
-
-function isAnonymousUser(authUser: SupabaseAuthUser) {
-  return authUser.is_anonymous || authUser.app_metadata?.provider === 'anonymous';
-}
-
-function isMissingAuthSessionError(error: { name?: string; status?: number; message?: string } | null | undefined) {
-  return (
-    error?.name === 'AuthSessionMissingError' ||
-    error?.status === 400 ||
-    error?.message === 'Auth session missing!'
-  );
+function providerId(token: DecodedIdToken): AppUser['providerId'] {
+  if (token.firebase.sign_in_provider === 'anonymous') return 'guest';
+  if (token.firebase.sign_in_provider === 'google.com') return 'google.com';
+  if (token.firebase.sign_in_provider === 'apple.com') return 'apple.com';
+  return 'password';
 }
 
 export function makeUser(overrides: Partial<AppUser> & Pick<AppUser, 'uid'>): AppUser {
@@ -99,254 +63,119 @@ export function makeUser(overrides: Partial<AppUser> & Pick<AppUser, 'uid'>): Ap
   };
 }
 
-export async function createSession(user: AppUser) {
-  await prisma.appSession.deleteMany({
-    where: {
-      OR: [
-        { expiresAt: { lt: new Date() } },
-        { userId: user.uid },
-      ],
-    },
-  });
-  const token = crypto.randomUUID();
-  const expiresAt = sessionExpiry();
-
-  await prisma.appSession.create({
-    data: {
-      token,
-      userId: user.uid,
-      expiresAt,
-    },
-  });
-
-  const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE, token, {
-    httpOnly: true,
-    sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
-    path: '/',
-    expires: expiresAt,
-    maxAge: SESSION_DAYS * 24 * 60 * 60,
-    priority: 'high',
-  });
-
-  return token;
-}
-
-async function destroyLocalSession(token?: string | null) {
-  const cookieStore = await cookies();
-  const activeToken = token || cookieStore.get(SESSION_COOKIE)?.value;
-
-  if (activeToken) {
-    await prisma.appSession.deleteMany({ where: { token: activeToken } });
-  }
-
-  cookieStore.delete(SESSION_COOKIE);
-}
-
-async function getUserByLocalSessionToken(token?: string | null): Promise<AppUser | null> {
-  if (!token) return null;
-
-  const session = await prisma.appSession.findUnique({ where: { token } });
-  if (!session || session.expiresAt <= new Date()) {
-    if (session) {
-      await prisma.appSession.delete({ where: { token } }).catch(() => null);
-    }
-    return null;
-  }
-
-  const profile = await getDocument<any>('users', session.userId);
-  if (!profile) {
-    return null;
-  }
-
-  return {
-    uid: session.userId,
-    email: profile.email || null,
-    displayName: profile.displayName || profile.email || 'Player',
-    photoURL: profile.photoURL || null,
-    isAnonymous: Boolean(profile.isAnonymous),
-    providerId: profile.providerId || (profile.isAnonymous ? 'guest' : 'password'),
-    avatarPresetId: profile.avatarPresetId || null,
-    avatarModelUrl: profile.avatarModelUrl || null,
-    avatarPosterUrl: profile.avatarPosterUrl || null,
-    avatarConfiguredAt: profile.avatarConfiguredAt || null,
-    onboardingCompletedAt: profile.onboardingCompletedAt || null,
-    boardThemeId: profile.boardThemeId || 'board-green',
-    boardTintId: profile.boardTintId || getDefaultBoardTintId(profile.boardThemeId || 'board-green'),
-    boardColor: resolveBoardColor(profile.boardThemeId || 'board-green', profile.boardColor || null, profile.boardTintId || null),
-    berries: typeof profile.berries === 'number' ? profile.berries : STARTER_BERRIES,
-    experience: typeof profile.experience === 'number' ? profile.experience : 0,
-    level: getLevelForExperience(typeof profile.experience === 'number' ? profile.experience : 0),
-    getIdToken: async () => token,
-  };
-}
-
 export async function upsertUserProfile(user: AppUser) {
   const existing = await getDocument<any>('users', user.uid);
   const equippedTileSetId = resolveEquippedTileSetId(existing?.tileSetId, existing?.equippedTileSetId);
   const ownedTileSetIds = normalizeOwnedTileSetIds(existing?.ownedTileSetIds || [existing?.tileSetId || STARTER_TILE_SET_ID]);
-
-  return setDocument(
-    'users',
-    user.uid,
-    {
-      uid: user.uid,
-      email: user.email,
-      displayName: user.displayName || user.email || 'Player',
-      photoURL: user.photoURL,
-      isAnonymous: Boolean(user.isAnonymous),
-      providerId: user.providerId || (user.isAnonymous ? 'guest' : 'password'),
-      totalScore: existing?.totalScore ?? 0,
-      stats: existing?.stats ?? DEFAULT_PLAYER_STATS,
-      avatarId: existing?.avatarId ?? null,
-      avatarPresetId: existing?.avatarPresetId ?? null,
-      avatarModelUrl: existing?.avatarModelUrl ?? null,
-      avatarPosterUrl: existing?.avatarPosterUrl ?? null,
-      avatarConfiguredAt: existing?.avatarConfiguredAt ?? null,
-      onboardingCompletedAt: existing?.onboardingCompletedAt ?? null,
-      tileSetId: equippedTileSetId,
-      equippedTileSetId,
-      ownedTileSetIds,
-      berries: typeof existing?.berries === 'number' ? existing.berries : STARTER_BERRIES,
-      experience: typeof existing?.experience === 'number' ? existing.experience : 0,
-      level: getLevelForExperience(typeof existing?.experience === 'number' ? existing.experience : 0),
-      boardThemeId: existing?.boardThemeId ?? 'board-green',
-      boardTintId: existing?.boardTintId ?? getDefaultBoardTintId(existing?.boardThemeId ?? 'board-green'),
-      boardColor: resolveBoardColor(existing?.boardThemeId ?? 'board-green', existing?.boardColor ?? null, existing?.boardTintId ?? null),
-      themeId: existing?.themeId ?? 'default',
-      gameIds: existing?.gameIds ?? [],
-      notificationPreferences: existing?.notificationPreferences ?? DEFAULT_NOTIFICATION_PREFERENCES,
-      pushSubscriptions: existing?.pushSubscriptions ?? [],
-      retention: existing?.retention ?? DEFAULT_RETENTION_STATE,
-      updatedAt: new Date().toISOString(),
-    },
-    true
-  );
+  return setDocument('users', user.uid, {
+    uid: user.uid,
+    email: user.email,
+    displayName: user.displayName || user.email || 'Player',
+    photoURL: user.photoURL,
+    isAnonymous: Boolean(user.isAnonymous),
+    providerId: user.providerId || (user.isAnonymous ? 'guest' : 'password'),
+    totalScore: existing?.totalScore ?? 0,
+    stats: existing?.stats ?? DEFAULT_PLAYER_STATS,
+    avatarId: existing?.avatarId ?? null,
+    avatarPresetId: existing?.avatarPresetId ?? null,
+    avatarModelUrl: existing?.avatarModelUrl ?? null,
+    avatarPosterUrl: existing?.avatarPosterUrl ?? null,
+    avatarConfiguredAt: existing?.avatarConfiguredAt ?? null,
+    onboardingCompletedAt: existing?.onboardingCompletedAt ?? null,
+    tileSetId: equippedTileSetId,
+    equippedTileSetId,
+    ownedTileSetIds,
+    berries: typeof existing?.berries === 'number' ? existing.berries : STARTER_BERRIES,
+    experience: typeof existing?.experience === 'number' ? existing.experience : 0,
+    level: getLevelForExperience(typeof existing?.experience === 'number' ? existing.experience : 0),
+    boardThemeId: existing?.boardThemeId ?? 'board-green',
+    boardTintId: existing?.boardTintId ?? getDefaultBoardTintId(existing?.boardThemeId ?? 'board-green'),
+    boardColor: resolveBoardColor(existing?.boardThemeId ?? 'board-green', existing?.boardColor ?? null, existing?.boardTintId ?? null),
+    themeId: existing?.themeId ?? 'default',
+    gameIds: existing?.gameIds ?? [],
+    notificationPreferences: existing?.notificationPreferences ?? DEFAULT_NOTIFICATION_PREFERENCES,
+    pushSubscriptions: existing?.pushSubscriptions ?? [],
+    retention: existing?.retention ?? DEFAULT_RETENTION_STATE,
+    updatedAt: new Date().toISOString(),
+  }, true);
 }
 
-async function hydrateUserFromAuthUser(authUser: SupabaseAuthUser, accessToken?: string | null): Promise<AppUser> {
-  const existingProfile = await getDocument<any>('users', authUser.id);
-  const providerId = mapSupabaseProviderToAppProvider(authUser.app_metadata?.provider);
-  const email = toPublicEmail(authUser);
-  const baseUser = makeUser({
-    uid: authUser.id,
+async function hydrateUser(token: DecodedIdToken, rawToken?: string): Promise<AppUser> {
+  const existing = await getDocument<any>('users', token.uid);
+  const email = token.email && !isGeneratedAuthEmail(token.email) ? token.email : null;
+  const base = makeUser({
+    uid: token.uid,
     email,
-    displayName: getProfileDisplayName(authUser, existingProfile),
-    photoURL: typeof authUser.user_metadata?.avatar_url === 'string' ? authUser.user_metadata.avatar_url : null,
-    isAnonymous: isAnonymousUser(authUser),
-    providerId,
-    avatarPresetId: existingProfile?.avatarPresetId ?? null,
-    avatarModelUrl: existingProfile?.avatarModelUrl ?? null,
-    avatarPosterUrl: existingProfile?.avatarPosterUrl ?? null,
-    avatarConfiguredAt: existingProfile?.avatarConfiguredAt ?? null,
-    onboardingCompletedAt: existingProfile?.onboardingCompletedAt ?? null,
+    displayName: existing?.displayName || token.name || (email ? email.split('@')[0] : 'Player'),
+    photoURL: existing?.photoURL || token.picture || null,
+    isAnonymous: token.firebase.sign_in_provider === 'anonymous',
+    providerId: providerId(token),
+    avatarPresetId: existing?.avatarPresetId,
+    avatarModelUrl: existing?.avatarModelUrl,
+    avatarPosterUrl: existing?.avatarPosterUrl,
+    avatarConfiguredAt: existing?.avatarConfiguredAt,
+    onboardingCompletedAt: existing?.onboardingCompletedAt,
   });
-
-  const profile = await upsertUserProfile(baseUser);
-
+  const profile = await upsertUserProfile(base);
   return {
-    uid: authUser.id,
-    email: profile.email ?? email,
-    displayName: profile.displayName || baseUser.displayName || 'Player',
-    photoURL: profile.photoURL || baseUser.photoURL || null,
-    isAnonymous: Boolean(profile.isAnonymous ?? baseUser.isAnonymous),
-    providerId: profile.providerId || baseUser.providerId,
-    avatarPresetId: profile.avatarPresetId || null,
-    avatarModelUrl: profile.avatarModelUrl || null,
-    avatarPosterUrl: profile.avatarPosterUrl || null,
-    avatarConfiguredAt: profile.avatarConfiguredAt || null,
-    onboardingCompletedAt: profile.onboardingCompletedAt || null,
+    ...base,
+    displayName: profile.displayName || base.displayName,
+    photoURL: profile.photoURL || base.photoURL,
     boardThemeId: profile.boardThemeId || 'board-green',
     boardTintId: profile.boardTintId || getDefaultBoardTintId(profile.boardThemeId || 'board-green'),
     boardColor: resolveBoardColor(profile.boardThemeId || 'board-green', profile.boardColor || null, profile.boardTintId || null),
     berries: typeof profile.berries === 'number' ? profile.berries : STARTER_BERRIES,
     experience: typeof profile.experience === 'number' ? profile.experience : 0,
     level: getLevelForExperience(typeof profile.experience === 'number' ? profile.experience : 0),
-    getIdToken: accessToken ? async () => accessToken : undefined,
+    getIdToken: rawToken ? async () => rawToken : undefined,
   };
 }
 
-export async function getCurrentUser() {
+export async function createSession(idToken: string) {
+  const expiresIn = SESSION_MAX_AGE_MS;
+  const sessionCookie = await getAdminAuth().createSessionCookie(idToken, { expiresIn });
   const cookieStore = await cookies();
-  const localUser = await getUserByLocalSessionToken(cookieStore.get(SESSION_COOKIE)?.value);
-  if (localUser) {
-    return localUser;
-  }
-
-  const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase.auth.getUser();
-
-  if (error) {
-    if (isMissingAuthSessionError(error)) {
-      return null;
-    }
-    throw error;
-  }
-
-  if (!data.user) {
-    return null;
-  }
-
-  const session = await supabase.auth.getSession();
-  const accessToken = session.data.session?.access_token || null;
-  return hydrateUserFromAuthUser(data.user, accessToken);
+  cookieStore.set(SESSION_COOKIE, sessionCookie, {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    path: '/',
+    maxAge: Math.floor(expiresIn / 1000),
+    priority: 'high',
+  });
+  return sessionCookie;
 }
 
 export async function getCurrentSessionToken() {
-  const cookieStore = await cookies();
-  const localToken = cookieStore.get(SESSION_COOKIE)?.value;
-  if (localToken) {
-    return localToken;
+  return (await cookies()).get(SESSION_COOKIE)?.value || null;
+}
+
+export async function getCurrentUser() {
+  const token = await getCurrentSessionToken();
+  if (!token) return null;
+  try {
+    return await hydrateUser(await getAdminAuth().verifySessionCookie(token, true));
+  } catch {
+    return null;
   }
-
-  const supabase = await createServerSupabaseClient();
-  const { data, error } = await supabase.auth.getSession();
-
-  if (error) {
-    throw error;
-  }
-
-  return data.session?.access_token || null;
 }
 
 export async function verifyBearerToken(request: Request) {
-  const authHeader = request.headers.get('authorization') || request.headers.get('Authorization');
-  if (!authHeader?.startsWith('Bearer ')) return null;
-
-  const token = authHeader.slice('Bearer '.length);
-  const localUser = await getUserByLocalSessionToken(token);
-  if (localUser) {
-    return localUser;
-  }
-
-  const supabase = createBackendClient();
-  const { data, error } = await supabase.auth.getUser(token);
-
-  if (error || !data.user) {
+  const header = request.headers.get('authorization') || request.headers.get('Authorization');
+  if (!header?.startsWith('Bearer ')) return null;
+  const token = header.slice('Bearer '.length);
+  try {
+    return await hydrateUser(await getAdminAuth().verifyIdToken(token), token);
+  } catch {
     return null;
   }
-
-  return hydrateUserFromAuthUser(data.user, token);
 }
 
 export async function destroySession() {
-  await destroyLocalSession();
-
-  const supabase = await createServerSupabaseClient();
-  const { error } = await supabase.auth.signOut();
-
-  if (error) {
-    if (isMissingAuthSessionError(error)) {
-      return;
-    }
-    throw error;
-  }
+  (await cookies()).delete(SESSION_COOKIE);
 }
 
 export async function revokeAllSessions(userId: string) {
-  if (!userId) return;
-  await prisma.appSession.deleteMany({ where: { userId } });
-  const cookieStore = await cookies();
-  cookieStore.delete(SESSION_COOKIE);
+  if (userId) await getAdminAuth().revokeRefreshTokens(userId);
+  await destroySession();
 }

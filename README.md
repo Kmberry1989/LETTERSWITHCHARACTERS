@@ -1,124 +1,60 @@
 # Letters with Characters
 
-Human-only multiplayer word game built with Next.js 15, PostgreSQL, Prisma, local session auth, and optional Genkit-powered hints.
+Multiplayer word game built with Next.js 15, Firebase Authentication, Cloud Firestore, and optional Genkit-powered hints.
 
-## Requirements
+## Firebase project
 
-- Node.js 22+
-- npm
-- PostgreSQL database URL
-- Optional: Google AI / Genkit credentials if you want hints and AI word validation to work
+The production project is `studio-1704097120-f2816`. Email/password, Google, and anonymous authentication are enabled. Firestore is in `us-central1`.
 
-## Local setup
+The browser uses Firebase Auth, then exchanges its ID token for a secure, HTTP-only `lwc_session` cookie. Persistent reads and writes continue through the existing Next.js API routes. Those routes use the Admin SDK and retain participant checks, protected profile fields, server-owned game creation, and the idempotent economy ledger.
 
-1. Install dependencies:
+Direct browser access to Firestore is denied by `firestore.rules`. Deploy rules with:
 
 ```bash
-npm install
+npm run firebase:deploy:rules
 ```
 
-2. Configure your environment:
+## Credential-free local setup
 
-```bash
-cp .env.example .env.local
-```
+1. Install dependencies with `npm install`.
+2. Copy `.env.example` to `.env.local`.
+3. Start Firebase with `npm run firebase:emulators`.
+4. In another terminal, start the app with `npm run dev`.
 
-Set `DATABASE_URL` to your PostgreSQL connection string.
+Open `http://127.0.0.1:9002`. The emulator run starts with empty accounts and economy state. The separate `/demo/bot` route remains available without Firebase, Gemini, or persistent storage.
 
-3. Generate Prisma client and create/update database tables:
+## Production credentials
 
-```bash
-npm run db:generate
-npm run db:push
-```
+- Firebase App Hosting and Google Cloud runtimes should use Application Default Credentials.
+- Other hosts may set `FIREBASE_SERVICE_ACCOUNT_JSON` to a base64-encoded service-account JSON value.
+- Never commit a service-account file or secret.
 
-4. Start the app:
-
-```bash
-npm run dev
-```
-
-5. Optional: start Genkit tooling for AI development:
-
-```bash
-npm run genkit:dev
-```
+The checked-in Firebase web configuration is public client configuration, not an Admin credential.
 
 ## App flow
 
-- Sign in from `/`
-- Open `/lobby`
-- Create an open challenge as player A
-- Sign in as player B in another browser/session
-- Accept the open challenge
-- Both players should see the new game on `/dashboard`
-- Open the game and take turns playing, passing, exchanging, and chatting
+- Sign in from `/` with a username/password, Google, or guest account.
+- Open `/lobby`.
+- Create a challenge as player A.
+- Sign in as player B in another browser/session and accept it.
+- Both players receive the same game on `/dashboard`.
+- Play, pass, exchange tiles, and chat through the authenticated API.
+
+All pre-migration PostgreSQL/Supabase users, balances, rewards, sessions, and history are intentionally outside this clean Firebase cutover.
 
 ## Verification
 
 ```bash
 npm run typecheck
-npm run build
 npm run test
+npm run build
 npm run test:e2e
 ```
 
-`npm run test:all` runs lint, typecheck, unit tests, and the production build in one release check.
+`npm run test:all` runs lint, typecheck, unit tests, and the production build.
 
 ## Notifications
 
-Turn notifications now support email and browser web push.
+Email alerts require `RESEND_API_KEY` and `RESEND_FROM_EMAIL`. Web push requires `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and `VAPID_SUBJECT`.
 
-Required environment variables for email:
-
-- `RESEND_API_KEY`
-- `RESEND_FROM_EMAIL`
-
-Required environment variables for web push:
-
-- `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
-- `VAPID_PRIVATE_KEY`
-- `VAPID_SUBJECT`
-
-Notes:
-
-- Email turn alerts default to on for existing and new users.
-- Web push defaults to off until the user enables it from `/profile` and grants browser notification permission.
-- Supported events:
-  - turn ready
-  - challenge accepted
-  - game finished
-  - in-game chat message
-
-Manual smoke test:
-
-- user A can create one open challenge
-- user B can see and accept it
-- self-accept is blocked
-- re-accept after acceptance is blocked
-- both players get the same game id added to their user documents
-- gameplay APIs return 401 when called without auth
-
-## Data model
-
-The first Firebase-free pass uses a generic Prisma-backed document table so the existing game data shape can keep working while the app migrates toward purpose-built relational tables.
-
-Primary document collections currently stored in Postgres:
-
-- `users`
-- `games`
-- `lobbyMessages`
-- `lobbyChallenges`
-
-## Notes
-
-- Firebase dependencies have been removed from `package.json`.
-- The application session adapter in `src/lib/server/auth.ts` is the canonical server auth boundary. Username/password and guest accounts use the local session table; Google/Apple use Supabase OAuth and are normalized into the same application user/profile shape. Routes should call `getCurrentUser()` rather than reading provider state directly.
-- Local sessions use secure, HTTP-only cookies, expire after 30 days, rotate on sign-in, and can be revoked for the current account with `DELETE /api/auth/session?all=1`. Password recovery still needs a provider-backed email flow before public launch.
-- Realtime Firestore listeners have been replaced with API-backed polling hooks. For production multiplayer, add Socket.IO or a hosted realtime layer.
-- Bot gameplay remains behind existing API routes if present.
-- AI hints remain optional. If AI credentials are not configured, the app should still boot and human-vs-human gameplay should still work.
-
-## Production data changes
-
-Run `npm run db:push` only for local development or an explicitly reviewed staging change. Production schema changes should use a reviewed Prisma migration and a backup/rollback plan. Economy mutations are recorded in `economy_transactions` with per-user idempotency keys so berry and Claw Token changes can be audited.
+AI hints remain optional. Without Gemini credentials the app boots normally, and the local bot demo remains fully playable.

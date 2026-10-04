@@ -1,11 +1,23 @@
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
-import type { Provider as SupabaseProvider } from '@supabase/supabase-js';
+import {
+  GoogleAuthProvider,
+  OAuthProvider,
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInAnonymously,
+  signInWithEmailAndPassword,
+  signInWithPopup,
+  signOut as firebaseSignOut,
+  updateProfile,
+} from 'firebase/auth';
+import type { FirebaseApp } from 'firebase/app';
+import type { Firestore } from 'firebase/firestore';
 import { resolveBoardColor } from '@/lib/board-skins';
-import { createClient as createSupabaseClient } from '@/lib/supabase/client';
-import { hasSupabaseEnv } from '@/lib/supabase/config';
-import { normalizeUsername } from '@/lib/auth-identity';
+import { normalizeUsername, usernameToAuthEmail } from '@/lib/auth-identity';
+import { firebaseApp, firebaseAuth, firebaseFirestore } from '@/firebase/client';
+import { isFirebaseConfigured } from '@/firebase/config';
 
 export type AppUser = {
   uid: string;
@@ -22,7 +34,6 @@ export type AppUser = {
   boardThemeId?: string | null;
   boardTintId?: string | null;
   boardColor?: string | null;
-  token?: string;
   getIdToken: () => Promise<string>;
 };
 
@@ -35,48 +46,25 @@ type SignInPayload = {
   displayName?: string;
 };
 
-type LocalAuth = {
+type AppAuth = {
   currentUser: AppUser | null;
   signIn: (payload: SignInPayload) => Promise<AppUser>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
 };
 
-interface FirebaseProviderProps {
-  children: ReactNode;
-}
-
-interface UserAuthState {
-  user: AppUser | null;
-  isUserLoading: boolean;
-  userError: Error | null;
-}
-
+type UserAuthState = { user: AppUser | null; isUserLoading: boolean; userError: Error | null };
 export interface FirebaseContextState {
   areServicesAvailable: boolean;
-  firebaseApp: null;
-  firestore: null;
-  auth: LocalAuth;
+  firebaseApp: FirebaseApp;
+  firestore: Firestore;
+  auth: AppAuth;
   user: AppUser | null;
   isUserLoading: boolean;
   userError: Error | null;
 }
-
-export interface FirebaseServicesAndUser {
-  firebaseApp: null;
-  firestore: null;
-  auth: LocalAuth;
-  user: AppUser | null;
-  isUserLoading: boolean;
-  userError: Error | null;
-}
-
-export interface UserHookResult {
-  user: AppUser | null;
-  isUserLoading: boolean;
-  userError: Error | null;
-}
-
+export type FirebaseServicesAndUser = Omit<FirebaseContextState, 'areServicesAvailable'>;
+export type UserHookResult = Pick<UserAuthState, 'user' | 'isUserLoading' | 'userError'>;
 export const FirebaseContext = createContext<FirebaseContextState | undefined>(undefined);
 
 function withTokenGetter(user: any): AppUser | null {
@@ -96,13 +84,10 @@ function withTokenGetter(user: any): AppUser | null {
     boardThemeId: user.boardThemeId ?? 'board-green',
     boardTintId: user.boardTintId ?? null,
     boardColor: resolveBoardColor(user.boardThemeId ?? 'board-green', user.boardColor ?? null, user.boardTintId ?? null),
-    token: user.token,
     getIdToken: async () => {
-      if (user.token) return user.token;
-
-      const response = await fetch('/api/auth/session', { cache: 'no-store' });
-      const data = await response.json().catch(() => null);
-      return data?.user?.token || '';
+      const current = firebaseAuth.currentUser;
+      if (!current || current.uid !== user.uid) return '';
+      return current.getIdToken();
     },
   };
 }
@@ -110,214 +95,108 @@ function withTokenGetter(user: any): AppUser | null {
 async function loadCurrentUser() {
   const response = await fetch('/api/auth/session', { cache: 'no-store' });
   const data = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    throw new Error(data?.error || 'Could not load the current session.');
-  }
-
+  if (!response.ok) throw new Error(data?.error || 'Could not load the current session.');
   return withTokenGetter(data?.user);
 }
 
-async function signInWithLocalSession(payload: SignInPayload) {
+async function exchangeSession(idToken: string) {
   const response = await fetch('/api/auth/session', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(payload),
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ idToken }),
   });
   const data = await response.json().catch(() => null);
-
-  if (!response.ok) {
-    throw new Error(data?.error || 'Could not sign in.');
-  }
-
-  return withTokenGetter(data?.user);
+  if (!response.ok) throw new Error(data?.error || 'Could not establish the Firebase session.');
+  return withTokenGetter(data.user);
 }
 
-function getOAuthRedirectUrl() {
-  if (typeof window === 'undefined') {
-    return undefined;
-  }
-
-  return `${window.location.origin}/auth/callback?next=/`;
-}
-
-function getProviderLabel(mode: 'google' | 'apple') {
-  return mode === 'apple' ? 'Apple' : 'Google';
-}
-
-export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({ children }) => {
-  const authAvailable = hasSupabaseEnv();
-  const [userAuthState, setUserAuthState] = useState<UserAuthState>({
-    user: null,
-    isUserLoading: authAvailable,
-    userError: authAvailable ? null : new Error('Authentication is unavailable because Supabase env vars are not configured.'),
-  });
-  const supabase = useMemo(() => (authAvailable ? createSupabaseClient() : null), [authAvailable]);
+export const FirebaseProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const available = isFirebaseConfigured();
+  const [state, setState] = useState<UserAuthState>({ user: null, isUserLoading: available, userError: null });
 
   const refresh = async () => {
-    if (!authAvailable) {
-      setUserAuthState({
-        user: null,
-        isUserLoading: false,
-        userError: new Error('Authentication is unavailable because Supabase env vars are not configured.'),
-      });
-      return;
-    }
-
     try {
       const user = await loadCurrentUser();
-      setUserAuthState({ user, isUserLoading: false, userError: null });
-    } catch (error: any) {
-      setUserAuthState({ user: null, isUserLoading: false, userError: error });
+      setState({ user, isUserLoading: false, userError: null });
+    } catch (error) {
+      setState({ user: null, isUserLoading: false, userError: error as Error });
     }
   };
 
-  useEffect(() => {
-    if (!supabase) {
+  useEffect(() => onAuthStateChanged(firebaseAuth, async (firebaseUser) => {
+    if (!firebaseUser) {
+      setState({ user: null, isUserLoading: false, userError: null });
       return;
     }
+    try {
+      const user = await exchangeSession(await firebaseUser.getIdToken());
+      setState({ user, isUserLoading: false, userError: null });
+    } catch (error) {
+      setState({ user: null, isUserLoading: false, userError: error as Error });
+    }
+  }), []);
 
-    void refresh();
+  const auth = useMemo<AppAuth>(() => ({
+    currentUser: state.user,
+    signIn: async (payload) => {
+      let credential;
+      if (payload.mode === 'guest') {
+        credential = await signInAnonymously(firebaseAuth);
+        if (payload.displayName?.trim()) await updateProfile(credential.user, { displayName: payload.displayName.trim() });
+      } else if (payload.mode === 'google') {
+        credential = await signInWithPopup(firebaseAuth, new GoogleAuthProvider());
+      } else if (payload.mode === 'apple') {
+        credential = await signInWithPopup(firebaseAuth, new OAuthProvider('apple.com'));
+      } else {
+        const username = normalizeUsername(payload.username || '');
+        const password = String(payload.password || '');
+        if (!username || !password) throw new Error('Username and password are required.');
+        const email = usernameToAuthEmail(username);
+        credential = payload.action === 'signup'
+          ? await createUserWithEmailAndPassword(firebaseAuth, email, password)
+          : await signInWithEmailAndPassword(firebaseAuth, email, password);
+        if (payload.action === 'signup') await updateProfile(credential.user, { displayName: payload.displayName?.trim() || username });
+      }
+      const user = await exchangeSession(await credential.user.getIdToken(true));
+      setState({ user, isUserLoading: false, userError: null });
+      return user!;
+    },
+    signOut: async () => {
+      await firebaseSignOut(firebaseAuth);
+      await fetch('/api/auth/session', { method: 'DELETE' });
+      setState({ user: null, isUserLoading: false, userError: null });
+    },
+    refresh,
+  }), [state.user]);
 
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(() => {
-      void refresh();
-    });
+  const value = useMemo<FirebaseContextState>(() => ({
+    areServicesAvailable: available,
+    firebaseApp,
+    firestore: firebaseFirestore,
+    auth,
+    user: state.user,
+    isUserLoading: state.isUserLoading,
+    userError: state.userError,
+  }), [auth, available, state]);
 
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [supabase]);
-
-  const auth = useMemo<LocalAuth>(
-    () => ({
-      currentUser: userAuthState.user,
-      signIn: async (payload: SignInPayload) => {
-        if (payload?.mode === 'google' || payload?.mode === 'apple') {
-          if (!supabase) {
-            throw new Error('Authentication is unavailable because Supabase env vars are not configured.');
-          }
-
-          const provider = payload.mode as SupabaseProvider;
-          const { error } = await supabase.auth.signInWithOAuth({
-            provider,
-            options: {
-              redirectTo: getOAuthRedirectUrl(),
-            },
-          });
-
-          if (error) {
-            throw new Error(error.message || `${getProviderLabel(payload.mode)} sign-in failed.`);
-          }
-
-          throw new Error(`Redirecting to ${getProviderLabel(payload.mode)} sign-in...`);
-        }
-
-        if (payload?.mode === 'guest') {
-          const user = await signInWithLocalSession({
-            mode: 'guest',
-            displayName: payload.displayName?.trim() || 'Guest Player',
-          });
-          setUserAuthState({ user, isUserLoading: false, userError: null });
-          return user!;
-        }
-
-        const username = normalizeUsername(payload?.username || '');
-        const password = String(payload?.password || '');
-
-        if (!username || !password) {
-          throw new Error('Username and password are required.');
-        }
-
-        const user = await signInWithLocalSession({
-          mode: 'email',
-          action: payload?.action === 'signup' ? 'signup' : 'signin',
-          username,
-          password,
-          displayName: payload.displayName?.trim() || username,
-        });
-        setUserAuthState({ user, isUserLoading: false, userError: null });
-        return user!;
-      },
-      signOut: async () => {
-        if (supabase) {
-          const { error } = await supabase.auth.signOut();
-          if (error && error.message !== 'Auth session missing!') {
-            throw new Error(error.message || 'Could not sign out.');
-          }
-        }
-
-        const response = await fetch('/api/auth/session', {
-          method: 'DELETE',
-        });
-        if (!response.ok) {
-          const data = await response.json().catch(() => null);
-          throw new Error(data?.error || 'Could not sign out.');
-        }
-
-        setUserAuthState({ user: null, isUserLoading: false, userError: null });
-      },
-      refresh,
-    }),
-    [supabase, userAuthState.user]
-  );
-
-  const contextValue = useMemo(
-    (): FirebaseContextState => ({
-      areServicesAvailable: authAvailable,
-      firebaseApp: null,
-      firestore: null,
-      auth,
-      user: userAuthState.user,
-      isUserLoading: userAuthState.isUserLoading,
-      userError: userAuthState.userError,
-    }),
-    [auth, authAvailable, userAuthState]
-  );
-
-  return <FirebaseContext.Provider value={contextValue}>{children}</FirebaseContext.Provider>;
+  return <FirebaseContext.Provider value={value}>{children}</FirebaseContext.Provider>;
 };
 
-export const useFirebase = (): FirebaseServicesAndUser => {
+export function useFirebase(): FirebaseServicesAndUser {
   const context = useContext(FirebaseContext);
-
-  if (context === undefined) {
-    throw new Error('useFirebase must be used within FirebaseProvider.');
-  }
-
-  return {
-    firebaseApp: null,
-    firestore: null,
-    auth: context.auth,
-    user: context.user,
-    isUserLoading: context.isUserLoading,
-    userError: context.userError,
-  };
-};
-
-export const useAuth = (): LocalAuth => {
-  const { auth } = useFirebase();
-  return auth;
-};
-
-export const useFirestore = (): null => null;
-
-export const useFirebaseApp = (): null => null;
-
+  if (!context) throw new Error('useFirebase must be used within FirebaseProvider.');
+  const { firebaseApp, firestore, auth, user, isUserLoading, userError } = context;
+  return { firebaseApp, firestore, auth, user, isUserLoading, userError };
+}
+export const useAuth = () => useFirebase().auth;
+export const useFirestore = () => useFirebase().firestore;
+export const useFirebaseApp = () => useFirebase().firebaseApp;
 type MemoFirebase<T> = T & { __memo?: boolean };
-
 export function useMemoFirebase<T>(factory: () => T, deps: DependencyList): T | MemoFirebase<T> {
   const memoized = useMemo(factory, deps);
-
-  if (typeof memoized !== 'object' || memoized === null) return memoized;
-  (memoized as MemoFirebase<T>).__memo = true;
-
+  if (typeof memoized === 'object' && memoized !== null) (memoized as MemoFirebase<T>).__memo = true;
   return memoized;
 }
-
 export const useUser = (): UserHookResult => {
   const { user, isUserLoading, userError } = useFirebase();
   return { user, isUserLoading, userError };

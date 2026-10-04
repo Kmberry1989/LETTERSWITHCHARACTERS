@@ -1,15 +1,7 @@
-import { Prisma } from '@prisma/client';
-import { prisma } from '@/lib/prisma';
+import { FieldPath } from 'firebase-admin/firestore';
+import { getAdminFirestore } from '@/firebase/admin';
 
 export type JsonRecord = Record<string, any>;
-
-type AppDocumentRow = {
-  collection: string;
-  documentId: string;
-  data: JsonRecord;
-  updatedAt?: Date;
-};
-
 export type EconomyLedgerMutation = {
   requestId: string;
   kind: string;
@@ -21,62 +13,29 @@ export type EconomyLedgerMutation = {
 
 export class DocumentStoreUnavailableError extends Error {
   status = 503 as const;
-
   constructor(message: string) {
     super(message);
     this.name = 'DocumentStoreUnavailableError';
   }
 }
 
-function createDocumentStoreError(message: string) {
-  return new DocumentStoreUnavailableError(message);
+function normalizeDatabaseError(error: { message?: string } | null | undefined, fallback: string) {
+  const detail = error?.message || '';
+  if (detail.includes('credential') || detail.includes('default credentials')) {
+    return new DocumentStoreUnavailableError(fallback + ' Firebase Admin credentials are not configured.');
+  }
+  if (detail.includes('ECONNREFUSED') || detail.includes('ENOTFOUND') || detail.includes('timed out')) {
+    return new DocumentStoreUnavailableError(fallback + ' Firestore could not be reached.');
+  }
+  return new DocumentStoreUnavailableError(fallback);
 }
 
-function normalizeDatabaseError(error: { message?: string; code?: string } | null | undefined, fallbackMessage: string) {
-  const message = error?.message || fallbackMessage;
-
-  if (message.includes('DATABASE_URL')) {
-    return createDocumentStoreError(`${fallbackMessage} DATABASE_URL is missing or the server needs to be restarted after env changes.`);
-  }
-
-  if (
-    message.includes("Can't reach database server") ||
-    message.includes('ECONNREFUSED') ||
-    message.includes('ENOTFOUND') ||
-    message.includes('timed out')
-  ) {
-    return createDocumentStoreError(`${fallbackMessage} The database could not be reached. Check the connection target and network access.`);
-  }
-
-  if (
-    message.includes('Authentication failed against database server') ||
-    message.includes('password authentication failed') ||
-    message.includes('permission denied')
-  ) {
-    return createDocumentStoreError(`${fallbackMessage} The database rejected the configured credentials or permissions.`);
-  }
-
-  if (error?.code === 'P2021' || message.includes('does not exist')) {
-    return createDocumentStoreError(`${fallbackMessage} The expected document storage tables are missing.`);
-  }
-
-  return createDocumentStoreError(fallbackMessage);
-}
-
-export function toDocumentStoreError(error: unknown, fallbackMessage = 'Document storage is unavailable.') {
-  if (error instanceof DocumentStoreUnavailableError) {
-    return error;
-  }
-
-  if (error instanceof Error) {
-    return normalizeDatabaseError(error as Error & { code?: string }, fallbackMessage);
-  }
-
-  return createDocumentStoreError(fallbackMessage);
+export function toDocumentStoreError(error: unknown, fallback = 'Document storage is unavailable.') {
+  return error instanceof DocumentStoreUnavailableError ? error : normalizeDatabaseError(error as Error, fallback);
 }
 
 export function newDocumentId() {
-  return crypto.randomUUID();
+  return getAdminFirestore().collection('_ids').doc().id;
 }
 
 export function serializeForJson(value: unknown) {
@@ -85,295 +44,131 @@ export function serializeForJson(value: unknown) {
 
 function serializeDocumentRecord(value: JsonRecord): JsonRecord {
   const serialized = serializeForJson(value);
-
   if (!serialized || Array.isArray(serialized) || typeof serialized !== 'object') {
     throw new Error('Document store values must serialize to a JSON object.');
   }
-
-  const nextData = { ...(serialized as JsonRecord) };
-  delete nextData.id;
-  return nextData;
+  const next = { ...serialized };
+  delete next.id;
+  return next;
 }
 
-function mapDocumentRow<T = JsonRecord>(row: AppDocumentRow | null) {
-  if (!row) return null;
-  return { ...(row.data as T), id: row.documentId } as T & { id: string };
+function mapSnapshot<T = JsonRecord>(snapshot: { id: string; exists: boolean; data(): unknown }) {
+  return snapshot.exists ? ({ ...(snapshot.data() as T), id: snapshot.id } as T & { id: string }) : null;
 }
 
 export async function getDocument<T = JsonRecord>(collection: string, documentId: string) {
   try {
-    const data = await prisma.appDocument.findUnique({
-      where: {
-        collection_documentId: {
-          collection,
-          documentId,
-        },
-      },
-      select: {
-        collection: true,
-        documentId: true,
-        data: true,
-        updatedAt: true,
-      },
-    });
-
-    return mapDocumentRow<T>((data as AppDocumentRow | null) ?? null);
+    return mapSnapshot<T>(await getAdminFirestore().collection(collection).doc(documentId).get());
   } catch (error) {
-    throw normalizeDatabaseError(error as Error & { code?: string }, 'Document storage is unavailable.');
+    throw normalizeDatabaseError(error as Error, 'Document storage is unavailable.');
   }
 }
 
 export async function setDocument(collection: string, documentId: string, data: JsonRecord, merge = false) {
   try {
-    const existing = merge ? await getDocument(collection, documentId) : null;
-    const nextData = serializeDocumentRecord({ ...(merge && existing ? existing : {}), ...data });
-
-    const saved = await prisma.appDocument.upsert({
-      where: {
-        collection_documentId: {
-          collection,
-          documentId,
-        },
-      },
-      create: {
-        collection,
-        documentId,
-        data: nextData,
-      },
-      update: {
-        data: nextData,
-      },
-      select: {
-        collection: true,
-        documentId: true,
-        data: true,
-        updatedAt: true,
-      },
-    });
-
-    return mapDocumentRow(saved as AppDocumentRow)!;
+    const ref = getAdminFirestore().collection(collection).doc(documentId);
+    await ref.set(serializeDocumentRecord(data), { merge });
+    return mapSnapshot((await ref.get()))!;
   } catch (error) {
-    throw normalizeDatabaseError(error as Error & { code?: string }, 'Document storage is unavailable.');
+    throw normalizeDatabaseError(error as Error, 'Document storage is unavailable.');
   }
 }
 
 export async function updateDocument(collection: string, documentId: string, patch: JsonRecord) {
-  const existing = await getDocument(collection, documentId);
-  if (!existing) {
-    throw new Error(`${collection}/${documentId} does not exist.`);
-  }
-
-  const nextData = serializeDocumentRecord(applyDottedPatch(existing, patch));
-
   try {
-    const data = await prisma.appDocument.update({
-      where: {
-        collection_documentId: {
-          collection,
-          documentId,
-        },
-      },
-      data: {
-        data: nextData,
-      },
-      select: {
-        collection: true,
-        documentId: true,
-        data: true,
-        updatedAt: true,
-      },
+    const db = getAdminFirestore();
+    const ref = db.collection(collection).doc(documentId);
+    await db.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(ref);
+      if (!snapshot.exists) throw new Error(collection + '/' + documentId + ' does not exist.');
+      transaction.set(ref, serializeDocumentRecord(applyDottedPatch({ ...snapshot.data(), id: snapshot.id }, patch)));
     });
-
-    return mapDocumentRow(data as AppDocumentRow)!;
+    return mapSnapshot((await ref.get()))!;
   } catch (error) {
-    throw normalizeDatabaseError(error as Error & { code?: string }, 'Document storage is unavailable.');
+    if (error instanceof Error && error.message.startsWith(collection + '/' + documentId + ' does not exist.')) throw error;
+    throw normalizeDatabaseError(error as Error, 'Document storage is unavailable.');
   }
 }
 
 export async function mutateDocumentAtomically<T = JsonRecord>(
   collection: string,
   documentId: string,
-  mutate: (document: JsonRecord & { id: string }) => {
-    patch: JsonRecord;
-    result: T;
-    ledger?: EconomyLedgerMutation;
-  },
+  mutate: (document: JsonRecord & { id: string }) => { patch: JsonRecord; result: T; ledger?: EconomyLedgerMutation },
   options?: { requestId?: string }
 ) {
-  const maxAttempts = 3;
-
-  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
-    try {
-      return await prisma.$transaction(
-        async (transaction) => {
-          const existing = await transaction.appDocument.findUnique({
-            where: {
-              collection_documentId: {
-                collection,
-                documentId,
-              },
-            },
-            select: {
-              collection: true,
-              documentId: true,
-              data: true,
-              updatedAt: true,
-            },
-          });
-
-          const document = mapDocumentRow((existing as AppDocumentRow | null) ?? null);
-          if (!document) {
-            throw new Error(`${collection}/${documentId} does not exist.`);
-          }
-
-          if (options?.requestId) {
-            const existingLedger = await transaction.economyTransaction.findUnique({
-              where: {
-                userId_requestId: {
-                  userId: documentId,
-                  requestId: options.requestId,
-                },
-              },
-            });
-            if (existingLedger) {
-              return {
-                document,
-                result: existingLedger.result as T,
-                replayed: true,
-              };
-            }
-          }
-          const mutation = mutate(document);
-          const nextData = serializeDocumentRecord(applyDottedPatch(document, mutation.patch));
-          const saved = await transaction.appDocument.update({
-            where: {
-              collection_documentId: {
-                collection,
-                documentId,
-              },
-            },
-            data: {
-              data: nextData,
-            },
-            select: {
-              collection: true,
-              documentId: true,
-              data: true,
-              updatedAt: true,
-            },
-          });
-
-          if (mutation.ledger) {
-            await transaction.economyTransaction.create({
-              data: {
-                userId: documentId,
-                requestId: mutation.ledger.requestId,
-                kind: mutation.ledger.kind,
-                currency: mutation.ledger.currency,
-                amount: mutation.ledger.amount,
-                balanceAfter: mutation.ledger.balanceAfter,
-                result: serializeForJson(mutation.result),
-                metadata: mutation.ledger.metadata ? serializeForJson(mutation.ledger.metadata) : undefined,
-              },
-            });
-          }
-
-          return {
-            document: mapDocumentRow(saved as AppDocumentRow)!,
-            result: mutation.result,
-            replayed: false,
-          };
-        },
-        { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }
-      );
-    } catch (error) {
-      if (
-        attempt < maxAttempts &&
-        error instanceof Prisma.PrismaClientKnownRequestError &&
-        error.code === 'P2034'
-      ) {
-        continue;
+  try {
+    const db = getAdminFirestore();
+    const ref = db.collection(collection).doc(documentId);
+    const ledgerRef = options?.requestId ? db.collection('economyTransactions').doc(documentId + ':' + options.requestId) : null;
+    return await db.runTransaction(async (transaction) => {
+      const snapshot = await transaction.get(ref);
+      const document = mapSnapshot(snapshot);
+      if (!document) throw new Error(collection + '/' + documentId + ' does not exist.');
+      if (ledgerRef) {
+        const previous = await transaction.get(ledgerRef);
+        if (previous.exists) return { document, result: previous.data()!.result as T, replayed: true };
       }
-      if (error instanceof Error && error.message.startsWith(`${collection}/${documentId} does not exist.`)) {
-        throw error;
+      const mutation = mutate(document);
+      const next = serializeDocumentRecord(applyDottedPatch(document, mutation.patch));
+      transaction.set(ref, next);
+      if (mutation.ledger && ledgerRef) {
+        transaction.create(ledgerRef, {
+          userId: documentId,
+          ...serializeForJson(mutation.ledger),
+          result: serializeForJson(mutation.result),
+          createdAt: new Date().toISOString(),
+        });
       }
-      if (error instanceof Error && error.name !== 'PrismaClientKnownRequestError') {
-        throw error;
-      }
-      throw normalizeDatabaseError(error as Error & { code?: string }, 'Document storage is unavailable.');
-    }
+      return { document: { ...next, id: documentId }, result: mutation.result, replayed: false };
+    });
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith(collection + '/' + documentId + ' does not exist.')) throw error;
+    throw normalizeDatabaseError(error as Error, 'Document storage is unavailable.');
   }
-
-  throw createDocumentStoreError('Document storage is unavailable.');
 }
 
 export async function addDocument(collection: string, data: JsonRecord) {
-  const documentId = newDocumentId();
-  return setDocument(collection, documentId, data, false);
+  const ref = getAdminFirestore().collection(collection).doc();
+  const serialized = serializeDocumentRecord(data);
+  await ref.set(serialized);
+  return { ...serialized, id: ref.id };
 }
 
-export async function listDocuments<T = JsonRecord>(collection: string, options?: { limit?: number; orderBy?: string; direction?: 'asc' | 'desc'; participant?: { field: 'players' | 'participantIds'; uid: string } }) {
+export async function listDocuments<T = JsonRecord>(collection: string, options?: {
+  limit?: number;
+  orderBy?: string;
+  direction?: 'asc' | 'desc';
+  participant?: { field: 'players' | 'participantIds'; uid: string };
+}) {
   try {
-    const data = await prisma.appDocument.findMany({
-      where: {
-        collection,
-        ...(options?.participant ? { data: { path: [options.participant.field], array_contains: [options.participant.uid] } } : {}),
-      },
-      orderBy: {
-        updatedAt: options?.direction === 'asc' ? 'asc' : 'desc',
-      },
-      take: options?.limit,
-      select: {
-        collection: true,
-        documentId: true,
-        data: true,
-        updatedAt: true,
-      },
-    });
-
-    const results = data.map((doc) => mapDocumentRow<T>(doc as AppDocumentRow)!);
-
-    if (!options?.orderBy) {
-      return results;
-    }
-
-    return results.sort((a: any, b: any) => {
-      const av = normalizeSortValue(a[options.orderBy!]);
-      const bv = normalizeSortValue(b[options.orderBy!]);
-      const compare = av > bv ? 1 : av < bv ? -1 : 0;
-      return options.direction === 'asc' ? compare : -compare;
-    });
+    let query: FirebaseFirestore.Query = getAdminFirestore().collection(collection);
+    if (options?.participant) query = query.where(options.participant.field, 'array-contains', options.participant.uid);
+    query = options?.orderBy
+      ? query.orderBy(new FieldPath(options.orderBy), options.direction || 'desc')
+      : query.orderBy(FieldPath.documentId(), options?.direction || 'desc');
+    if (options?.limit) query = query.limit(options.limit);
+    const snapshot = await query.get();
+    return snapshot.docs.map((doc) => mapSnapshot<T>(doc)!);
   } catch (error) {
-    throw normalizeDatabaseError(error as Error & { code?: string }, 'Document storage is unavailable.');
+    throw normalizeDatabaseError(error as Error, 'Document storage is unavailable.');
   }
 }
 
 export function applyDottedPatch(source: JsonRecord, patch: JsonRecord) {
   const next = { ...source };
-
+  delete next.id;
   for (const [key, value] of Object.entries(patch)) {
     if (!key.includes('.')) {
       next[key] = value;
       continue;
     }
-
     const parts = key.split('.');
     let cursor = next;
     for (const part of parts.slice(0, -1)) {
-      if (!cursor[part] || typeof cursor[part] !== 'object') {
-        cursor[part] = {};
-      }
+      if (!cursor[part] || typeof cursor[part] !== 'object') cursor[part] = {};
       cursor = cursor[part];
     }
-    cursor[parts[parts.length - 1]] = value;
+    cursor[parts.at(-1)!] = value;
   }
-
   return next;
-}
-
-function normalizeSortValue(value: any) {
-  if (!value) return 0;
-  if (typeof value === 'number') return value;
-  if (typeof value === 'string') return value.toLowerCase();
-  return JSON.stringify(value);
 }

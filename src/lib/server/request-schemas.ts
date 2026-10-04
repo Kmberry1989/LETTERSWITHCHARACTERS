@@ -4,6 +4,7 @@ import { RETENTION_MODES } from '@/lib/retention';
 const safeText = (max: number) => z.string().trim().min(1).max(max);
 
 export const authSessionSchema = z.object({
+  idToken: z.string().min(1).max(8192).optional(),
   mode: z.enum(['email', 'guest', 'google', 'apple']).default('email'),
   action: z.enum(['signin', 'signup']).default('signin'),
   username: z.string().trim().max(24).optional(),

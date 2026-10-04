@@ -1,10 +1,12 @@
 'use client';
 
+import { firebaseApp, firebaseAuth, firebaseFirestore } from './client';
+
 export function initializeFirebase() {
   return {
-    firebaseApp: null,
-    auth: null,
-    firestore: null,
+    firebaseApp,
+    auth: firebaseAuth,
+    firestore: firebaseFirestore,
   };
 }
 
