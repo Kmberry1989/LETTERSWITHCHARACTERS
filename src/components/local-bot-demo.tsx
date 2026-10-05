@@ -42,7 +42,7 @@ export function LocalBotDemo() {
     botTimerRef.current = null;
     setBoard((current) => addDemoBotMove(current));
     setPhase('complete');
-    setMessage('Bitty Botty added S to make CATS. Demo complete — you win 10 to 6!');
+    setMessage('Bitty Botty added S to make CATS. Match complete — you win 10 to 6!');
   }, []);
 
   const resetDemo = useCallback(() => {
@@ -60,7 +60,7 @@ export function LocalBotDemo() {
 
   useEffect(() => {
     window.render_game_to_text = () => JSON.stringify({
-      mode: 'local-bot-demo',
+      mode: 'single-player',
       persistence: 'none',
       rewards: 'disabled',
       credentialsRequired: false,
@@ -91,7 +91,7 @@ export function LocalBotDemo() {
 
   const playWord = () => {
     if (!isDemoOpeningMove(selectedIndexes)) {
-      setMessage('This guided demo opens with CAT. Recall and tap C, A, T.');
+      setMessage('This guided match opens with CAT. Recall and tap C, A, T.');
       return;
     }
     setBoard(commitDemoOpening(pendingTiles));
@@ -107,15 +107,15 @@ export function LocalBotDemo() {
         <header className="rounded-2xl border border-amber-200 bg-white/90 p-3 shadow-sm backdrop-blur sm:p-4">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
-              <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-emerald-700"><ShieldCheck className="h-4 w-4" /> Local practice</div>
-              <h1 className="mt-1 font-headline text-2xl text-slate-900 sm:text-3xl">Play Bitty Botty</h1>
-              <p className="mt-1 max-w-2xl text-sm text-slate-600">A self-contained demo with deterministic bot play. No sign-in, database, Gemini key, account data, rewards, berries, XP, or saved progress.</p>
+              <div className="flex items-center gap-2 text-xs font-black uppercase tracking-[0.18em] text-emerald-700"><ShieldCheck className="h-4 w-4" /> Single Player</div>
+              <h1 className="mt-1 font-headline text-2xl text-slate-900 sm:text-3xl">You vs. Bitty Botty</h1>
+              <p className="mt-1 max-w-2xl text-sm text-slate-600">A private match you can play without signing in. It stays on this device and does not use berries, rewards, or online progress.</p>
             </div>
             <Button asChild variant="outline" size="sm"><Link href="/">Back to sign in</Link></Button>
           </div>
         </header>
 
-        <section aria-label="Demo scores" className="grid grid-cols-[1fr_auto_1fr] items-center rounded-2xl border border-white/70 bg-white/85 px-4 py-2 text-center shadow-sm">
+        <section aria-label="Single-player scores" className="grid grid-cols-[1fr_auto_1fr] items-center rounded-2xl border border-white/70 bg-white/85 px-4 py-2 text-center shadow-sm">
           <div><div className="text-xs font-bold uppercase tracking-wider text-slate-500">You</div><div data-testid="demo-player-score" className="text-2xl font-black text-emerald-700">{phase === 'player-turn' ? 0 : 10}</div></div>
           <div className="rounded-full bg-amber-100 px-3 py-1 text-xs font-black text-amber-900">{phase === 'player-turn' ? 'Your turn' : phase === 'bot-thinking' ? 'Bot turn' : 'Complete'}</div>
           <div><div className="flex items-center justify-center gap-1 text-xs font-bold uppercase tracking-wider text-slate-500"><Bot className="h-3.5 w-3.5" /> Bitty Botty</div><div data-testid="demo-bot-score" className="text-2xl font-black text-violet-700">{phase === 'complete' ? 6 : 0}</div></div>
@@ -133,7 +133,7 @@ export function LocalBotDemo() {
 
         <section className="rounded-2xl border-2 border-[#a07e56] bg-[#c4a27a] p-2 shadow-sm sm:p-3">
           <p role="status" aria-live="polite" data-testid="demo-status" className="mb-2 rounded-xl bg-white/90 px-3 py-2 text-center text-sm font-semibold text-slate-800">{message}</p>
-          <div className="grid grid-cols-7 gap-1.5 sm:gap-2" aria-label="Demo tile rack">
+          <div className="grid grid-cols-7 gap-1.5 sm:gap-2" aria-label="Single-player tile rack">
             {LOCAL_DEMO_RACK.map((tile, index) => {
               const selected = selectedIndexes.includes(index);
               const unavailable = phase !== 'player-turn' || selected;
@@ -146,7 +146,7 @@ export function LocalBotDemo() {
           </div>
           <div className="mt-2 grid grid-cols-2 gap-2">
             {phase === 'complete' ? (
-              <Button onClick={resetDemo} className="col-span-2"><RotateCcw className="mr-2 h-4 w-4" /> Play demo again</Button>
+              <Button onClick={resetDemo} className="col-span-2"><RotateCcw className="mr-2 h-4 w-4" /> Play again</Button>
             ) : (
               <>
                 <Button variant="secondary" disabled={phase !== 'player-turn' || selectedIndexes.length === 0} onClick={() => { setSelectedIndexes([]); setMessage('Tap C, A, and T to place CAT across the center star.'); }}><Undo2 className="mr-2 h-4 w-4" /> Recall</Button>
@@ -156,7 +156,7 @@ export function LocalBotDemo() {
           </div>
         </section>
 
-        <p className="pb-3 text-center text-xs font-medium text-slate-600">Practice session only. Closing or refreshing resets the demo, and nothing is sent to production services.</p>
+        <p className="pb-3 text-center text-xs font-medium text-slate-600">Single-player session only. Closing or refreshing resets the match, and nothing is sent to online game or economy services.</p>
       </div>
     </main>
   );

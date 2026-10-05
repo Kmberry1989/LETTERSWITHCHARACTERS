@@ -21,7 +21,7 @@ npm run firebase:deploy:rules
 3. Start Firebase with `npm run firebase:emulators`.
 4. In another terminal, start the app with `npm run dev`.
 
-Open `http://127.0.0.1:9002`. The emulator run starts with empty accounts and economy state. The separate `/demo/bot` route remains available without Firebase, Gemini, or persistent storage.
+Open `http://127.0.0.1:9002`. The emulator run starts with empty accounts and economy state. `/single-player` remains available without Firebase, Gemini, or persistent storage.
 
 ## Production credentials
 
@@ -57,4 +57,4 @@ npm run test:e2e
 
 Email alerts require `RESEND_API_KEY` and `RESEND_FROM_EMAIL`. Web push requires `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, and `VAPID_SUBJECT`.
 
-AI hints remain optional. Without Gemini credentials the app boots normally, and the local bot demo remains fully playable.
+AI hints remain optional. Without Gemini credentials the app boots normally, and Single Player remains fully playable.

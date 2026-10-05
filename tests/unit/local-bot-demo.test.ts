@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { addDemoBotMove, buildDemoPendingTiles, commitDemoOpening, getDemoWord, isDemoOpeningMove } from '@/lib/local-bot-demo';
 import { getTileCosmetic, TILE_COSMETICS } from '@/lib/tile-cosmetics';
 
-describe('local bot demo', () => {
+describe('single-player bot match', () => {
   it('builds the guided CAT opening across the center star', () => {
     const selection = [0, 1, 2];
     const pending = buildDemoPendingTiles(selection);

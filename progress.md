@@ -245,6 +245,15 @@ Firebase cutover:
 
 Validation:
 - Firebase emulator browser flow passed: username account -> secure session -> 1,250-berry profile -> Medium Bitty Botty game -> dashboard live-game card -> playable 15x15 game board with a seven-tile rack.
+
+---
+
+Current prompt: Remove the separate local bot demo presentation and integrate it as Single Player mode.
+
+Implementation:
+- Added `/single-player` as the canonical account-free bot mode and changed the sign-in entry to “Play Single Player.”
+- Reframed all player-facing demo/practice language as a private single-player match while retaining explicit no-rewards/no-online-progress disclosure.
+- Preserved `/demo/bot` as a compatibility redirect so existing links do not break.
 - API evidence confirmed the profile and game persisted in Firestore and used the verified Firebase UID for both player ownership and current turn.
 - `npm run typecheck`, `npm test` (55 tests), `npm run build`, required web-game harness, visual screenshot inspection, and `git diff --check` passed.
 

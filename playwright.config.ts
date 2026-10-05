@@ -6,13 +6,13 @@ export default defineConfig({
   fullyParallel: true,
   reporter: [['list']],
   use: {
-    baseURL: 'http://127.0.0.1:9002',
+    baseURL: process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:9002',
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
   webServer: {
     command: 'npm run dev',
-    url: 'http://127.0.0.1:9002',
+    url: process.env.PLAYWRIGHT_BASE_URL || 'http://127.0.0.1:9002',
     reuseExistingServer: true,
     timeout: 120_000,
   },
