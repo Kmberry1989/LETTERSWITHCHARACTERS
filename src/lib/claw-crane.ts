@@ -60,11 +60,33 @@ export type ClawGameSnapshot = {
   berries: number | null;
   camera: { yaw: number; pitch: number; zoom: number; distance: number };
   carriage: { x: number; z: number; velocityX: number; velocityZ: number };
-  claw: { y: number; fingerOpen: number; capturedPrizeId: string | null };
+  claw: {
+    y: number;
+    fingerOpen: number;
+    capturedPrizeId: string | null;
+    capturedFillerType: 'ball' | 'cube' | null;
+  };
   fillerBalls: { count: number; colors: string[] };
+  fillerCubes: { count: number; colors: string[] };
   visiblePrizes: Array<{ id: string; x: number; y: number; z: number }>;
-  lastResult: { kind: 'win' | 'miss'; prizeId?: string | null; score: number } | null;
+  lastResult: {
+    kind: 'win' | 'miss';
+    prizeId?: string | null;
+    fillerType?: 'ball' | 'cube' | null;
+    score: number;
+  } | null;
 };
+
+export function getClawFillerBerryReward(playId: string, fillerType: 'ball' | 'cube') {
+  let hash = fillerType === 'cube' ? 2166136261 : 16777619;
+  for (const character of playId) {
+    hash ^= character.charCodeAt(0);
+    hash = Math.imul(hash, 16777619);
+  }
+  const minimum = fillerType === 'cube' ? 5 : 3;
+  const spread = fillerType === 'cube' ? 8 : 6;
+  return minimum + ((hash >>> 0) % spread);
+}
 
 export type ClawProfileFields = {
   berries?: number;

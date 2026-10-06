@@ -27,14 +27,14 @@ export function MainNav() {
       {menuItems.map((item) => {
         const active = isActivePath(pathname, item.href);
         return (
-          <SidebarMenuItem key={item.href}>
+          <SidebarMenuItem key={item.href} className="w-full">
             <SidebarMenuButton
               asChild
               size="lg"
               isActive={active}
               tooltip={item.label}
               className={cn(
-                'rounded-[1.6rem] px-3.5 py-2.5 font-black text-[1.16rem] transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/[.72] hover:shadow-[inset_0_1px_0_rgba(255,255,255,.75),0_8px_18px_rgba(35,50,80,.08)]',
+                'h-[5.25rem] w-full min-w-0 rounded-[1.6rem] px-3.5 py-2.5 font-black text-[1.16rem] transition-all duration-200 hover:-translate-y-0.5 hover:bg-white/[.72] hover:shadow-[inset_0_1px_0_rgba(255,255,255,.75),0_8px_18px_rgba(35,50,80,.08)] group-data-[collapsible=icon]:h-9 group-data-[collapsible=icon]:w-9',
                 active && 'pressed-surface text-slate-950'
               )}
             >

@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { CLAW_PRIZE_CATALOG, makeClawCollection, normalizeClawProfile, selectClawStock } from '@/lib/claw-crane';
+import {
+  CLAW_PRIZE_CATALOG,
+  getClawFillerBerryReward,
+  makeClawCollection,
+  normalizeClawProfile,
+  selectClawStock,
+} from '@/lib/claw-crane';
 
 describe('claw crane economy and collection', () => {
   it('migrates legacy credits and removes duplicate/unknown prizes', () => {
@@ -20,5 +26,15 @@ describe('claw crane economy and collection', () => {
     const ids = CLAW_PRIZE_CATALOG.map((prize) => prize.id);
     expect(makeClawCollection({ ownedClawPrizeIds: ids }).complete).toBe(true);
     expect(makeClawCollection({ ownedClawPrizeIds: ids.slice(0, -1) }).complete).toBe(false);
+  });
+
+  it('awards deterministic low berry amounts for filler prizes', () => {
+    const ballReward = getClawFillerBerryReward('play-123', 'ball');
+    const cubeReward = getClawFillerBerryReward('play-123', 'cube');
+    expect(ballReward).toBeGreaterThanOrEqual(3);
+    expect(ballReward).toBeLessThanOrEqual(8);
+    expect(cubeReward).toBeGreaterThanOrEqual(5);
+    expect(cubeReward).toBeLessThanOrEqual(12);
+    expect(getClawFillerBerryReward('play-123', 'ball')).toBe(ballReward);
   });
 });

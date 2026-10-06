@@ -28,6 +28,7 @@ declare global {
 type SceneResult = {
   kind: 'win' | 'miss';
   prizeId: string | null;
+  fillerType: 'ball' | 'cube' | null;
   score: number;
 };
 
@@ -53,7 +54,18 @@ type PrizeObject = {
   id: string;
   mesh: THREE.Group;
   body: CANNON.Body;
+  kind: 'prize';
 };
+
+type FillerObject = {
+  id: null;
+  mesh: THREE.Mesh;
+  body: CANNON.Body;
+  color: string;
+  kind: 'ball' | 'cube';
+};
+
+type CapturableObject = PrizeObject | FillerObject;
 
 type EngineCallbacks = Pick<
   ClawCraneSceneProps,
@@ -141,7 +153,7 @@ class ClawCraneEngine {
   readonly wheelMeshes: THREE.Mesh[] = [];
   readonly fingerPivots: THREE.Group[] = [];
   readonly prizes: PrizeObject[] = [];
-  readonly fillers: Array<{ mesh: THREE.Mesh; body: CANNON.Body; color: string }> = [];
+  readonly fillers: FillerObject[] = [];
   readonly callbacks: MutableRefObject<EngineCallbacks>;
   readonly runtime: MutableRefObject<{
     practice: boolean;
@@ -167,7 +179,7 @@ class ClawCraneEngine {
   raf = 0;
   disposed = false;
   ready = false;
-  captured: PrizeObject | null = null;
+  captured: CapturableObject | null = null;
   gripConstraint: CANNON.LockConstraint | null = null;
   gripStrength = 0;
   playId: string | null = null;
@@ -417,7 +429,7 @@ class ClawCraneEngine {
 
   async loadAssets(stockedPrizeIds: string[]) {
     try {
-      this.addBallBed(28);
+      this.addFillerBed(30, 18);
       await this.loadClaw();
       await Promise.all(
         stockedPrizeIds.map(async (id, index) => {
@@ -425,7 +437,7 @@ class ClawCraneEngine {
           if (!definition) return;
           const gltf = await this.loader.loadAsync(definition.modelUrl);
           const model = gltf.scene;
-          fitModel(model, 0.95 * definition.scale);
+          fitModel(model, 1.16 * definition.scale);
           model.traverse((child) => {
             if (child instanceof THREE.Mesh) {
               child.castShadow = true;
@@ -446,14 +458,14 @@ class ClawCraneEngine {
           const jitterZ = (seededValue(3911, index) - 0.5) * 0.32;
           const x = -2.2 + column * 1.45 + jitterX;
           const z = -1.65 + row * 1.45 + jitterZ;
-          const y = 1.46 + row * 0.08;
+          const y = 1.68 + row * 0.09;
           const body = new CANNON.Body({
             mass: 0.72,
             shape: new CANNON.Box(
               new CANNON.Vec3(
-                definition.collider[0],
-                definition.collider[1],
-                definition.collider[2]
+                definition.collider[0] * 1.16,
+                definition.collider[1] * 1.16,
+                definition.collider[2] * 1.16
               )
             ),
             position: new CANNON.Vec3(x, y, z),
@@ -466,7 +478,7 @@ class ClawCraneEngine {
           mesh.position.set(x, y, z);
           this.scene.add(mesh);
           this.world.addBody(body);
-          this.prizes.push({ id, mesh, body });
+          this.prizes.push({ id, mesh, body, kind: 'prize' });
         })
       );
       this.ready = true;
@@ -480,7 +492,7 @@ class ClawCraneEngine {
     }
   }
 
-  addBallBed(count: number) {
+  addFillerBed(ballCount: number, cubeCount: number) {
     const colors = [
       0x38bdf8,
       0xfb7185,
@@ -491,15 +503,18 @@ class ClawCraneEngine {
       0x2dd4bf,
       0xf472b6,
     ];
+    const totalCount = ballCount + cubeCount;
     let added = 0;
+    let ballsAdded = 0;
+    let cubesAdded = 0;
     let slot = 0;
-    while (added < count && slot < 40) {
-      const column = slot % 6;
-      const row = Math.floor(slot / 6);
+    while (added < totalCount && slot < 72) {
+      const column = slot % 7;
+      const row = Math.floor(slot / 7);
       const jitterX = (seededValue(811, slot) - 0.5) * 0.16;
       const jitterZ = (seededValue(1217, slot) - 0.5) * 0.16;
-      const x = -3 + column * 1.2 + jitterX;
-      const z = -2.38 + row * 1.03 + jitterZ;
+      const x = -3 + column * 1 + jitterX;
+      const z = -2.58 + row * 0.88 + jitterZ;
       slot += 1;
       if (x < -1.55 && z > 1.25) continue;
       const color = colors[added % colors.length];
@@ -508,23 +523,49 @@ class ClawCraneEngine {
         roughness: 0.34,
         metalness: 0.04,
       });
-      const mesh = new THREE.Mesh(new THREE.SphereGeometry(0.33, 18, 14), material);
-      const y = 0.86 + (added % 3) * 0.025;
+      const useCube = cubesAdded < cubeCount && (ballsAdded >= ballCount || added % 3 === 1);
+      const radius = 0.4;
+      const halfCube = 0.38;
+      const mesh = new THREE.Mesh(
+        useCube
+          ? new THREE.BoxGeometry(halfCube * 2, halfCube * 2, halfCube * 2)
+          : new THREE.SphereGeometry(radius, 12, 8),
+        material
+      );
+      const y = 0.9 + (added % 4) * 0.035;
       mesh.position.set(x, y, z);
+      if (useCube) {
+        mesh.rotation.set(
+          (seededValue(2029, added) - 0.5) * 0.34,
+          seededValue(2671, added) * Math.PI,
+          (seededValue(3253, added) - 0.5) * 0.34
+        );
+      }
       mesh.castShadow = true;
       mesh.receiveShadow = true;
       this.scene.add(mesh);
       const body = new CANNON.Body({
-        mass: 0.24,
-        shape: new CANNON.Sphere(0.33),
+        mass: useCube ? 0.3 : 0.24,
+        shape: useCube
+          ? new CANNON.Box(new CANNON.Vec3(halfCube, halfCube, halfCube))
+          : new CANNON.Sphere(radius),
         position: new CANNON.Vec3(x, y, z),
         linearDamping: 0.5,
         angularDamping: 0.58,
         sleepSpeedLimit: 0.06,
         sleepTimeLimit: 0.65,
       });
+      if (useCube) body.quaternion.setFromEuler(mesh.rotation.x, mesh.rotation.y, mesh.rotation.z);
       this.world.addBody(body);
-      this.fillers.push({ mesh, body, color: `#${color.toString(16).padStart(6, '0')}` });
+      this.fillers.push({
+        id: null,
+        mesh,
+        body,
+        color: `#${color.toString(16).padStart(6, '0')}`,
+        kind: useCube ? 'cube' : 'ball',
+      });
+      if (useCube) cubesAdded += 1;
+      else ballsAdded += 1;
       added += 1;
     }
   }
@@ -691,20 +732,20 @@ class ClawCraneEngine {
   }
 
   findCaptureCandidate() {
-    let best: { prize: PrizeObject; distance: number } | null = null;
-    for (const prize of this.prizes) {
-      if (prize === this.captured || prize.body.position.y < 0.35) continue;
-      const dx = prize.body.position.x - this.carriageX;
-      const dz = prize.body.position.z - this.carriageZ;
+    let best: { object: CapturableObject; distance: number } | null = null;
+    for (const object of [...this.prizes, ...this.fillers]) {
+      if (object === this.captured || object.body.position.y < 0.35) continue;
+      const dx = object.body.position.x - this.carriageX;
+      const dz = object.body.position.z - this.carriageZ;
       const distance = Math.sqrt(dx * dx + dz * dz);
       if (distance <= 1.08 && (!best || distance < best.distance)) {
-        best = { prize, distance };
+        best = { object, distance };
       }
     }
     if (!best) return;
     this.gripStrength = THREE.MathUtils.clamp(1 - best.distance / 1.08, 0, 1);
     if (this.gripStrength < 0.16) return;
-    this.captured = best.prize;
+    this.captured = best.object;
     this.captured.body.wakeUp();
     this.gripConstraint = new CANNON.LockConstraint(this.clawBody, this.captured.body, {
       maxForce: 750 + this.gripStrength * 1750,
@@ -724,20 +765,26 @@ class ClawCraneEngine {
   }
 
   resolve() {
-    const prize = this.captured;
-    const won = Boolean(prize);
+    const captured = this.captured;
+    const won = Boolean(captured);
     const score = won ? Math.round(100 + this.gripStrength * 50) : 0;
-    if (prize) {
-      this.scene.remove(prize.mesh);
-      this.world.removeBody(prize.body);
-      const index = this.prizes.indexOf(prize);
-      if (index >= 0) this.prizes.splice(index, 1);
+    if (captured) {
+      this.scene.remove(captured.mesh);
+      this.world.removeBody(captured.body);
+      if (captured.kind === 'prize') {
+        const index = this.prizes.indexOf(captured);
+        if (index >= 0) this.prizes.splice(index, 1);
+      } else {
+        const index = this.fillers.indexOf(captured);
+        if (index >= 0) this.fillers.splice(index, 1);
+      }
     }
     this.releaseCapture();
     this.captured = null;
     const result: SceneResult = {
       kind: won ? 'win' : 'miss',
-      prizeId: prize?.id || null,
+      prizeId: captured?.kind === 'prize' ? captured.id : null,
+      fillerType: captured?.kind === 'ball' || captured?.kind === 'cube' ? captured.kind : null,
       score,
     };
     this.lastResult = result;
@@ -846,6 +893,20 @@ class ClawCraneEngine {
       prize.mesh.quaternion.copy(prize.body.quaternion as unknown as THREE.Quaternion);
     }
     for (const filler of this.fillers) {
+      if (filler !== this.captured) {
+        const escaped =
+          filler.body.position.y < 0.55 ||
+          Math.abs(filler.body.position.x) > 3.35 ||
+          Math.abs(filler.body.position.z) > 3.05;
+        if (escaped) {
+          filler.body.position.x = clamp(filler.body.position.x, -3.25, 3.25);
+          filler.body.position.y = Math.max(0.92, filler.body.position.y);
+          filler.body.position.z = clamp(filler.body.position.z, -2.95, 2.95);
+          filler.body.velocity.set(0, 0, 0);
+          filler.body.angularVelocity.scale(0.25, filler.body.angularVelocity);
+          filler.body.wakeUp();
+        }
+      }
       filler.mesh.position.copy(filler.body.position as unknown as THREE.Vector3);
       filler.mesh.quaternion.copy(filler.body.quaternion as unknown as THREE.Quaternion);
     }
@@ -903,11 +964,19 @@ class ClawCraneEngine {
       claw: {
         y: Number(this.clawY.toFixed(2)),
         fingerOpen: Number(this.fingerOpen.toFixed(2)),
-        capturedPrizeId: this.captured?.id || null,
+        capturedPrizeId: this.captured?.kind === 'prize' ? this.captured.id : null,
+        capturedFillerType:
+          this.captured?.kind === 'ball' || this.captured?.kind === 'cube'
+            ? this.captured.kind
+            : null,
       },
       fillerBalls: {
-        count: this.fillers.length,
-        colors: [...new Set(this.fillers.map((filler) => filler.color))],
+        count: this.fillers.filter((filler) => filler.kind === 'ball').length,
+        colors: [...new Set(this.fillers.filter((filler) => filler.kind === 'ball').map((filler) => filler.color))],
+      },
+      fillerCubes: {
+        count: this.fillers.filter((filler) => filler.kind === 'cube').length,
+        colors: [...new Set(this.fillers.filter((filler) => filler.kind === 'cube').map((filler) => filler.color))],
       },
       visiblePrizes: this.prizes.map((prize) => ({
         id: prize.id,
@@ -919,6 +988,7 @@ class ClawCraneEngine {
         ? {
             kind: this.lastResult.kind,
             prizeId: this.lastResult.prizeId,
+            fillerType: this.lastResult.fillerType,
             score: this.lastResult.score,
           }
         : null,
@@ -999,8 +1069,14 @@ const ClawCraneScene = forwardRef<ClawCraneSceneHandle, ClawCraneSceneProps>(
               distance: 16.54,
             },
             carriage: { x: 0, z: 0, velocityX: 0, velocityZ: 0 },
-            claw: { y: CLAW_HOME_Y, fingerOpen: 1, capturedPrizeId: null },
+            claw: {
+              y: CLAW_HOME_Y,
+              fingerOpen: 1,
+              capturedPrizeId: null,
+              capturedFillerType: null,
+            },
             fillerBalls: { count: 0, colors: [] },
+            fillerCubes: { count: 0, colors: [] },
             visiblePrizes: [],
             lastResult: null,
           },

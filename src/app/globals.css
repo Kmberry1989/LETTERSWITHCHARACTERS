@@ -120,11 +120,20 @@
     @apply bg-background text-foreground;
     min-height: 100svh;
     overflow-x: hidden;
+    user-select: none;
+    -webkit-user-select: none;
     background-image:
       radial-gradient(circle at 8% 2%, rgba(255, 201, 71, 0.18), transparent 28%),
       radial-gradient(circle at 86% 0%, rgba(191, 233, 255, 0.22), transparent 26%),
       radial-gradient(circle at 92% 74%, rgba(191, 245, 220, 0.22), transparent 26%),
       linear-gradient(180deg, rgba(255,255,255,0.78), rgba(244,250,239,0.96));
+  }
+
+  input,
+  textarea,
+  [contenteditable="true"] {
+    user-select: text;
+    -webkit-user-select: text;
   }
 
   body.play-mode-locked {

@@ -120,8 +120,8 @@ export default function LoginPage() {
                 <p className="text-[0.68rem] font-black uppercase tracking-[0.28em] text-[#b75d26]">Storybook Lobby</p>
                 <p className="mt-2 text-sm leading-6 text-[#7f4a2a]">Sign in to jump into matches, chat in the lobby, and keep building your character collection.</p>
               </div>
-              <div className="relative mx-auto h-36 w-36 overflow-hidden rounded-[2rem] bg-white/88 shadow-[0_24px_42px_rgba(202,111,39,0.2)] ring-4 ring-white/70">
-                <Image src="/interface/logo.png" alt="Letters with Characters logo" fill className="object-cover" priority />
+              <div className="relative mx-auto h-20 w-full max-w-[18rem]">
+                <Image src="/interface/logo-horizontal.png" alt="Letters with Characters logo" fill className="object-contain" priority />
               </div>
             </div>
           </div>
@@ -130,8 +130,8 @@ export default function LoginPage() {
             <Card className="w-full rounded-[1.4rem] border border-white/70 bg-white/50 shadow-none backdrop-blur-xl md:bg-white/35">
               <CardHeader className="px-5 pb-2 pt-5 text-center sm:px-6">
                 <div className="mb-3 flex justify-center md:hidden">
-                  <div className="relative h-16 w-16 overflow-hidden rounded-[1.25rem] shadow-lg ring-4 ring-white/70">
-                    <Image src="/interface/logo.png" alt="Letters with Characters logo" fill className="object-cover" priority />
+                  <div className="relative h-14 w-36">
+                    <Image src="/interface/logo-mark.png" alt="Letters with Characters logo" fill className="object-contain" priority />
                   </div>
                 </div>
                 <CardTitle className="text-xl font-headline sm:text-2xl">Letters with Characters</CardTitle>

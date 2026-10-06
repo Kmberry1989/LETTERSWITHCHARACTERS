@@ -53,6 +53,7 @@ type ServerState = {
 type ResultState = {
   kind: 'win' | 'miss';
   prizeId: string | null;
+  fillerType: 'ball' | 'cube' | null;
   score: number;
   rewards?: { berries: number; experience: number };
 };
@@ -113,6 +114,8 @@ export default function ClawCraneGame() {
   const selectedOwned = collection.ownedPrizeIds.includes(selectedPrize.id);
   const canControl = sceneReady && !busy && (phase === 'ready' || phase === 'aiming');
   const canDrop = canControl && (practice || Number(tokens) > 0) && !collection.complete;
+  const needsToken = !practice && Number(tokens) <= 0 && !collection.complete;
+  const canBuyToken = needsToken && !busy && (berries || 0) >= CLAW_TOKEN_COST;
   const stockKey = stockedPrizeIds.join('|');
 
   useEffect(() => {
@@ -245,12 +248,31 @@ export default function ClawCraneGame() {
   }, [busy, phase, playSfx, practice, sceneReady, serverState]);
 
   const handleResolved = useCallback(
-    async (result: { kind: 'win' | 'miss'; prizeId: string | null; score: number }) => {
-      const localResult: ResultState = result;
+    async (result: {
+      kind: 'win' | 'miss';
+      prizeId: string | null;
+      fillerType: 'ball' | 'cube' | null;
+      score: number;
+    }) => {
+      const practiceFillerBerries = result.fillerType
+        ? result.fillerType === 'cube'
+          ? 5 + Math.floor(Math.random() * 8)
+          : 3 + Math.floor(Math.random() * 6)
+        : 0;
+      const localResult: ResultState = {
+        ...result,
+        rewards: practiceFillerBerries
+          ? { berries: practiceFillerBerries, experience: 0 }
+          : undefined,
+      };
       setLastResult(localResult);
       if (result.kind === 'win') {
         playSfx('arcadeSuccess');
-        setMessage(`${CLAW_PRIZE_BY_ID[result.prizeId || '']?.name || 'Prize'} reached the chute!`);
+        setMessage(
+          result.fillerType
+            ? `${result.fillerType === 'cube' ? 'Prize cube' : 'Prize ball'} reached the chute!`
+            : `${CLAW_PRIZE_BY_ID[result.prizeId || '']?.name || 'Prize'} reached the chute!`
+        );
       } else {
         playSfx('arcadeError');
         setMessage('The claw came back empty. Reposition and try another drop.');
@@ -271,6 +293,7 @@ export default function ClawCraneGame() {
             requestId: crypto.randomUUID(),
             playId: play.id,
             prizeId: result.prizeId,
+            fillerType: result.fillerType,
             score: result.score,
           }),
         });
@@ -281,12 +304,15 @@ export default function ClawCraneGame() {
         setLastResult({
           ...localResult,
           prizeId: payload.wonPrizeId || null,
+          fillerType: payload.fillerType || null,
           rewards: payload.rewards,
         });
         if (payload.wonPrizeId) setSelectedPrizeId(payload.wonPrizeId);
         setMessage(
           payload.wonPrizeId
             ? `${CLAW_PRIZE_BY_ID[payload.wonPrizeId]?.name || 'Prize'} saved to My Prizes.`
+            : payload.fillerType
+              ? `${payload.fillerType === 'cube' ? 'Prize cube' : 'Prize ball'} paid ${payload.fillerBerries} berries.`
             : 'Play saved as a miss. The cabinet has been restocked.'
         );
       } catch (requestError: any) {
@@ -322,7 +348,9 @@ export default function ClawCraneGame() {
   const ownedCount = collection.ownedPrizeIds.length;
   const activeStatus = error || message;
   const rewardText = lastResult?.rewards
-    ? `+${lastResult.rewards.berries} berries · +${lastResult.rewards.experience} XP`
+    ? practice
+      ? `Practice reward: +${lastResult.rewards.berries} berries`
+      : `+${lastResult.rewards.berries} berries · +${lastResult.rewards.experience} XP`
     : null;
 
   return (
@@ -355,18 +383,6 @@ export default function ClawCraneGame() {
               <span className="hidden md:inline">My Prizes</span>
               <span className="ml-1 text-xs">{ownedCount}/{collection.total}</span>
             </Button>
-            {!practice && (
-              <Button
-                type="button"
-                size="sm"
-                className="rounded-full bg-amber-400 px-3 font-black text-amber-950 shadow-sm hover:bg-amber-300"
-                disabled={busy || collection.complete || (berries || 0) < CLAW_TOKEN_COST}
-                onClick={purchaseToken}
-                data-testid="claw-buy-token"
-              >
-                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : `Buy Token · ${CLAW_TOKEN_COST}`}
-              </Button>
-            )}
           </div>
         </div>
 
@@ -455,22 +471,39 @@ export default function ClawCraneGame() {
           </div>
 
           <div className="absolute bottom-3 right-3 z-20 flex flex-col items-end gap-2 md:bottom-5 md:right-5">
-            {!practice && Number(tokens) <= 0 && !collection.complete ? (
+            {needsToken ? (
               <div className="rounded-full bg-slate-950/55 px-3 py-1 text-[0.65rem] font-bold text-white backdrop-blur md:text-xs">
-                Buy a Claw Token first
+                {(berries || 0) >= CLAW_TOKEN_COST ? 'Purchase includes 1 Claw Token' : `Need ${CLAW_TOKEN_COST} berries`}
               </div>
             ) : null}
             <Button
               type="button"
-              className="h-[5.2rem] w-[5.2rem] rounded-full border-4 border-white/85 bg-[radial-gradient(circle_at_35%_25%,#fde68a,#fb7185_58%,#e11d48)] p-0 text-base font-black uppercase tracking-[0.1em] text-white shadow-[0_16px_32px_rgba(190,24,93,0.38)] hover:scale-[1.02] hover:opacity-100 active:scale-95 md:h-28 md:w-28 md:text-lg"
-              onClick={() => void requestDrop()}
-              disabled={!canDrop}
+              className={cn(
+                'h-[5.2rem] w-[5.2rem] rounded-full border-4 border-white/85 p-0 text-base font-black uppercase tracking-[0.1em] text-white hover:scale-[1.02] hover:opacity-100 active:scale-95 md:h-28 md:w-28 md:text-lg',
+                needsToken
+                  ? 'bg-[radial-gradient(circle_at_35%_25%,#fff7ae,#fbbf24_55%,#d97706)] shadow-[0_16px_32px_rgba(217,119,6,0.38)]'
+                  : 'bg-[radial-gradient(circle_at_35%_25%,#fde68a,#fb7185_58%,#e11d48)] shadow-[0_16px_32px_rgba(190,24,93,0.38)]'
+              )}
+              onClick={() => void (needsToken ? purchaseToken() : requestDrop())}
+              disabled={needsToken ? !canBuyToken : !canDrop}
               data-testid="claw-drop"
             >
-              {busy ? <Loader2 className="h-7 w-7 animate-spin" /> : collection.complete ? <Trophy className="h-7 w-7" /> : 'Drop'}
+              {busy ? (
+                <Loader2 className="h-7 w-7 animate-spin" />
+              ) : collection.complete ? (
+                <Trophy className="h-7 w-7" />
+              ) : needsToken ? (
+                <span className="flex flex-col items-center gap-0.5 leading-none">
+                  <Coins className="!h-6 !w-6 md:!h-7 md:!w-7" />
+                  <span>Buy</span>
+                  <span className="text-[0.65rem] tracking-normal md:text-xs">{CLAW_TOKEN_COST} berries</span>
+                </span>
+              ) : (
+                'Drop'
+              )}
             </Button>
             <div className="text-center text-[0.6rem] font-black uppercase tracking-[0.14em] text-white drop-shadow md:text-xs">
-              Space
+              {needsToken ? '1 token' : 'Space'}
             </div>
           </div>
 

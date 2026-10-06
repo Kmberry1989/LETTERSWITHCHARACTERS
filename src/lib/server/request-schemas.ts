@@ -26,6 +26,7 @@ export const clawRequestSchema = z.discriminatedUnion('action', [
     requestId: z.string().uuid().optional(),
     playId: safeText(128),
     prizeId: z.string().trim().max(80).nullable().optional(),
+    fillerType: z.enum(['ball', 'cube']).nullable().optional(),
     score: z.number().finite().optional(),
   }),
 ]);

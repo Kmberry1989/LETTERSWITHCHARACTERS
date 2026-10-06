@@ -2,6 +2,7 @@ import {
   CLAW_TOKEN_COST,
   CLAW_PRIZE_BY_ID,
   CLAW_PRIZE_CATALOG,
+  getClawFillerBerryReward,
   type ClawPlay,
   makeClawCollection,
   nextClawCabinetSeed,
@@ -182,6 +183,12 @@ export async function POST(request: Request) {
       }
       const requestedPrizeId =
         typeof body?.prizeId === 'string' && body.prizeId ? String(body.prizeId) : null;
+      const fillerType = body?.fillerType === 'ball' || body?.fillerType === 'cube'
+        ? body.fillerType
+        : null;
+      if (requestedPrizeId && fillerType) {
+        throw new ClawRequestError('A drop cannot award both a character and a filler prize.', 400);
+      }
       const score = Math.max(0, Math.min(10_000, Math.floor(Number(body?.score) || 0)));
       const mutation = await mutateDocumentAtomically('users', user.uid, (profile) => {
         const cosmetics = normalizeUserCosmetics(profile as any);
@@ -191,7 +198,9 @@ export async function POST(request: Request) {
             patch: {},
             result: {
               duplicate: true,
-              wonPrizeId: null,
+              wonPrizeId: null as string | null,
+              fillerType: null as 'ball' | 'cube' | null,
+              fillerBerries: 0,
               rewards: { berries: 0, experience: 0 },
             },
           };
@@ -209,6 +218,8 @@ export async function POST(request: Request) {
 
         const now = new Date();
         const wonPrizeId = requestedPrizeId && CLAW_PRIZE_BY_ID[requestedPrizeId] ? requestedPrizeId : null;
+        const fillerBerries = fillerType ? getClawFillerBerryReward(play.id, fillerType) : 0;
+        const wonSomething = Boolean(wonPrizeId || fillerType);
         const ownedClawPrizeIds = wonPrizeId
           ? [...claw.ownedClawPrizeIds, wonPrizeId]
           : claw.ownedClawPrizeIds;
@@ -216,11 +227,11 @@ export async function POST(request: Request) {
         const session = applyArcadeSession(profile.retention, 'claw-crane', {
           sessionId: play.id,
           score,
-          completed: Boolean(wonPrizeId),
+          completed: wonSomething,
           now,
         });
         const daily = claimDailyReward(session.retention, now);
-        const rewardBerries = session.rewardBerries + daily.rewardBerries;
+        const rewardBerries = session.rewardBerries + daily.rewardBerries + fillerBerries;
         const rewardExperience = session.rewardExperience + daily.rewardExperience;
         const nextExperience = cosmetics.experience + rewardExperience;
 
@@ -236,8 +247,8 @@ export async function POST(request: Request) {
               : claw.clawPrizeWonAt,
             clawStats: {
               plays: claw.clawStats.plays + 1,
-              wins: claw.clawStats.wins + Number(Boolean(wonPrizeId)),
-              misses: claw.clawStats.misses + Number(!wonPrizeId),
+              wins: claw.clawStats.wins + Number(wonSomething),
+              misses: claw.clawStats.misses + Number(!wonSomething),
               collectionCompletedAt: collectionComplete
                 ? claw.clawStats.collectionCompletedAt || now.toISOString()
                 : claw.clawStats.collectionCompletedAt,
@@ -250,6 +261,8 @@ export async function POST(request: Request) {
           result: {
             duplicate: false,
             wonPrizeId,
+            fillerType,
+            fillerBerries,
             rewards: {
               berries: rewardBerries,
               experience: rewardExperience,
@@ -257,11 +270,15 @@ export async function POST(request: Request) {
           },
           ledger: {
             requestId: mutationRequestId,
-            kind: wonPrizeId ? 'claw-prize-reward' : 'claw-play-settlement',
+            kind: wonPrizeId
+              ? 'claw-prize-reward'
+              : fillerType
+                ? 'claw-filler-reward'
+                : 'claw-play-settlement',
             currency: 'berries',
             amount: rewardBerries,
             balanceAfter: cosmetics.berries + rewardBerries,
-            metadata: { playId: play.id, wonPrizeId },
+            metadata: { playId: play.id, wonPrizeId, fillerType, fillerBerries },
           },
         };
       }, { requestId: mutationRequestId });

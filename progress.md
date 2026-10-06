@@ -254,8 +254,48 @@ Implementation:
 - Added `/single-player` as the canonical account-free bot mode and changed the sign-in entry to “Play Single Player.”
 - Reframed all player-facing demo/practice language as a private single-player match while retaining explicit no-rewards/no-online-progress disclosure.
 - Preserved `/demo/bot` as a compatibility redirect so existing links do not break.
+
+---
+
+Current prompt: Install the new responsive logo system and improve Wheel's indicator and gesture-driven spin.
+
+Implementation:
+- Added a transparent horizontal logo lockup for desktop/login surfaces and a compact LWC mark for mobile headers.
+- Removed the old header pill/banner treatment so the new logo sits directly in the interface chrome.
+- Rebuilt the Wheel pointer as a fixed downward indicator and aligned landing values to the segment beneath it.
+- Removed player-facing “Flick” language and made clockwise/counterclockwise gesture speed determine spin direction, duration, travel, and landing segment.
+- Added a visible early-solve bonus worth 1,000 plus 250 per unrevealed unique letter, with a 500-point incorrect-solve penalty, so solo players have a reason to solve before banking every letter.
+- Removed “storybook” from Wheel's player-facing objective description.
 - API evidence confirmed the profile and game persisted in Firestore and used the verified Firebase UID for both player ownership and current turn.
 - `npm run typecheck`, `npm test` (55 tests), `npm run build`, required web-game harness, visual screenshot inspection, and `git diff --check` passed.
 
 Remaining deployment step:
 - Publish `firestore.rules` / indexes and provide Application Default Credentials (Firebase App Hosting / Google Cloud) or `FIREBASE_SERVICE_ACCOUNT_JSON` on a non-Google host.
+
+---
+
+Current prompt: Enlarge the Claw Crane prizes and balls, add low-polygon cubes, and make balls/cubes award random low berry amounts.
+
+Implementation in progress:
+- Enlarged character prizes and their physics colliders by about 22%.
+- Replaced the sparse 28-ball bed with 30 larger low-poly balls and 18 simple cube fillers.
+- Made filler shapes capturable outcomes: balls award 3-8 berries and cubes award 5-12 berries.
+- Kept persistent rewards server-authoritative and idempotent; account-free practice displays a temporary, unsaved reward.
+- Added filler shape/count/result details to deterministic crane state output.
+- Disabled text highlighting app-wide while preserving normal selection inside inputs, textareas, and editable content.
+
+---
+
+Current prompt: Use a fuller Wordle-style dictionary for 5 in 6, normalize sidebar button dimensions, then commit and push.
+
+Implementation in progress:
+- Kept the curated 5 in 6 answer pool while separating it from a much larger accepted-guess dictionary.
+- Added a reproducible generator and Apache-2.0 source/license notice for the external Wordle word lists.
+- Normalized every main sidebar navigation item to the same full width and fixed height without removing its icon.
+- Replaced the separate Claw header purchase control with a context-sensitive cabinet button: at zero tokens it becomes an obvious gold coin purchase for 25 berries, then returns to Drop after purchase.
+
+Validation:
+- Required web-game harness and screenshot inspection confirmed the denser Claw cabinet stays contained after settling.
+- Browser interaction confirmed an expanded-list guess (`AAHED`) is accepted as a completed guess rather than rejected.
+- Browser screenshot inspection confirmed the main sidebar buttons share the same full width and fixed height.
+- `npm run typecheck`, `npm test` (61 tests), `npm run build`, desktop/mobile Playwright E2E (26 tests), and `git diff --check` passed.

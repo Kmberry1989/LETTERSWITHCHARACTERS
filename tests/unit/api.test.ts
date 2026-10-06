@@ -5,6 +5,18 @@ describe('API request contracts', () => {
   it('accepts legacy crane clients while supporting idempotency keys', () => {
     expect(clawRequestSchema.safeParse({ action: 'purchase-token' }).success).toBe(true);
     expect(clawRequestSchema.safeParse({ action: 'purchase-token', requestId: crypto.randomUUID() }).success).toBe(true);
+    expect(clawRequestSchema.safeParse({
+      action: 'settle-play',
+      playId: 'play-1',
+      prizeId: null,
+      fillerType: 'cube',
+      score: 120,
+    }).success).toBe(true);
+    expect(clawRequestSchema.safeParse({
+      action: 'settle-play',
+      playId: 'play-1',
+      fillerType: 'coin',
+    }).success).toBe(false);
   });
 
   it('accepts bounded auth input and rejects oversized credentials', () => {

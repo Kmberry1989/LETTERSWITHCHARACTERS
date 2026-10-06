@@ -15,6 +15,7 @@ const WHEEL_VALUES = [150, 200, 250, 300, 350, 400, 450, 500, 600, 700, 800, 900
 const WHEEL_COLORS = ['#0F766E', '#2563EB', '#7C3AED', '#DB2777', '#EA580C', '#CA8A04'];
 const VOWELS = new Set(['A', 'E', 'I', 'O', 'U']);
 const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const INCORRECT_SOLVE_PENALTY = 500;
 
 type WheelPlayer = {
   uid: string;
@@ -42,6 +43,28 @@ type PointerSample = {
   y: number;
   time: number;
 };
+
+type SpinGesture = {
+  strength: number;
+  direction: 1 | -1;
+  angularVelocity: number;
+};
+
+const SEGMENT_DEGREES = 360 / WHEEL_VALUES.length;
+
+function clamp(value: number, minimum: number, maximum: number) {
+  return Math.min(maximum, Math.max(minimum, value));
+}
+
+function normalizeAngleDelta(delta: number) {
+  if (delta > Math.PI) return delta - Math.PI * 2;
+  if (delta < -Math.PI) return delta + Math.PI * 2;
+  return delta;
+}
+
+function positiveModulo(value: number, divisor: number) {
+  return ((value % divisor) + divisor) % divisor;
+}
 
 function randomPhrase() {
   return WHEEL_PHRASES[Math.floor(Math.random() * WHEEL_PHRASES.length)];
@@ -72,27 +95,51 @@ function wedgePath(cx: number, cy: number, radius: number, startAngle: number, e
   return `M ${cx} ${cy} L ${start.x} ${start.y} A ${radius} ${radius} 0 ${largeArcFlag} 1 ${end.x} ${end.y} Z`;
 }
 
-function getSpinVelocity(samples: PointerSample[]) {
-  if (samples.length < 2) return 0;
-  const recent = samples.slice(-5);
-  const first = recent[0];
-  const last = recent[recent.length - 1];
-  const elapsed = Math.max(16, last.time - first.time);
-  const distance = Math.hypot(last.x - first.x, last.y - first.y);
-  return Math.min(1, distance / elapsed / 1.7);
+export function getWheelGesture(samples: PointerSample[], center: { x: number; y: number }): SpinGesture {
+  if (samples.length < 2) return { strength: 0.5, direction: 1, angularVelocity: 0 };
+  const recent = samples.slice(-8);
+  let angularDistance = 0;
+  for (let index = 1; index < recent.length; index += 1) {
+    const previous = Math.atan2(recent[index - 1].y - center.y, recent[index - 1].x - center.x);
+    const current = Math.atan2(recent[index].y - center.y, recent[index].x - center.x);
+    angularDistance += normalizeAngleDelta(current - previous);
+  }
+  const elapsed = Math.max(16, recent[recent.length - 1].time - recent[0].time);
+  const angularVelocity = angularDistance / elapsed;
+  const direction: 1 | -1 = angularVelocity < 0 ? -1 : 1;
+  const strength = clamp(Math.abs(angularVelocity) / 0.012, 0.22, 1);
+  return { strength, direction, angularVelocity };
+}
+
+export function getWheelResultIndex(rotation: number) {
+  const normalizedRotation = positiveModulo(rotation, 360);
+  return positiveModulo(Math.round((-SEGMENT_DEGREES / 2 - normalizedRotation) / SEGMENT_DEGREES), WHEEL_VALUES.length);
+}
+
+export function getWheelSolveBonus(phrase: string, guessedLetters: string[]) {
+  const unrevealedUniqueLetters = uniqueLetters(phrase).filter((letter) => !guessedLetters.includes(letter)).length;
+  return 1000 + unrevealedUniqueLetters * 250;
+}
+
+function snapRotationToResult(projectedRotation: number, resultIndex: number) {
+  const targetWithinTurn = positiveModulo(-SEGMENT_DEGREES / 2 - resultIndex * SEGMENT_DEGREES, 360);
+  const turn = Math.round((projectedRotation - targetWithinTurn) / 360);
+  return turn * 360 + targetWithinTurn;
 }
 
 export default function WheelGame() {
   const { playSfx } = useAudio();
   const pointerSamples = useRef<PointerSample[]>([]);
+  const wheelCenter = useRef({ x: 0, y: 0 });
   const [round, setRound] = useState(() => WHEEL_PHRASES[0]);
   const [guessedLetters, setGuessedLetters] = useState<string[]>([]);
   const [bank, setBank] = useState(0);
-  const [status, setStatus] = useState('Flick the wheel.');
+  const [status, setStatus] = useState('Swipe the wheel or press Spin.');
   const [currentValue, setCurrentValue] = useState<number | null>(null);
   const [guess, setGuess] = useState('');
   const [solved, setSolved] = useState(false);
   const [rotation, setRotation] = useState(0);
+  const [spinDuration, setSpinDuration] = useState(1300);
   const [spinning, setSpinning] = useState(false);
   const [duelMode, setDuelMode] = useState(false);
   const [activePlayer, setActivePlayer] = useState(0);
@@ -101,6 +148,7 @@ export default function WheelGame() {
 
   const phraseRows = useMemo(() => round.phrase.split(' '), [round.phrase]);
   const phraseLetters = useMemo(() => new Set(uniqueLetters(round.phrase)), [round.phrase]);
+  const solveBonus = useMemo(() => getWheelSolveBonus(round.phrase, guessedLetters), [guessedLetters, round.phrase]);
   const consonantsLeft = useMemo(
     () => uniqueLetters(round.phrase, true).filter((letter) => !guessedLetters.includes(letter)),
     [guessedLetters, round.phrase],
@@ -111,17 +159,23 @@ export default function WheelGame() {
     if (duelMode) setActivePlayer((player) => (player === 0 ? 1 : 0));
   };
 
-  const spinWheel = (velocity = 0.55) => {
+  const spinWheel = ({ strength = 0.55, direction = 1 }: Partial<SpinGesture> = {}) => {
     if (!canSpin) return;
-    const extraTurns = 2 + Math.round(velocity * 5);
-    const resultIndex = Math.floor((Date.now() / 97 + velocity * 100) % WHEEL_VALUES.length);
-    const segmentDegrees = 360 / WHEEL_VALUES.length;
-    const targetRotation = rotation + extraTurns * 360 + resultIndex * segmentDegrees + segmentDegrees / 2;
+    const resolvedStrength = clamp(strength, 0.22, 1);
+    const resolvedDirection: 1 | -1 = direction === -1 ? -1 : 1;
+    const extraTurns = 2 + resolvedStrength * 4.35;
+    const projectedRotation = rotation + resolvedDirection * extraTurns * 360;
+    const resultIndex = getWheelResultIndex(projectedRotation);
+    let targetRotation = snapRotationToResult(projectedRotation, resultIndex);
+    if (resolvedDirection > 0 && targetRotation <= rotation) targetRotation += 360;
+    if (resolvedDirection < 0 && targetRotation >= rotation) targetRotation -= 360;
     const result = WHEEL_VALUES[resultIndex];
+    const duration = Math.round(950 + resolvedStrength * 850);
 
     setSpinning(true);
     setCurrentValue(null);
-    setStatus(velocity > 0.7 ? 'Hard flick.' : 'Wheel spinning.');
+    setStatus(resolvedStrength > 0.72 ? 'Strong spin!' : 'Wheel spinning.');
+    setSpinDuration(duration);
     setRotation(targetRotation);
     playSfx('wheelSpin');
 
@@ -129,7 +183,7 @@ export default function WheelGame() {
     const tickTimer = window.setInterval(() => {
       ticks += 1;
       playSfx('wheelTick');
-      if (ticks >= 12 + Math.round(velocity * 12)) window.clearInterval(tickTimer);
+      if (ticks >= 12 + Math.round(resolvedStrength * 12)) window.clearInterval(tickTimer);
     }, 70);
 
     window.setTimeout(() => {
@@ -137,10 +191,12 @@ export default function WheelGame() {
       setStatus('Pick a consonant.');
       setSpinning(false);
       playSfx('wheelLand');
-    }, 980 + velocity * 520);
+    }, duration);
   };
 
   const handlePointerDown = (event: React.PointerEvent<HTMLButtonElement>) => {
+    const bounds = event.currentTarget.getBoundingClientRect();
+    wheelCenter.current = { x: bounds.left + bounds.width / 2, y: bounds.top + bounds.height / 2 };
     pointerSamples.current = [{ x: event.clientX, y: event.clientY, time: performance.now() }];
     event.currentTarget.setPointerCapture(event.pointerId);
   };
@@ -150,9 +206,9 @@ export default function WheelGame() {
   };
 
   const handlePointerUp = () => {
-    const velocity = getSpinVelocity(pointerSamples.current);
+    const gesture = getWheelGesture(pointerSamples.current, wheelCenter.current);
     pointerSamples.current = [];
-    spinWheel(Math.max(0.28, velocity));
+    spinWheel(gesture);
   };
 
   const guessLetter = (letter: string) => {
@@ -160,7 +216,7 @@ export default function WheelGame() {
     const isVowel = VOWELS.has(letter);
     if (!isVowel && !currentValue) {
       playSfx('arcadeError');
-      setStatus('Flick first.');
+      setStatus('Spin first.');
       return;
     }
     if (isVowel && bank < 250) {
@@ -192,13 +248,21 @@ export default function WheelGame() {
 
   const solve = () => {
     if (guess.trim().toUpperCase() !== round.phrase) {
-      setStatus('Incorrect solve.');
+      setBank((value) => Math.max(0, value - INCORRECT_SOLVE_PENALTY));
+      if (duelMode) {
+        setScores((current) => current.map((score, index) => (index === activePlayer ? Math.max(0, score - INCORRECT_SOLVE_PENALTY) : score)));
+      }
+      setStatus(`Incorrect solve. ${INCORRECT_SOLVE_PENALTY} point penalty.`);
       endTurn();
       playSfx('arcadeError');
       return;
     }
+    setBank((value) => value + solveBonus);
+    if (duelMode) {
+      setScores((current) => current.map((score, index) => (index === activePlayer ? score + solveBonus : score)));
+    }
     setSolved(true);
-    setStatus('Solved.');
+    setStatus(`Solved! Early-solve bonus: ${solveBonus.toLocaleString()} points.`);
     playSfx('success');
   };
 
@@ -207,7 +271,7 @@ export default function WheelGame() {
     setRound(randomPhrase());
     setGuessedLetters([]);
     setBank(0);
-    setStatus('Flick the wheel.');
+    setStatus('Swipe the wheel or press Spin.');
     setCurrentValue(null);
     setGuess('');
     setSolved(false);
@@ -242,13 +306,18 @@ export default function WheelGame() {
               onPointerDown={handlePointerDown}
               onPointerMove={handlePointerMove}
               onPointerUp={handlePointerUp}
+              onPointerCancel={() => { pointerSamples.current = []; }}
+              onClick={(event) => { if (event.detail === 0) spinWheel(); }}
               disabled={!canSpin}
               style={{ touchAction: 'none' }}
-              aria-label="Flick wheel"
+              aria-label="Spin wheel. Swipe clockwise or counterclockwise; faster gestures create stronger spins."
             >
-              <div className="absolute left-1/2 top-[-4px] z-20 h-0 w-0 -translate-x-1/2 drop-shadow-[0_5px_3px_rgba(0,0,0,0.35)] border-l-[14px] border-r-[14px] border-b-[24px] border-l-transparent border-r-transparent border-b-amber-300 md:border-l-[19px] md:border-r-[19px] md:border-b-[30px]" />
+              <div className="pointer-events-none absolute left-1/2 top-[-5px] z-30 -translate-x-1/2 drop-shadow-[0_5px_4px_rgba(0,0,0,0.45)]" aria-hidden="true">
+                <div className="h-0 w-0 border-l-[15px] border-r-[15px] border-t-[26px] border-l-transparent border-r-transparent border-t-amber-300 md:border-l-[20px] md:border-r-[20px] md:border-t-[34px]" />
+                <div className="absolute left-1/2 top-[-5px] h-3 w-5 -translate-x-1/2 rounded-full border-2 border-amber-100 bg-amber-600 md:h-4 md:w-7" />
+              </div>
               <div className="absolute inset-0 rounded-full border-[7px] border-amber-200/90 shadow-[0_0_0_4px_rgba(120,53,15,0.55),0_0_30px_rgba(250,204,21,0.35),inset_0_0_18px_rgba(15,23,42,0.55)]" />
-              <svg viewBox="0 0 280 280" className="h-full w-full rounded-full p-[7px] transition-transform ease-out" style={{ transform: `rotate(${rotation}deg)`, transitionDuration: spinning ? '1300ms' : '200ms' }}>
+              <svg viewBox="0 0 280 280" className="h-full w-full rounded-full p-[7px] transition-transform ease-out" style={{ transform: `rotate(${rotation}deg)`, transitionDuration: spinning ? `${spinDuration}ms` : '200ms' }}>
                 {WHEEL_VALUES.map((value, index) => {
                   const segmentAngle = (Math.PI * 2) / WHEEL_VALUES.length;
                   const startAngle = -Math.PI / 2 + index * segmentAngle;
@@ -266,7 +335,7 @@ export default function WheelGame() {
                 })}
                 <circle cx="140" cy="140" r="43" fill="#111827" stroke="#FDE68A" strokeWidth="4" />
                 <text x="140" y="140" fill="#FEF3C7" fontSize="14" fontWeight="900" textAnchor="middle" dominantBaseline="middle">
-                  {spinning ? 'SPIN!' : 'FLICK'}
+                  SPIN
                 </text>
               </svg>
             </button>
@@ -319,6 +388,10 @@ export default function WheelGame() {
                 aria-label="Solve the phrase"
               />
               <Button onClick={solve} size="sm" className="rounded-xl bg-indigo-700 hover:bg-indigo-800">Solve</Button>
+            </div>
+            <div className="flex items-center justify-between gap-3 rounded-xl border border-amber-200 bg-amber-50 px-3 py-2 text-[0.68rem] font-bold text-amber-950 md:text-xs">
+              <span>Solve now: <strong>+{solveBonus.toLocaleString()}</strong></span>
+              <span className="text-amber-800/80">Wrong: −{INCORRECT_SOLVE_PENALTY}</span>
             </div>
             <div className={cn('min-h-7 rounded-xl px-3 py-1.5 text-center text-xs font-black md:text-sm', currentValue ? 'bg-amber-100 text-amber-950' : 'bg-emerald-50 text-emerald-900')} role="status" aria-live="polite">
               {status}

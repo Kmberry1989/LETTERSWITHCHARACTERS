@@ -5,6 +5,7 @@ import { GameModeHeader, GameScreen } from '@/components/game-screen';
 import { ArcadeSessionStatus } from '@/components/retention/arcade-session-status';
 import { useAudio } from '@/hooks/use-audio';
 import { createArcadeSessionId } from '@/lib/arcade/session-id';
+import { FIVE_IN_SIX_GUESS_SET } from '@/lib/arcade/five-in-six-guesses';
 import { FIVE_IN_SIX_WORDS } from '@/lib/arcade/five-in-six-words';
 import { cn } from '@/lib/utils';
 
@@ -119,7 +120,7 @@ export default function FiveInSixGame() {
       return;
     }
 
-    if (!FIVE_IN_SIX_WORDS.includes(guessWord)) {
+    if (!FIVE_IN_SIX_GUESS_SET.has(guessWord)) {
       playSfx('error');
       showMessage('Not in word list');
       return;

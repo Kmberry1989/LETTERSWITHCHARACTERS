@@ -222,7 +222,7 @@ export const MODE_METADATA: Record<RetentionModeId, GameModeDefinition> = {
     shortTitle: 'Story Wheel',
     href: '/minigames/wheel',
     category: 'word-games',
-    objective: 'Reveal and solve the hidden storybook phrase.',
+    objective: 'Reveal and solve the hidden phrase.',
     instructions: 'Spin for a value, choose consonants, buy vowels, or solve the complete phrase.',
     accessibilityInstructions: 'The wheel is a button; its result, bank, guessed letters, and phrase state are announced.',
     scoreLabel: 'Bank',
