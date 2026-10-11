@@ -6,6 +6,7 @@ import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { BerriesProvider } from '@/hooks/use-berries';
 import { AudioProvider } from '@/hooks/use-audio';
 import { ClientThemeInitializer } from '@/components/profile/theme-initializer';
+import { ComfortInitializer } from '@/components/profile/comfort-initializer';
 
 export const metadata: Metadata = {
   title: 'Letters with Characters',
@@ -30,6 +31,7 @@ export default function RootLayout({
       <body className={cn('font-body antialiased', 'min-h-screen bg-background font-sans')}>
         <FirebaseClientProvider>
           <ClientThemeInitializer />
+          <ComfortInitializer />
           <BerriesProvider>
             <AudioProvider>
               {children}

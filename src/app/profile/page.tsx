@@ -2,6 +2,7 @@ import AppLayout from '@/components/app-layout';
 import AudioSettings from '@/components/profile/audio-settings';
 import AppearanceEditor from '@/components/profile/appearance-editor';
 import NotificationSettings from '@/components/profile/notification-settings';
+import ComfortSettings from '@/components/profile/comfort-settings';
 import ProfilePictureEditor from '@/components/profile/profile-picture-editor';
 import StatsPanel from '@/components/profile/stats-panel';
 import ThemeSelector from '@/components/profile/theme-selector';
@@ -23,6 +24,7 @@ export default function ProfilePage() {
             <TabsTrigger value="themes">Themes</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
             <TabsTrigger value="audio">Audio</TabsTrigger>
+            <TabsTrigger value="comfort">Comfort</TabsTrigger>
           </TabsList>
           <TabsContent value="picture">
             <ProfilePictureEditor />
@@ -46,6 +48,9 @@ export default function ProfilePage() {
           </TabsContent>
           <TabsContent value="notifications">
             <NotificationSettings />
+          </TabsContent>
+          <TabsContent value="comfort">
+            <ComfortSettings />
           </TabsContent>
           <TabsContent value="audio">
             <Card>

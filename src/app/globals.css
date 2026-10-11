@@ -327,3 +327,47 @@
     }
   }
 }
+
+/* ---- Comfort Settings (from porchlight-puzzles) ---- */
+:root {
+  --font-scale: 1;
+}
+html {
+  font-size: calc(16px * var(--font-scale));
+}
+/* Larger touch targets in large / high-contrast modes */
+[data-comfort='large'] button,
+[data-comfort='highContrast'] button {
+  min-height: 48px;
+}
+/* High contrast overrides */
+[data-comfort='highContrast'] {
+  --background: 60 100% 94%;
+  --foreground: 0 0% 6%;
+  --card: 0 0% 100%;
+  --card-foreground: 0 0% 6%;
+  --muted: 0 0% 15%;
+  --border: 0 0% 6%;
+}
+[data-comfort='highContrast'] * {
+  text-shadow: none !important;
+  box-shadow: none !important;
+}
+[data-comfort='highContrast'] .card,
+[data-comfort='highContrast'] [class*='card'] {
+  border: 2px solid hsl(var(--foreground)) !important;
+}
+/* Reduced motion */
+html.reduce-motion *,
+html.reduce-motion *::before,
+html.reduce-motion *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
