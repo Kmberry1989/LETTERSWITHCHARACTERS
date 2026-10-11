@@ -10,7 +10,6 @@ export interface ComfortSettings {
   reduceMotion: boolean;
   soundEnabled: boolean;
   hapticsEnabled: boolean;
-  confirmMoves: boolean;
 }
 
 const DEFAULTS: ComfortSettings = {
@@ -19,7 +18,6 @@ const DEFAULTS: ComfortSettings = {
   reduceMotion: false,
   soundEnabled: true,
   hapticsEnabled: true,
-  confirmMoves: false,
 };
 
 const KEY = "lwc_comfort_settings";
@@ -68,4 +66,20 @@ export function useComfortSettings() {
   const reset = useCallback(() => setSettings(DEFAULTS), []);
 
   return { settings, patch, reset, ready };
+}
+
+// Standalone getters for non-React contexts (audio, haptics).
+// Reads directly from localStorage — no hook needed.
+export function getComfortSetting<K extends keyof ComfortSettings>(key: K): ComfortSettings[K] {
+  return load()[key];
+}
+
+export function comfortVibrate(pattern: number | number[]): boolean {
+  if (typeof navigator === "undefined" || !navigator.vibrate) return false;
+  if (!getComfortSetting("hapticsEnabled")) return false;
+  try {
+    return navigator.vibrate(pattern);
+  } catch {
+    return false;
+  }
 }

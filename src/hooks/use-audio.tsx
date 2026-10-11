@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, ReactNode, useCallback, useEffect } from 'react';
 import { SFX_FILE_MAP, type SfxType } from '@/lib/audio-assets';
+import { getComfortSetting } from '@/hooks/use-comfort-settings';
 
 type AudioContextType = {
   masterVolume: number;
@@ -245,6 +246,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
 
   const playSfx = useCallback((type: SfxType) => {
     if (isMuted) return;
+    if (!getComfortSetting("soundEnabled")) return;
     const volume = Math.max(0.0001, (masterVolume / 100) * (sfxVolume / 100));
     const audioFile = SFX_FILE_MAP[type];
 
