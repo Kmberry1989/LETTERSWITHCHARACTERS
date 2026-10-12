@@ -3,7 +3,7 @@ import { getAdminFirestore } from '@/firebase/admin';
 import type { PlacedTile, Tile } from '@/lib/game/types';
 import { calculateScore } from '@/lib/scoring';
 import { drawTiles } from '@/lib/game-logic';
-import { generateBotMove } from '@/ai/ai-bot-move';
+import { generateLocalBotMove } from '@/lib/server/local-bot';
 import { awardWinnerBonusIfNeeded, recordCompletedGame } from '@/lib/server/game-rewards';
 import { notifyUserGame, notifyUserTurn } from '@/lib/server/turn-notifications';
 export const dynamic = 'force-dynamic';
@@ -71,10 +71,6 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const botUid = 'bitty-botty-001'; // Hardcoded for now
     const difficulty = body.difficulty || gameData.difficulty || 'Medium';
 
-    if (!process.env.GEMINI_API_KEY && !process.env.GOOGLE_API_KEY) {
-        return NextResponse.json({ error: 'Bot play is unavailable until AI credentials are configured.' }, { status: 503 });
-    }
-
     if (gameData.status !== 'active') {
         return NextResponse.json({ error: 'The game is not currently active.' }, { status: 409 });
     }
@@ -92,11 +88,10 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const botTilesString = botData.tiles.map(t => t.letter).join('');
     const boardStateString = JSON.stringify(gameData.board);
 
-    const move = await generateBotMove({
-        tiles: botTilesString,
-        boardState: boardStateString,
-        difficulty: difficulty
-    });
+    // Local bot — no AI credentials needed. Uses the bundled dictionary.
+    const boardState = JSON.parse(boardStateString || '{}');
+    const botTiles = botTilesString.split('').filter(Boolean);
+    const move = generateLocalBotMove(botTiles, boardState, difficulty as 'Easy' | 'Medium' | 'Hard');
 
     if (!move) {
         const opponentUid = gameData.players.find(p => p !== botUid);
