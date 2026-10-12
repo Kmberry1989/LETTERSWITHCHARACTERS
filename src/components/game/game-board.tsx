@@ -17,9 +17,19 @@ type GameBoardProps = {
   onCellClick?: (row: number, col: number) => void;
   onDrop?: (row: number, col: number, tileIndex?: number | null) => void;
   onPendingTileSelect?: (tile: PlacedTile) => void;
+  onPendingTileMove?: (fromRow: number, fromCol: number, toRow: number, toCol: number) => void;
+  onPendingTileReturn?: (row: number, col: number) => void;
   tileSetId?: string | null;
   ownerTileSetIds?: Record<string, string | null | undefined>;
   selectedPendingTileKey?: string | null;
+};
+
+type BoardTouchDrag = {
+  tile: Tile;
+  fromRow: number;
+  fromCol: number;
+  x: number;
+  y: number;
 };
 
 function Cell({
@@ -109,6 +119,9 @@ function PlacedTileComponent({
   isSelected,
   tileSetId,
   ownerTileSetIds,
+  onTouchDragStart,
+  row,
+  col,
 }: {
   tile: Tile;
   isPending: boolean;
@@ -117,8 +130,26 @@ function PlacedTileComponent({
   isSelected?: boolean;
   tileSetId?: string | null;
   ownerTileSetIds?: Record<string, string | null | undefined>;
+  onTouchDragStart?: (tile: Tile, row: number, col: number, x: number, y: number) => void;
+  row?: number;
+  col?: number;
 }) {
   const canInteract = !!onClick;
+  const touchRef = React.useRef<{ startX: number; startY: number; dragging: boolean } | null>(null);
+
+  const handleTouchDown = (e: React.PointerEvent) => {
+    if (e.pointerType === 'mouse' || !isPending || !onTouchDragStart || row === undefined || col === undefined) return;
+    touchRef.current = { startX: e.clientX, startY: e.clientY, dragging: false };
+  };
+  const handleTouchMove = (e: React.PointerEvent) => {
+    const t = touchRef.current;
+    if (!t || t.dragging) return;
+    if (Math.hypot(e.clientX - t.startX, e.clientY - t.startY) > 10) {
+      t.dragging = true;
+      onTouchDragStart!(tile, row!, col!, e.clientX, e.clientY);
+    }
+  };
+  const handleTouchUp = () => { touchRef.current = null; };
   const resolvedTileSetId =
     tile.tileSetId || (tile.ownerUid ? ownerTileSetIds?.[tile.ownerUid] : undefined) || tileSetId;
 
@@ -138,6 +169,10 @@ function PlacedTileComponent({
         'before:absolute before:inset-0 before:rounded-[0.2rem] before:bg-gradient-to-br before:from-white/55 before:via-transparent before:to-transparent sm:before:rounded-sm',
       )}
       onClick={onClick}
+      onPointerDown={handleTouchDown}
+      onPointerMove={handleTouchMove}
+      onPointerUp={handleTouchUp}
+      onPointerCancel={handleTouchUp}
     >
       <ThemedTileFace
         tileSetId={resolvedTileSetId}
@@ -156,10 +191,63 @@ const GameBoard = ({
   onCellClick,
   onDrop,
   onPendingTileSelect,
+  onPendingTileMove,
+  onPendingTileReturn,
   tileSetId,
   ownerTileSetIds,
   selectedPendingTileKey,
 }: GameBoardProps) => {
+  const [boardTouchDrag, setBoardTouchDrag] = React.useState<BoardTouchDrag | null>(null);
+  const boardDragRef = React.useRef<BoardTouchDrag | null>(null);
+
+  const startBoardTouchDrag = React.useCallback((tile: Tile, fromRow: number, fromCol: number, x: number, y: number) => {
+    const drag = { tile, fromRow, fromCol, x, y };
+    boardDragRef.current = drag;
+    setBoardTouchDrag(drag);
+  }, []);
+
+  // Track drag position and handle drop
+  React.useEffect(() => {
+    if (!boardTouchDrag) return;
+    const handleMove = (e: PointerEvent) => {
+      const d = boardDragRef.current;
+      if (!d) return;
+      const next = { ...d, x: e.clientX, y: e.clientY };
+      boardDragRef.current = next;
+      setBoardTouchDrag(next);
+    };
+    const handleUp = (e: PointerEvent) => {
+      const d = boardDragRef.current;
+      boardDragRef.current = null;
+      setBoardTouchDrag(null);
+      if (!d) return;
+      const target = document.elementFromPoint(e.clientX, e.clientY) as HTMLElement | null;
+      // Dropped on rack? Return the tile.
+      const rack = target?.closest('[data-rack-interactive="true"]');
+      if (rack && onPendingTileReturn) {
+        onPendingTileReturn(d.fromRow, d.fromCol);
+        return;
+      }
+      // Dropped on a board cell? Move there.
+      const cell = target?.closest<HTMLElement>('[data-board-cell-placeable="true"]');
+      if (cell) {
+        const toRow = Number(cell.dataset.boardRow);
+        const toCol = Number(cell.dataset.boardCol);
+        if (!Number.isNaN(toRow) && !Number.isNaN(toCol) && (toRow !== d.fromRow || toCol !== d.fromCol)) {
+          if (onPendingTileMove) onPendingTileMove(d.fromRow, d.fromCol, toRow, toCol);
+          else onCellClick?.(toRow, toCol);
+        }
+      }
+    };
+    window.addEventListener('pointermove', handleMove);
+    window.addEventListener('pointerup', handleUp);
+    window.addEventListener('pointercancel', handleUp);
+    return () => {
+      window.removeEventListener('pointermove', handleMove);
+      window.removeEventListener('pointerup', handleUp);
+      window.removeEventListener('pointercancel', handleUp);
+    };
+  }, [boardTouchDrag, onPendingTileMove, onPendingTileReturn, onCellClick]);
   const { shouldSuppressBoardTap } = useMobileGestures();
   const allTiles = { ...placedTiles };
   const pendingKeys = new Set<string>();
@@ -226,6 +314,9 @@ const GameBoard = ({
                     isSelected={selectedPendingTileKey === tileKey}
                     tileSetId={tileSetId}
                     ownerTileSetIds={ownerTileSetIds}
+                    row={rowIndex}
+                    col={colIndex}
+                    onTouchDragStart={startBoardTouchDrag}
                     onClick={
                       isPending && onPendingTileSelect
                         ? () => runBoardTap(() => onPendingTileSelect({ ...tile, row: rowIndex, col: colIndex }))
@@ -247,6 +338,24 @@ const GameBoard = ({
         )}
       </div>
     </div>
+      {boardTouchDrag ? (
+        <div className="pointer-events-none fixed inset-0 z-[70]">
+          <div
+            className="absolute h-[3rem] w-[3rem] -translate-x-1/2 -translate-y-1/2 rotate-3 opacity-95"
+            style={{ left: boardTouchDrag.x, top: boardTouchDrag.y }}
+          >
+            <div className="relative flex h-full w-full items-center justify-center rounded-[0.2rem] border-b-2 border-black/20 bg-[#f8e8c7] shadow-[0_16px_26px_rgba(15,23,42,0.28)]">
+              <ThemedTileFace
+                tileSetId={tileSetId}
+                letter={boardTouchDrag.tile.letter}
+                score={boardTouchDrag.tile.score}
+                isBlank={boardTouchDrag.tile.isBlank}
+                showScore
+              />
+            </div>
+          </div>
+        </div>
+      ) : null}
   );
 };
 

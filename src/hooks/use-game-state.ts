@@ -169,6 +169,36 @@ export function useGameState(gameId: string | null, user: any, game: any, equipp
         playSfx('click');
     };
 
+    const handlePendingTileMove = (fromRow: number, fromCol: number, toRow: number, toCol: number) => {
+        if (!isPlayerTurn) return;
+        setPendingTiles((prev: PlacedTile[]) =>
+            prev.map((tile) =>
+                tile.row === fromRow && tile.col === fromCol
+                    ? { ...tile, row: toRow, col: toCol }
+                    : tile
+            )
+        );
+        setSelectedPendingTileKey(`${toRow}-${toCol}`);
+        playSfx('click');
+    };
+
+    const handlePendingTileReturn = (row: number, col: number) => {
+        if (!isPlayerTurn) return;
+        const tile = pendingTiles.find((t: PlacedTile) => t.row === row && t.col === col);
+        if (!tile) return;
+        playSfx('swoosh');
+        setPlayerTiles((prev: (Tile | null)[]) => {
+            const next = [...prev];
+            const emptyIdx = next.findIndex((t) => t === null);
+            if (emptyIdx !== -1) {
+                next[emptyIdx] = tile.isBlank ? { letter: ' ', score: 0 } : { letter: tile.letter, score: tile.score };
+            }
+            return next;
+        });
+        setPendingTiles((prev: PlacedTile[]) => prev.filter((t) => !(t.row === row && t.col === col)));
+        setSelectedPendingTileKey(null);
+    };
+
     const handleRecallAll = () => {
         if (!isPlayerTurn) return;
         playSfx('swoosh');
@@ -426,6 +456,8 @@ export function useGameState(gameId: string | null, user: any, game: any, equipp
         handleTileSelect,
         handleCellClick,
         handlePendingTileSelect,
+        handlePendingTileMove,
+        handlePendingTileReturn,
         handleRecallAll,
         handleShuffle,
         handlePlay,

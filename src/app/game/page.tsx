@@ -70,6 +70,8 @@ function Game() {
     handleTileSelect,
     handleCellClick,
     handlePendingTileSelect,
+    handlePendingTileMove,
+    handlePendingTileReturn,
     handleRecallAll,
     handleShuffle,
     handlePlay,
@@ -218,6 +220,8 @@ function Game() {
                     pendingTiles={pendingTiles}
                     onCellClick={handleCellClick}
                     onPendingTileSelect={handlePendingTileSelect}
+                    onPendingTileMove={handlePendingTileMove}
+                    onPendingTileReturn={handlePendingTileReturn}
                     onDrop={handleBoardDrop}
                     tileSetId={equippedTileSetId}
                     ownerTileSetIds={ownerTileSetIds}
